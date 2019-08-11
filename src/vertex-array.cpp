@@ -25,6 +25,33 @@ VertexArray::VertexArray(const IndexedModel& model, uint32_t usage)
 	bufferSizes[numBuffers - 1] = indicesSize;
 }
 
+void VertexArray::updateBuffer(uint32_t bufferIndex,
+		const void* data, uintptr_t dataSize) {
+	glBindVertexArray(deviceID);
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[bufferIndex]);
+
+	if (dataSize <= bufferSizes[bufferIndex]) {
+		glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, data);
+	}
+	else {
+		glBufferData(GL_ARRAY_BUFFER, dataSize, data,
+				bufferIndex >= instancedComponentStartIndex ? GL_DYNAMIC_DRAW : usage);
+	}
+}
+
+void VertexArray::draw(uint32_t primitive, uint32_t numInstances, uint32_t numElements) {
+	switch (numInstances) {
+		case 0:
+			return;
+		case 1:
+			glDrawElements(primitive, (GLsizei)numElements, GL_UNSIGNED_INT, 0);
+			return;
+		default:
+			glDrawElementsInstanced(primitive, (GLsizei)numElements,
+					GL_UNSIGNED_INT, 0, numInstances);
+	}
+}
+
 VertexArray::~VertexArray() {
 	glDeleteVertexArrays(1, &deviceID);
 	glDeleteBuffers(numBuffers, buffers);

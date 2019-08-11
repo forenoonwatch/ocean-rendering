@@ -10,6 +10,7 @@ class VertexArray {
 		VertexArray(const IndexedModel& model, uint32_t usage);
 
 		void updateBuffer(uint32_t bufferIndex, const void* data, uintptr_t dataSize);
+		void draw(uint32_t primitive, uint32_t numInstances, uint32_t numElements);
 
 		inline void bind() { glBindVertexArray(deviceID); }
 
