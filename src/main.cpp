@@ -8,10 +8,9 @@
 #include <GLM/gtc/type_ptr.hpp>
 #include <GLM/gtx/norm.hpp>
 
-#include <GL/gl.h>
-
 #include "display.hpp"
 #include "camera.hpp"
+#include "vertex-array.hpp"
 
 #define MOVE_SPEED	0.05f
 #define GRID_LENGTH	16

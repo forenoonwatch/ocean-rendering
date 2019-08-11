@@ -1,4 +1,5 @@
 TARGET_EXEC := OceanRendering
+LOG_FILE := build-log.txt
 
 BUILD_DIR ?= bin
 SRC_DIRS ?= src
@@ -26,7 +27,7 @@ CXXFLAGS := -I$(CURDIR)/headers -I$(CURDIR)/sources -I$(CURDIR)/src -I$(LIB_DIR)
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	@echo "Building $(TARGET_EXEC)..."
-	@$(CC) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS) 
+	@$(CC) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
