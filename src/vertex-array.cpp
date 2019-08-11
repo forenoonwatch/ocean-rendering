@@ -1,7 +1,9 @@
 #include "vertex-array.hpp"
 
-VertexArray::VertexArray(const IndexedModel& model, uint32_t usage)
-		: deviceID(0)
+VertexArray::VertexArray(RenderContext& context,
+			const IndexedModel& model, uint32_t usage)
+		: context(&context)
+		, deviceID(0)
 		, numBuffers(model.getNumVertexComponents() + model.getNumInstanceComponents() + 1)
 		, numIndices(model.getNumIndices())
 		, instancedComponentStartIndex(model.getInstancedElementStartIndex())

@@ -3,11 +3,12 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
+#include "render-context.hpp"
 #include "indexed-model.hpp"
 
 class VertexArray {
 	public:
-		VertexArray(const IndexedModel& model, uint32_t usage);
+		VertexArray(RenderContext& context, const IndexedModel& model, uint32_t usage);
 
 		void updateBuffer(uint32_t bufferIndex, const void* data, uintptr_t dataSize);
 		void draw(uint32_t primitive, uint32_t numInstances, uint32_t numElements);
@@ -19,6 +20,8 @@ class VertexArray {
 
 		~VertexArray();
 	private:
+		RenderContext* context;
+
 		uint32_t deviceID;
 
 		uint32_t numBuffers;
