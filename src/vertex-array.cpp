@@ -15,6 +15,14 @@ VertexArray::VertexArray(const IndexedModel& model, uint32_t usage)
 
 	initVertexBuffers(model.getNumVertexComponents(), model.getVertexData(),
 			model.getNumVertices(), model.getElementSizes());
+
+	uintptr_t indicesSize = numIndices * sizeof(uint32_t);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[numBuffers - 1]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize,
+			model.getIndices(), usage);
+
+	bufferSizes[numBuffers - 1] = indicesSize;
 }
 
 VertexArray::~VertexArray() {

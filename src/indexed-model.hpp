@@ -25,6 +25,7 @@ class IndexedModel {
 		void addIndices4i(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3);
 
 		inline const float** getVertexData() const;
+		inline const uint32_t* getIndices() const;
 		inline const uint32_t* getElementSizes() const;
 
 		inline uint32_t getNumVertexComponents() const;

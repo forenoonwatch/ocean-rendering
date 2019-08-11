@@ -3,5 +3,7 @@
 *.o
 *.exe
 
+build-log.txt
+
 bin
 old

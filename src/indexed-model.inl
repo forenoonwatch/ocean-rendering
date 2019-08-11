@@ -18,6 +18,10 @@ inline const float** IndexedModel::getVertexData() const {
 	return &vertexData[0];
 }
 
+inline const uint32_t* IndexedModel::getIndices() const {
+	return &indices[0];
+}
+
 inline const uint32_t* IndexedModel::getElementSizes() const {
 	return &elementSizes[0];
 }
