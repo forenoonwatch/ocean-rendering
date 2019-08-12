@@ -49,9 +49,15 @@ int main() {
 	Util::resolveFileLinking(ss, "./src/basic-shader.glsl", "#include");
 
 	Shader shader(renderContext, ss.str());
+	UniformBuffer buffer(renderContext, sizeof(float), GL_DYNAMIC_DRAW);
+
+	shader.setUniformBuffer("ShaderData", buffer, 0);
 
 	while (!display.isCloseRequested()) {
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		float f[] = {(float)std::sin(glfwGetTime())};
+		buffer.update(f, sizeof(float));
 
 		glUseProgram(shader.getID());
 		ary.draw(GL_TRIANGLES, 1);

@@ -10,6 +10,10 @@ static bool addShader(GLuint program, const std::string& text,
 static bool checkShaderError(uint32 shader, GLenum flag,
 		bool isProgram, const std::string& errorMessage);
 
+static void addShaderUniforms(GLuint program,
+		std::unordered_map<std::string, int32>& uniformMap,
+		std::unordered_map<std::string, int32>& samplerMap); 
+
 Shader::Shader(RenderContext& context, const std::string& text)
 		: context(&context)
 		, programID(glCreateProgram()) {
@@ -52,7 +56,15 @@ Shader::Shader(RenderContext& context, const std::string& text)
 	}
 
 	// TODO: add attributes
-	// TODO: add uniforms
+	addShaderUniforms(programID, uniformMap, samplerMap);
+}
+
+void Shader::setUniformBuffer(const std::string& name,
+		UniformBuffer& buffer, uint32 index, uint32 block) {
+	glUseProgram(programID);
+
+	glUniformBlockBinding(programID, uniformMap[name], block);
+	glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.getID());
 }
 
 Shader::~Shader() {
@@ -70,7 +82,7 @@ static bool addShader(GLuint program, const std::string& text,
 	uint32 shader = glCreateShader(type);
 
 	if (shader == 0) {
-		// TODO: log error
+		DEBUG_LOG("Shader", LOG_ERROR, "Error creating shader type %d", type);
 		return false;
 	}
 
@@ -85,9 +97,11 @@ static bool addShader(GLuint program, const std::string& text,
 
 	if (!status) {
 		GLchar infoLog[SHADER_INFO_LOG_SIZE];
-
 		glGetShaderInfoLog(shader, SHADER_INFO_LOG_SIZE, nullptr, infoLog);
-		// TODO: write info log
+
+		DEBUG_LOG("Shader", LOG_ERROR, "Error compiling shader type %d: '%s'\n",
+				type, infoLog);
+
 		return false;
 	}
 
@@ -117,9 +131,52 @@ static bool checkShaderError(uint32 shader, GLenum flag,
 			glGetShaderInfoLog(shader, SHADER_INFO_LOG_SIZE, nullptr, error);
 		}
 
-		// TODO: write info log
+		DEBUG_LOG("Shader", LOG_ERROR, "%s: '%s'\n",
+				errorMessage.c_str(), error);
+
 		return true;
 	}
 
 	return false;
+}
+
+static void addShaderUniforms(GLuint program,
+		std::unordered_map<std::string, int32>& uniformMap,
+		std::unordered_map<std::string, int32>& samplerMap) {
+	GLint numBlocks;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+
+	for (int32 block = 0; block < numBlocks; ++block) {
+		GLint nameLen;
+		glGetActiveUniformBlockiv(program, block,
+				GL_UNIFORM_BLOCK_NAME_LENGTH, &nameLen);
+
+		std::vector<GLchar> name(nameLen);
+		glGetActiveUniformBlockName(program, block,
+				nameLen, nullptr, &name[0]);
+
+		std::string uniformBlockName((char*)&name[0], nameLen - 1);
+		uniformMap[uniformBlockName] = glGetUniformBlockIndex(program, &name[0]);
+	}
+
+	GLint numUniforms = 0;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+	std::vector<GLchar> uniformName(256);
+
+	for (int32 uniform = 0; uniform < numUniforms; ++uniform) {
+		GLint arraySize = 0;
+		GLenum type = 0;
+		GLsizei actualLength = 0;
+
+		glGetActiveUniform(program, uniform, uniformName.size(),
+				&actualLength, &arraySize, &type, &uniformName[0]);
+
+		if (type != GL_SAMPLER_2D && type != GL_SAMPLER_CUBE) {
+			continue;
+		}
+
+		std::string name((char*)&uniformName[0], actualLength);
+		samplerMap[name] = glGetUniformLocation(program, (char*)&uniformName[0]);
+	}
 }
