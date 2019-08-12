@@ -1,47 +1,48 @@
 #pragma once
 
-#include <cstdint>
+#include "common.hpp"
+
 #include <vector>
 
 class IndexedModel {
 	public:
 		inline IndexedModel()
-			: instancedElementStartIndex((uint32_t)-1) {}
+			: instancedElementStartIndex((uint32)-1) {}
 
-		inline void allocateElement(uint32_t elementSize);
-		inline void setInstancedElementStartIndex(uint32_t elementIndex);
+		inline void allocateElement(uint32 elementSize);
+		inline void setInstancedElementStartIndex(uint32 elementIndex);
 
-		void addElement1f(uint32_t elementIndex, float e0);
-		void addElement2f(uint32_t elementIndex, float e0, float e1);
-		void addElement3f(uint32_t elementIndex, float e0, float e1, float e2);
-		void addElement4f(uint32_t elementIndex, float e0, float e1, float e2, float e3);
+		void addElement1f(uint32 elementIndex, float e0);
+		void addElement2f(uint32 elementIndex, float e0, float e1);
+		void addElement3f(uint32 elementIndex, float e0, float e1, float e2);
+		void addElement4f(uint32 elementIndex, float e0, float e1, float e2, float e3);
 
-		void setElement4f(uint32_t elementIndex, uint32_t arrayIndex,
+		void setElement4f(uint32 elementIndex, uint32 arrayIndex,
 				float e0, float e1, float e2, float e3);
 
-		void addIndices1i(uint32_t i0);
-		void addIndices2i(uint32_t i0, uint32_t i1);
-		void addIndices3i(uint32_t i0, uint32_t i1, uint32_t i2);
-		void addIndices4i(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3);
+		void addIndices1i(uint32 i0);
+		void addIndices2i(uint32 i0, uint32 i1);
+		void addIndices3i(uint32 i0, uint32 i1, uint32 i2);
+		void addIndices4i(uint32 i0, uint32 i1, uint32 i2, uint32 i3);
 
 		inline std::vector<const float*> getVertexData() const;
-		inline const uint32_t* getIndices() const;
-		inline const uint32_t* getElementSizes() const;
+		inline const uint32* getIndices() const;
+		inline const uint32* getElementSizes() const;
 
-		inline uint32_t getNumVertexComponents() const;
-		inline uint32_t getNumInstanceComponents() const;
+		inline uint32 getNumVertexComponents() const;
+		inline uint32 getNumInstanceComponents() const;
 
-		inline uint32_t getNumVertices() const;
-		inline uint32_t getNumIndices() const;
-		inline uint32_t getInstancedElementStartIndex() const;
+		inline uint32 getNumVertices() const;
+		inline uint32 getNumIndices() const;
+		inline uint32 getInstancedElementStartIndex() const;
 
-		inline float getElement(uint32_t elementIndex, uint32_t arrayIndex) const;
+		inline float getElement(uint32 elementIndex, uint32 arrayIndex) const;
 	private:
-		std::vector<uint32_t> indices;
-		std::vector<uint32_t> elementSizes;
+		std::vector<uint32> indices;
+		std::vector<uint32> elementSizes;
 		std::vector<std::vector<float>> elements;
 
-		uint32_t instancedElementStartIndex;
+		uint32 instancedElementStartIndex;
 };
 
 #include "indexed-model.inl"

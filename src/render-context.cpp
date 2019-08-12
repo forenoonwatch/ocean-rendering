@@ -5,17 +5,17 @@
 RenderContext::RenderContext()
 	: version(0) {}
 
-uint32_t RenderContext::getVersion() {
+uint32 RenderContext::getVersion() {
 	if (version != 0) {
 		return version;
 	}
 
-	int32_t major, minor;
+	int32 major, minor;
 
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-	version = (uint32_t)(major * 100 + minor * 10);
+	version = (uint32)(major * 100 + minor * 10);
 
 	return version;
 }
@@ -25,7 +25,7 @@ std::string RenderContext::getShaderVersion() {
 		return shaderVersion;
 	}
 
-	uint32_t ver = getVersion();
+	uint32 ver = getVersion();
 
 	if (ver >= 330) {
 		shaderVersion = std::to_string(ver);

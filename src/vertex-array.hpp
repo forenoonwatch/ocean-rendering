@@ -8,31 +8,31 @@
 
 class VertexArray {
 	public:
-		VertexArray(RenderContext& context, const IndexedModel& model, uint32_t usage);
+		VertexArray(RenderContext& context, const IndexedModel& model, uint32 usage);
 
-		void updateBuffer(uint32_t bufferIndex, const void* data, uintptr_t dataSize);
-		void draw(uint32_t primitive, uint32_t numInstances);
+		void updateBuffer(uint32 bufferIndex, const void* data, uintptr dataSize);
+		void draw(uint32 primitive, uint32 numInstances);
 
 		inline void bind() { glBindVertexArray(deviceID); }
 
-		inline uint32_t getID() { return deviceID; }
-		inline uint32_t getNumIndices() const { return numIndices; }
+		inline uint32 getID() { return deviceID; }
+		inline uint32 getNumIndices() const { return numIndices; }
 
 		~VertexArray();
 	private:
 		RenderContext* context;
 
-		uint32_t deviceID;
+		uint32 deviceID;
 
-		uint32_t numBuffers;
-		uint32_t numIndices;
-		uint32_t instancedComponentStartIndex;
+		uint32 numBuffers;
+		uint32 numIndices;
+		uint32 instancedComponentStartIndex;
 
 		GLuint* buffers;
-		uintptr_t* bufferSizes;
+		uintptr* bufferSizes;
 
-		uint32_t usage;
+		uint32 usage;
 
-		void initVertexBuffers(uint32_t, const float**, uint32_t,
-				const uint32_t*);
+		void initVertexBuffers(uint32, const float**, uint32,
+				const uint32*);
 };

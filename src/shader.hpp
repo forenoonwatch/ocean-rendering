@@ -10,15 +10,15 @@ class Shader {
 	public:
 		Shader(RenderContext& context, const std::string& text);
 
-		inline uint32_t getID() { return programID; }
+		inline uint32 getID() { return programID; }
 
 		~Shader();
 	private:
 		RenderContext* context;
 		
-		uint32_t programID;
+		uint32 programID;
 
-		std::vector<uint32_t> shaders;
-		std::unordered_map<std::string, int32_t> uniformMap;
-		std::unordered_map<std::string, int32_t> samplerMap;
+		std::vector<uint32> shaders;
+		std::unordered_map<std::string, int32> uniformMap;
+		std::unordered_map<std::string, int32> samplerMap;
 };

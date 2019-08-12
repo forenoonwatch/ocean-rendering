@@ -21,8 +21,6 @@
 #define GRID_SIZE	GRID_LENGTH * GRID_LENGTH
 #define OCEAN_HEIGHT 0.f
 
-#define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a) / sizeof(a[0]))
-
 void onKeyEvent(GLFWwindow*, int, int, int, int);
 void onMouseClicked(GLFWwindow*, int, int, int);
 void onMouseMoved(GLFWwindow*, double, double);

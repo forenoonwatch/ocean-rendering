@@ -6,8 +6,8 @@
 #define SHADER_INFO_LOG_SIZE	1024
 
 static bool addShader(GLuint program, const std::string& text,
-		GLenum type, std::vector<uint32_t>& shaders);
-static bool checkShaderError(uint32_t shader, GLenum flag,
+		GLenum type, std::vector<uint32>& shaders);
+static bool checkShaderError(uint32 shader, GLenum flag,
 		bool isProgram, const std::string& errorMessage);
 
 Shader::Shader(RenderContext& context, const std::string& text)
@@ -66,8 +66,8 @@ Shader::~Shader() {
 }
 
 static bool addShader(GLuint program, const std::string& text,
-		GLenum type, std::vector<uint32_t>& shaders) {
-	uint32_t shader = glCreateShader(type);
+		GLenum type, std::vector<uint32>& shaders) {
+	uint32 shader = glCreateShader(type);
 
 	if (shader == 0) {
 		// TODO: log error
@@ -97,7 +97,7 @@ static bool addShader(GLuint program, const std::string& text,
 	return true;
 }
 
-static bool checkShaderError(uint32_t shader, GLenum flag,
+static bool checkShaderError(uint32 shader, GLenum flag,
 		bool isProgram, const std::string& errorMessage) {
 	GLint status = 0;
 	GLchar error[SHADER_INFO_LOG_SIZE];
