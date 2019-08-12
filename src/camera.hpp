@@ -15,6 +15,13 @@ class Camera {
 		inline const glm::mat4& getView() const { return view; }
 		inline const glm::mat4& getViewProjection() const { return viewProjection; }
 		inline const glm::mat4& getInverseVP() const { return iViewProjection; }
+
+		inline const glm::vec3& getPosition() const { return position; }
+
+		inline float getFieldOfView() const { return fieldOfView; }
+		inline float getAspectRatio() const { return aspectRatio; }
+		inline float getZNear() const { return zNear; }
+		inline float getZFar() const { return zFar; }
 	private:
 		glm::mat4 projection;
 		glm::mat4 view;
