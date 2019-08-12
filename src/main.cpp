@@ -23,11 +23,15 @@ void onMouseMoved(GLFWwindow*, double, double);
 
 Camera* camera;
 bool lockCamera;
+bool renderWater;
+uint32 primitive;
 
 int main() {
 	Display display("MoIsT", 800, 600);
 
 	lockCamera = true;
+	renderWater = true;
+	primitive = GL_TRIANGLES;
 
 	float fieldOfView = glm::radians(70.f);
 	float aspectRatio = (float)display.getWidth() / (float)display.getHeight();
@@ -37,7 +41,7 @@ int main() {
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
 
-	Ocean ocean(0.f, 64);
+	Ocean ocean(0.f, 1.f, 64);
 
 	OceanProjector projector(ocean, userCamera);
 
@@ -51,9 +55,33 @@ int main() {
 	std::stringstream fileData;
 	Util::resolveFileLinking(fileData, "./src/basic-shader.glsl", "#include");
 	Shader basicShader(context, fileData.str());
-	UniformBuffer dataBuffer(context, 2 * sizeof(float), GL_DYNAMIC_DRAW);
+	
+	fileData.str("");
+	Util::resolveFileLinking(fileData, "./src/ocean-shader.glsl", "#include");
+	Shader oceanShader(context, fileData.str());
 
-	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);	
+	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4), GL_DYNAMIC_DRAW);
+
+	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
+
+	IndexedModel testModel;
+	testModel.allocateElement(4);
+	testModel.allocateElement(16);
+	testModel.setInstancedElementStartIndex(1);
+
+	testModel.addElement4f(0, -1.f, -1.f, 0.f, 1.f);
+	testModel.addElement4f(0, -1.f,  1.f, 0.f, 1.f);
+	testModel.addElement4f(0,  1.f, -1.f, 0.f, 1.f);
+	testModel.addElement4f(0,  1.f,  1.f, 0.f, 1.f);
+
+	testModel.addIndices3i(0, 1, 2);
+	testModel.addIndices3i(1, 2, 3);
+
+	VertexArray testArray(context, testModel, GL_DYNAMIC_DRAW);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_DEPTH_TEST);
 
 	while (!display.isCloseRequested()) {
 		float dx = 0.f, dy = 0.f, dz = 0.f;
@@ -87,26 +115,47 @@ int main() {
 
 		if (lockCamera) {
 			projector.update();
+			testArray.updateBuffer(0, projector.getCorners(), 4 * sizeof(glm::vec4));
 		}
 
 		//glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
 		//model *= glm::rotate(glm::mat4(1.f), (float)glfwGetTime(), glm::vec3(0.f, 1.f, 0.f));
 		//glm::mat4 model = projectorCamera.getInverseVP();
 		//glm::mat4 mvp = camera->getViewProjection() * projector.getProjectorMatrix()/* * model*/;
-		
-		glm::mat4 transforms[2];
-
-		transforms[0] = camera->getViewProjection();
-		transforms[1] = projector.getProjectorMatrix();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		dataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
+		//dataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
+		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
 
+		testArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()), sizeof(glm::mat4));
+		
+		glm::mat4 transforms[] = {camera->getViewProjection(), projector.getProjectorMatrix()};
 		oceanArray.updateBuffer(2, transforms, 2 * sizeof(glm::mat4));
 
-		glUseProgram(basicShader.getID());
-		oceanArray.draw(GL_LINES, 1);
+		if (renderWater) {
+			glUseProgram(oceanShader.getID());
+			oceanArray.draw(primitive, 1);
+		}
+		else {
+			//glUseProgram(basicShader.getID());
+			//testArray.draw(primitive, 1);
+			glUseProgram(0);
+			
+			glBegin(GL_POINTS);
+			for (float y = 0.f; y <= 1.f; y += 0.1f) {
+				for (float x = 0.f; x <= 1.f; x += 0.1f) {
+					const glm::vec4 a = glm::mix(projector.getCorners()[0],
+							projector.getCorners()[2], x);
+					const glm::vec4 b = glm::mix(projector.getCorners()[1],
+							projector.getCorners()[3], x);
+					const glm::vec4 c = glm::mix(a, b, y);
+
+					glVertex4fv(glm::value_ptr(camera->getViewProjection() * c));
+				}
+			}
+			glEnd();
+		}
 
 		display.render();
 		display.pollEvents();
@@ -116,8 +165,18 @@ int main() {
 }
 
 void onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		lockCamera = !lockCamera;
+	if (action == GLFW_PRESS) {
+		switch (key) {
+			case GLFW_KEY_R:
+				lockCamera = !lockCamera;
+				break;
+			case GLFW_KEY_F:
+				renderWater = !renderWater;
+				break;
+			case GLFW_KEY_G:
+				primitive = primitive == GL_TRIANGLES ? GL_LINES : GL_TRIANGLES;
+				break;
+		}
 	}
 }
 

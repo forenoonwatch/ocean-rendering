@@ -17,6 +17,8 @@ class Camera {
 		inline const glm::mat4& getInverseVP() const { return iViewProjection; }
 
 		inline const glm::vec3& getPosition() const { return position; }
+		inline float getRotationX() const { return rotationX; }
+		inline float getRotationY() const { return rotationY; }
 
 		inline float getFieldOfView() const { return fieldOfView; }
 		inline float getAspectRatio() const { return aspectRatio; }

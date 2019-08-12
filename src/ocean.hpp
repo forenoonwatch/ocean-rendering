@@ -5,11 +5,13 @@
 
 class Ocean : public IndexedModel {
 	public:
-		Ocean(float oceanHeight, uint32 gridLength);
+		Ocean(float oceanHeight, float maxAmplitude, uint32 gridLength);
 
 		inline float getOceanHeight() const { return oceanHeight; }
+		inline float getMaxAmplitude() const { return maxAmplitude; }
 	private:
 		float oceanHeight;
+		float maxAmplitude;
 		uint32 gridLength;
 
 		void initGrid();
@@ -26,6 +28,7 @@ class OceanProjector {
 		void update();
 
 		inline const glm::mat4& getProjectorMatrix() const { return mProjector; }
+		inline const glm::vec4* getCorners() const { return corners; }
 	private:
 		Ocean& ocean;
 		
@@ -33,6 +36,7 @@ class OceanProjector {
 		Camera projectorCamera;
 
 		glm::mat4 mProjector;
+		glm::vec4 corners[4];
 
 		static const int cameraEdges[24];
 };
