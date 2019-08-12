@@ -15,7 +15,8 @@ VertexArray::VertexArray(RenderContext& context,
 
 	glGenBuffers(numBuffers, buffers);
 
-	initVertexBuffers(model.getNumVertexComponents(), model.getVertexData(),
+	std::vector<const float*> vertexData = model.getVertexData();
+	initVertexBuffers(model.getNumVertexComponents(), &vertexData[0],
 			model.getNumVertices(), model.getElementSizes());
 
 	uintptr_t indicesSize = numIndices * sizeof(uint32_t);
@@ -41,15 +42,17 @@ void VertexArray::updateBuffer(uint32_t bufferIndex,
 	}
 }
 
-void VertexArray::draw(uint32_t primitive, uint32_t numInstances, uint32_t numElements) {
+void VertexArray::draw(uint32_t primitive, uint32_t numInstances) {
+	glBindVertexArray(deviceID);
+
 	switch (numInstances) {
 		case 0:
 			return;
 		case 1:
-			glDrawElements(primitive, (GLsizei)numElements, GL_UNSIGNED_INT, 0);
+			glDrawElements(primitive, (GLsizei)numIndices, GL_UNSIGNED_INT, 0);
 			return;
 		default:
-			glDrawElementsInstanced(primitive, (GLsizei)numElements,
+			glDrawElementsInstanced(primitive, (GLsizei)numIndices,
 					GL_UNSIGNED_INT, 0, numInstances);
 	}
 }

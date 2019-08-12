@@ -2,7 +2,8 @@
 
 #include <GL/glew.h>
 
-RenderContext::RenderContext() {}
+RenderContext::RenderContext()
+	: version(0) {}
 
 uint32_t RenderContext::getVersion() {
 	if (version != 0) {
