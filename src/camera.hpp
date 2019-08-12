@@ -11,6 +11,12 @@ class Camera {
 		void update();
 		void update(const Camera&);
 
+		inline void setPosition(const glm::vec3& position) { this->position = position; }
+		inline void setRotation(float rotationX, float rotationY) {
+			this->rotationX = rotationX;
+			this->rotationY = rotationY;
+		}
+
 		inline const glm::mat4& getProjection() const { return projection; }
 		inline const glm::mat4& getView() const { return view; }
 		inline const glm::mat4& getViewProjection() const { return viewProjection; }
@@ -19,6 +25,8 @@ class Camera {
 		inline const glm::vec3& getPosition() const { return position; }
 		inline float getRotationX() const { return rotationX; }
 		inline float getRotationY() const { return rotationY; }
+
+		inline glm::vec3 getLookVector() const { return glm::vec3(view[2]); }
 
 		inline float getFieldOfView() const { return fieldOfView; }
 		inline float getAspectRatio() const { return aspectRatio; }

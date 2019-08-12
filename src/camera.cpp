@@ -28,6 +28,13 @@ void Camera::move(float dx, float dy, float dz) {
 void Camera::rotate(float dx, float dy) {
 	rotationX += dx;
 	rotationY += dy;
+
+	if (rotationX < -1.27f) {
+		rotationX = -1.27f;
+	}
+	else if (rotationX > 1.27f) {
+		rotationX = 1.27f;
+	}
 }
 
 void Camera::update() {

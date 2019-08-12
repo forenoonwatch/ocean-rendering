@@ -68,7 +68,11 @@ OceanProjector::OceanProjector(Ocean& ocean, Camera& viewCamera)
 		, mProjector(1.f) {}
 
 void OceanProjector::update() {
-	projectorCamera.update(viewCamera);
+	glm::vec3 camPos = viewCamera.getPosition() + viewCamera.getLookVector() * 2.f;
+
+	projectorCamera.setPosition(camPos);
+	projectorCamera.setRotation(viewCamera.getRotationX(), viewCamera.getRotationY());
+	projectorCamera.update();
 
 	glm::vec3 frustum[8];
 

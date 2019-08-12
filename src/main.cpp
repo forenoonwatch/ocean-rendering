@@ -41,7 +41,7 @@ int main() {
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
 
-	Ocean ocean(0.f, 1.f, 64);
+	Ocean ocean(0.f, 1.f, 256);
 
 	OceanProjector projector(ocean, userCamera);
 
