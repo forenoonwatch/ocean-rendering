@@ -7,7 +7,7 @@ class Texture {
 	public:
 		Texture(RenderContext& context, uint32 width,
 				uint32 height, uint32 internalPixelFormat,
-				const void* data = nullptr);
+				bool storage = false, const void* data = nullptr);
 		Texture(RenderContext& context, const Bitmap& bitmap,
 				uint32 internalPixelFormat);
 

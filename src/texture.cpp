@@ -2,7 +2,7 @@
 
 Texture::Texture(RenderContext& context, uint32 width,
 			uint32 height, uint32 internalPixelFormat,
-			const void* data)
+			bool storage, const void* data)
 		: context(&context)
 		, textureID(-1)
 		, width(width)
@@ -16,8 +16,14 @@ Texture::Texture(RenderContext& context, uint32 width,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internalPixelFormat,
-			width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	if (storage) {
+		glTexStorage2D(GL_TEXTURE_2D, 0,
+				internalPixelFormat, width, height);
+	}
+	else {
+		glTexImage2D(GL_TEXTURE_2D, 0, internalPixelFormat,
+				width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -26,7 +32,7 @@ Texture::Texture(RenderContext& context, uint32 width,
 Texture::Texture(RenderContext& context, const Bitmap& bitmap,
 			uint32 internalPixelFormat)
 		: Texture(context, bitmap.getWidth(), bitmap.getHeight(),
-			   internalPixelFormat, bitmap.getPixels())	{}
+			   internalPixelFormat, false, bitmap.getPixels())	{}
 
 Texture::~Texture() {
 	glDeleteTextures(1, &textureID);
