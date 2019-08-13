@@ -5,7 +5,7 @@ out vec3 normal;
 
 layout(location = 0) in vec2 xyPos;
 layout(location = 1) in vec4 adjacent;
-layout(location = 2) in mat4 transforms[2];
+layout(location = 2) in mat4 transform;
 
 layout (std140) uniform ShaderData {
 	vec4 corners[4];
@@ -36,7 +36,7 @@ void main() {
 
 	normal = normalize(cross(p1 - p0, p2 - p0));
 
-	gl_Position = transforms[0] * p0Raw;
+	gl_Position = transform * p0Raw;
 }
 
 #elif defined(FS_BUILD)

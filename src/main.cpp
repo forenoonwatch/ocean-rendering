@@ -21,6 +21,8 @@ void onKeyEvent(GLFWwindow*, int, int, int, int);
 void onMouseClicked(GLFWwindow*, int, int, int);
 void onMouseMoved(GLFWwindow*, double, double);
 
+void updateCameraMovement(Display&);
+
 Camera* camera;
 bool lockCamera;
 bool renderWater;
@@ -63,65 +65,23 @@ int main() {
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4), GL_DYNAMIC_DRAW);
 
 	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
-
-	IndexedModel testModel;
-	testModel.allocateElement(4);
-	testModel.allocateElement(16);
-	testModel.setInstancedElementStartIndex(1);
-
-	testModel.addElement4f(0, -1.f, -1.f, 0.f, 1.f);
-	testModel.addElement4f(0, -1.f,  1.f, 0.f, 1.f);
-	testModel.addElement4f(0,  1.f, -1.f, 0.f, 1.f);
-	testModel.addElement4f(0,  1.f,  1.f, 0.f, 1.f);
-
-	testModel.addIndices3i(0, 1, 2);
-	testModel.addIndices3i(1, 2, 3);
-
-	VertexArray testArray(context, testModel, GL_DYNAMIC_DRAW);
+	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
 	while (!display.isCloseRequested()) {
-		float dx = 0.f, dy = 0.f, dz = 0.f;
-
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_W) == GLFW_PRESS) {
-			dz -= MOVE_SPEED;
-		}
-		
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_S) == GLFW_PRESS) {
-			dz += MOVE_SPEED;
-		}
-
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_A) == GLFW_PRESS) {
-			dx -= MOVE_SPEED;
-		}
-
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_D) == GLFW_PRESS) {
-			dx += MOVE_SPEED;
-		}
-
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_Q) == GLFW_PRESS) {
-			dy -= MOVE_SPEED;
-		}
-		
-		if (glfwGetKey(display.getWindow(), GLFW_KEY_E) == GLFW_PRESS) {
-			dy += MOVE_SPEED;
-		}
-
-		camera->move(dx, dy, dz);
+		updateCameraMovement(display);
 		camera->update();
 
 		if (lockCamera) {
 			projector.update();
-			testArray.updateBuffer(0, projector.getCorners(), 4 * sizeof(glm::vec4));
 		}
 
+		// BEGIN DRAW
 		context.clear();
 
 		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
 
-		testArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()), sizeof(glm::mat4));
-		
-		glm::mat4 transforms[] = {camera->getViewProjection(), projector.getProjectorMatrix()};
-		oceanArray.updateBuffer(2, transforms, 2 * sizeof(glm::mat4));
+		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
+				sizeof(glm::mat4));
 
 		if (renderWater) {
 			context.draw(oceanShader, oceanArray, primitive);
@@ -190,3 +150,32 @@ void onMouseMoved(GLFWwindow* window, double xPos, double yPos) {
 	lastY = yPos;
 }
 
+void updateCameraMovement(Display& display) {
+	float dx = 0.f, dy = 0.f, dz = 0.f;
+
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_W) == GLFW_PRESS) {
+		dz -= MOVE_SPEED;
+	}
+	
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_S) == GLFW_PRESS) {
+		dz += MOVE_SPEED;
+	}
+
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_A) == GLFW_PRESS) {
+		dx -= MOVE_SPEED;
+	}
+
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_D) == GLFW_PRESS) {
+		dx += MOVE_SPEED;
+	}
+
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_Q) == GLFW_PRESS) {
+		dy -= MOVE_SPEED;
+	}
+	
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_E) == GLFW_PRESS) {
+		dy += MOVE_SPEED;
+	}
+
+	camera->move(dx, dy, dz);
+}

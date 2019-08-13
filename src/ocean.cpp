@@ -12,7 +12,7 @@ Ocean::Ocean(float oceanHeight, float maxAmplitude, uint32 gridLength)
 	allocateElement(4); // vec4 adjacent local-space positions
 
 	setInstancedElementStartIndex(2);
-	allocateElement(2 * 16); // mat4 transforms[2];
+	allocateElement(16); // mat4 transform;
 
 	initGrid();
 }
