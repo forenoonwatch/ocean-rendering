@@ -3,15 +3,15 @@
 VertexArray::VertexArray(RenderContext& context,
 			const IndexedModel& model, uint32 usage)
 		: context(&context)
-		, deviceID(0)
+		, arrayID(0)
 		, numBuffers(model.getNumVertexComponents() + model.getNumInstanceComponents() + 1)
 		, numIndices(model.getNumIndices())
 		, instancedComponentStartIndex(model.getInstancedElementStartIndex())
 		, buffers(new GLuint[numBuffers])
 		, bufferSizes(new uintptr[numBuffers])
 		, usage(usage) {
-	glGenVertexArrays(1, &deviceID);
-	glBindVertexArray(deviceID);
+	glGenVertexArrays(1, &arrayID);
+	glBindVertexArray(arrayID);
 
 	glGenBuffers(numBuffers, buffers);
 
@@ -30,7 +30,7 @@ VertexArray::VertexArray(RenderContext& context,
 
 void VertexArray::updateBuffer(uint32 bufferIndex,
 		const void* data, uintptr dataSize) {
-	glBindVertexArray(deviceID);
+	context->setVertexArray(arrayID);
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[bufferIndex]);
 
 	if (dataSize <= bufferSizes[bufferIndex]) {
@@ -42,23 +42,8 @@ void VertexArray::updateBuffer(uint32 bufferIndex,
 	}
 }
 
-void VertexArray::draw(uint32 primitive, uint32 numInstances) {
-	glBindVertexArray(deviceID);
-
-	switch (numInstances) {
-		case 0:
-			return;
-		case 1:
-			glDrawElements(primitive, (GLsizei)numIndices, GL_UNSIGNED_INT, 0);
-			return;
-		default:
-			glDrawElementsInstanced(primitive, (GLsizei)numIndices,
-					GL_UNSIGNED_INT, 0, numInstances);
-	}
-}
-
 VertexArray::~VertexArray() {
-	glDeleteVertexArrays(1, &deviceID);
+	glDeleteVertexArrays(1, &arrayID);
 	glDeleteBuffers(numBuffers, buffers);
 
 	delete[] buffers;

@@ -11,18 +11,15 @@ class VertexArray {
 		VertexArray(RenderContext& context, const IndexedModel& model, uint32 usage);
 
 		void updateBuffer(uint32 bufferIndex, const void* data, uintptr dataSize);
-		void draw(uint32 primitive, uint32 numInstances);
 
-		inline void bind() { glBindVertexArray(deviceID); }
-
-		inline uint32 getID() { return deviceID; }
+		inline uint32 getID() { return arrayID; }
 		inline uint32 getNumIndices() const { return numIndices; }
 
 		~VertexArray();
 	private:
 		RenderContext* context;
 
-		uint32 deviceID;
+		uint32 arrayID;
 
 		uint32 numBuffers;
 		uint32 numIndices;

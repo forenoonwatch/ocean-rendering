@@ -1,9 +1,40 @@
 #include "render-context.hpp"
 
+#include "shader.hpp"
+#include "vertex-array.hpp"
+
 #include <GL/glew.h>
 
 RenderContext::RenderContext()
-	: version(0) {}
+		: version(0)
+		, shaderVersion("")
+		, currentShader(-1)
+		, currentVertexArray(-1) {
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_DEPTH_TEST);
+}
+
+void RenderContext::clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void RenderContext::draw(Shader& shader, VertexArray& vertexArray,
+		uint32 primitive, uint32 numInstances) {
+	setShader(shader.getID());
+	setVertexArray(vertexArray.getID());
+
+	switch (numInstances) {
+		case 0:
+			return;
+		case 1:
+			glDrawElements(primitive, (GLsizei)vertexArray.getNumIndices(), GL_UNSIGNED_INT, 0);
+			return;
+		default:
+			glDrawElementsInstanced(primitive, (GLsizei)vertexArray.getNumIndices(),
+					GL_UNSIGNED_INT, 0, numInstances);
+	}
+}
 
 uint32 RenderContext::getVersion() {
 	if (version != 0) {
@@ -47,4 +78,18 @@ std::string RenderContext::getShaderVersion() {
 	}
 
 	return shaderVersion;
+}
+
+void RenderContext::setShader(uint32 shader) {
+	if (currentShader != shader) {
+		currentShader = shader;
+		glUseProgram(shader);
+	}
+}
+
+void RenderContext::setVertexArray(uint32 vao) {
+	if (currentVertexArray != vao) {
+		currentVertexArray = vao;
+		glBindVertexArray(vao);
+	}
 }

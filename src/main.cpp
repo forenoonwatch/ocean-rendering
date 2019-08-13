@@ -79,10 +79,6 @@ int main() {
 
 	VertexArray testArray(context, testModel, GL_DYNAMIC_DRAW);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEnable(GL_DEPTH_TEST);
-
 	while (!display.isCloseRequested()) {
 		float dx = 0.f, dy = 0.f, dz = 0.f;
 
@@ -118,14 +114,8 @@ int main() {
 			testArray.updateBuffer(0, projector.getCorners(), 4 * sizeof(glm::vec4));
 		}
 
-		//glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
-		//model *= glm::rotate(glm::mat4(1.f), (float)glfwGetTime(), glm::vec3(0.f, 1.f, 0.f));
-		//glm::mat4 model = projectorCamera.getInverseVP();
-		//glm::mat4 mvp = camera->getViewProjection() * projector.getProjectorMatrix()/* * model*/;
+		context.clear();
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//dataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
 		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
 
 		testArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()), sizeof(glm::mat4));
@@ -134,13 +124,10 @@ int main() {
 		oceanArray.updateBuffer(2, transforms, 2 * sizeof(glm::mat4));
 
 		if (renderWater) {
-			glUseProgram(oceanShader.getID());
-			oceanArray.draw(primitive, 1);
+			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
-			//glUseProgram(basicShader.getID());
-			//testArray.draw(primitive, 1);
-			glUseProgram(0);
+			context.setShader(0);
 			
 			glBegin(GL_POINTS);
 			for (float y = 0.f; y <= 1.f; y += 0.1f) {
