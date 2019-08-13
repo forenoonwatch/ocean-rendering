@@ -13,9 +13,13 @@ class RenderContext {
 		RenderContext();
 
 		void clear();
+		void awaitFinish();
 
 		void draw(Shader& shader, VertexArray& vertexArray,
 				uint32 primitive, uint32 numInstances = 1);
+
+		void compute(Shader& shader, uint32 numGroupsX,
+				uint32 numGroupsY = 1, uint32 numGroupsZ = 1);
 
 		uint32 getVersion();
 		std::string getShaderVersion();

@@ -22,6 +22,10 @@ void RenderContext::clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void RenderContext::awaitFinish() {
+	glFinish();
+}
+
 void RenderContext::draw(Shader& shader, VertexArray& vertexArray,
 		uint32 primitive, uint32 numInstances) {
 	setShader(shader.getID());
@@ -37,6 +41,12 @@ void RenderContext::draw(Shader& shader, VertexArray& vertexArray,
 			glDrawElementsInstanced(primitive, (GLsizei)vertexArray.getNumIndices(),
 					GL_UNSIGNED_INT, 0, numInstances);
 	}
+}
+
+void RenderContext::compute(Shader& shader, uint32 numGroupsX,
+		uint32 numGroupsY, uint32 numGroupsZ) {
+	setShader(shader.getID());
+	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
 uint32 RenderContext::getVersion() {

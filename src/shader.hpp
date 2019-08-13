@@ -19,6 +19,9 @@ class Shader {
 		void setSampler(const std::string& name, Texture& texture,
 				Sampler& sampler, uint32 textureUnit);
 
+		void bindComputeTexture(Texture& texture, uint32 unit,
+				uint32 access, uint32 internalFormat);
+
 		inline uint32 getID() { return programID; }
 
 		~Shader();

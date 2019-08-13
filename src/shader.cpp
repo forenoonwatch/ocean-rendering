@@ -16,25 +16,36 @@ Shader::Shader(RenderContext& context, const std::string& text)
 		, programID(glCreateProgram()) {
 	std::string version = "#version " + context.getShaderVersion()
 		+ "\n#define GLSL_VERSION " + context.getShaderVersion();
-	std::string vertexShaderText = version
-		+ "\n#define VS_BUILD\n" + text;
-	std::string fragmentShaderText = version
-		+ "\n#define FS_BUILD\n" + text;
 
-	if (!addShader(programID, vertexShaderText, GL_VERTEX_SHADER, shaders)) {
-		throw std::runtime_error("Failed to load vertex shader");
+	if (text.find("CS_BUILD") != std::string::npos) {
+		std::string computeShaderText = version
+			+ "\n#define CS_BUILD\n" + text;
+
+		if (!addShader(programID, computeShaderText, GL_COMPUTE_SHADER, shaders)) {
+			throw std::runtime_error("Failed to load compute shader");
+		}
 	}
+	else {
+		std::string vertexShaderText = version
+			+ "\n#define VS_BUILD\n" + text;
+		std::string fragmentShaderText = version
+			+ "\n#define FS_BUILD\n" + text;
 
-	if (!addShader(programID, fragmentShaderText, GL_FRAGMENT_SHADER, shaders)) {
-		throw std::runtime_error("Failed to load fragment shader");
-	}
+		if (!addShader(programID, vertexShaderText, GL_VERTEX_SHADER, shaders)) {
+			throw std::runtime_error("Failed to load vertex shader");
+		}
 
-	if (text.find("GS_BUILD") != std::string::npos) {
-		std::string geomShaderText = version
-			+ "\n#define GS_BUILD\n" + text;
+		if (!addShader(programID, fragmentShaderText, GL_FRAGMENT_SHADER, shaders)) {
+			throw std::runtime_error("Failed to load fragment shader");
+		}
 
-		if (!addShader(programID, geomShaderText, GL_GEOMETRY_SHADER, shaders)) {
-			throw std::runtime_error("Failed to load geometry shader");
+		if (text.find("GS_BUILD") != std::string::npos) {
+			std::string geomShaderText = version
+				+ "\n#define GS_BUILD\n" + text;
+
+			if (!addShader(programID, geomShaderText, GL_GEOMETRY_SHADER, shaders)) {
+				throw std::runtime_error("Failed to load geometry shader");
+			}
 		}
 	}
 
@@ -72,6 +83,13 @@ void Shader::setSampler(const std::string& name, Texture& texture,
 	glBindTexture(GL_TEXTURE_2D, texture.getID());
 	glBindSampler(textureUnit, sampler.getID());
 	glUniform1i(samplerMap[name], textureUnit);
+}
+
+void Shader::bindComputeTexture(Texture& texture, uint32 unit,
+		uint32 access, uint32 internalFormat) {
+	context->setShader(programID);
+	glBindImageTexture(unit, texture.getID(), 0, false, 0,
+			access, internalFormat);
 }
 
 Shader::~Shader() {

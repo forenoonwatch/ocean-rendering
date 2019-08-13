@@ -1,11 +1,13 @@
 #include "texture.hpp"
 
-Texture::Texture(RenderContext& context, const Bitmap& bitmap,
-			uint32 internalPixelFormat)
+Texture::Texture(RenderContext& context, uint32 width,
+			uint32 height, uint32 internalPixelFormat,
+			const void* data)
 		: context(&context)
 		, textureID(-1)
-		, width(bitmap.getWidth())
-		, height(bitmap.getHeight()) {
+		, width(width)
+		, height(height)
+		, internalFormat(internalPixelFormat) {
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -15,11 +17,16 @@ Texture::Texture(RenderContext& context, const Bitmap& bitmap,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalPixelFormat,
-			width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getPixels());
+			width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 }
+
+Texture::Texture(RenderContext& context, const Bitmap& bitmap,
+			uint32 internalPixelFormat)
+		: Texture(context, bitmap.getWidth(), bitmap.getHeight(),
+			   internalPixelFormat, bitmap.getPixels())	{}
 
 Texture::~Texture() {
 	glDeleteTextures(1, &textureID);

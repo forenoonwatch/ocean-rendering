@@ -5,6 +5,9 @@
 
 class Texture {
 	public:
+		Texture(RenderContext& context, uint32 width,
+				uint32 height, uint32 internalPixelFormat,
+				const void* data = nullptr);
 		Texture(RenderContext& context, const Bitmap& bitmap,
 				uint32 internalPixelFormat);
 
@@ -12,6 +15,8 @@ class Texture {
 
 		inline uint32 getWidth() const { return width; }
 		inline uint32 getHeight() const { return height; }
+
+		inline uint32 getInternalFormat() const { return internalFormat; }
 
 		~Texture();
 	private:
@@ -21,4 +26,6 @@ class Texture {
 
 		uint32 width;
 		uint32 height;
+
+		uint32 internalFormat;
 };

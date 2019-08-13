@@ -62,27 +62,22 @@ int main() {
 	Util::resolveFileLinking(fileData, "./src/ocean-shader.glsl", "#include");
 	Shader oceanShader(context, fileData.str());
 
+	fileData.str("");
+	Util::resolveFileLinking(fileData, "./src/basic-compute.glsl", "#include");
+	Shader computeShader(context, fileData.str());
+
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4), GL_DYNAMIC_DRAW);
 
 	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
-	Bitmap bitmap(64, 64);
-
-	bitmap.clear();
-
-	for (int32 y = 0; y < 64; ++y) {
-		for (int32 x = 0; x < 64; ++x) {
-			int32 c = (x + y) << 1;
-			c |= (c << 16) | (c << 8);
-			bitmap.set(x, y, 0xFF000000 | c);
-		}
-	}
-
-	Texture texture(context, bitmap, GL_RGBA);
-	Sampler sampler(context, GL_LINEAR, GL_LINEAR);
+	uint32 n = 256;
+	Texture texture(context, n, n, GL_RGBA32F);
+	Sampler sampler(context, GL_NEAREST, GL_NEAREST);
 
 	basicShader.setSampler("diffuse", texture, sampler, 0);
+
+	computeShader.bindComputeTexture(texture, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -104,6 +99,9 @@ int main() {
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
+			context.compute(computeShader, texture.getWidth(), texture.getHeight());
+			context.awaitFinish();
+
 			glDisable(GL_CULL_FACE);
 			context.draw(basicShader, oceanArray, primitive);
 			glEnable(GL_CULL_FACE);
