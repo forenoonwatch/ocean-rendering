@@ -22,6 +22,8 @@ class Shader {
 		void bindComputeTexture(Texture& texture, uint32 unit,
 				uint32 access, uint32 internalFormat);
 
+		inline int32 getUniform(const std::string& name) { return uniformMap[name]; }
+
 		inline uint32 getID() { return programID; }
 
 		~Shader();
@@ -31,8 +33,9 @@ class Shader {
 		uint32 programID;
 
 		std::vector<uint32> shaders;
-		std::unordered_map<std::string, int32> uniformMap;
+		std::unordered_map<std::string, int32> uniformBlockMap;
 		std::unordered_map<std::string, int32> samplerMap;
+		std::unordered_map<std::string, int32> uniformMap;
 };
 
 inline void Shader::setUniformBuffer(const std::string& name,

@@ -8,8 +8,9 @@ static bool checkShaderError(uint32 shader, GLenum flag,
 		bool isProgram, const std::string& errorMessage);
 
 static void addShaderUniforms(GLuint program,
-		std::unordered_map<std::string, int32>& uniformMap,
-		std::unordered_map<std::string, int32>& samplerMap); 
+		std::unordered_map<std::string, int32>& uniformBlockMap,
+		std::unordered_map<std::string, int32>& samplerMap,
+		std::unordered_map<std::string, int32>& uniformMap); 
 
 Shader::Shader(RenderContext& context, const std::string& text)
 		: context(&context)
@@ -64,14 +65,15 @@ Shader::Shader(RenderContext& context, const std::string& text)
 	}
 
 	// TODO: add attributes
-	addShaderUniforms(programID, uniformMap, samplerMap);
+	addShaderUniforms(programID, uniformBlockMap,
+			samplerMap, uniformMap);
 }
 
 void Shader::setUniformBuffer(const std::string& name,
 		UniformBuffer& buffer, uint32 index, uint32 block) {
 	context->setShader(programID);
 
-	glUniformBlockBinding(programID, uniformMap[name], block);
+	glUniformBlockBinding(programID, uniformBlockMap[name], block);
 	glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.getID());
 }
 
@@ -166,8 +168,9 @@ static bool checkShaderError(uint32 shader, GLenum flag,
 }
 
 static void addShaderUniforms(GLuint program,
-		std::unordered_map<std::string, int32>& uniformMap,
-		std::unordered_map<std::string, int32>& samplerMap) {
+		std::unordered_map<std::string, int32>& uniformBlockMap,
+		std::unordered_map<std::string, int32>& samplerMap,
+		std::unordered_map<std::string, int32>& uniformMap) {
 	GLint numBlocks;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
 
@@ -181,7 +184,7 @@ static void addShaderUniforms(GLuint program,
 				nameLen, nullptr, &name[0]);
 
 		std::string uniformBlockName((char*)&name[0], nameLen - 1);
-		uniformMap[uniformBlockName] = glGetUniformBlockIndex(program, &name[0]);
+		uniformBlockMap[uniformBlockName] = glGetUniformBlockIndex(program, &name[0]);
 	}
 
 	GLint numUniforms = 0;
@@ -197,11 +200,13 @@ static void addShaderUniforms(GLuint program,
 		glGetActiveUniform(program, uniform, uniformName.size(),
 				&actualLength, &arraySize, &type, &uniformName[0]);
 
-		if (type != GL_SAMPLER_2D && type != GL_SAMPLER_CUBE) {
-			continue;
-		}
-
 		std::string name((char*)&uniformName[0], actualLength);
-		samplerMap[name] = glGetUniformLocation(program, (char*)&uniformName[0]);
+
+		if (type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE) {
+			samplerMap[name] = glGetUniformLocation(program, (char*)&uniformName[0]);
+		}
+		else {
+			uniformMap[name] = glGetUniformLocation(program, (char*)&uniformName[0]);
+		}
 	}
 }
