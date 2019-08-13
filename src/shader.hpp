@@ -4,6 +4,8 @@
 #include <unordered_map>
 
 #include "uniform-buffer.hpp"
+#include "sampler.hpp"
+#include "texture.hpp"
 
 class Shader {
 	public:
@@ -13,6 +15,9 @@ class Shader {
 				UniformBuffer& buffer, uint32 index, uint32 block);
 		inline void setUniformBuffer(const std::string& name,
 				UniformBuffer& buffer, uint32 index);
+
+		void setSampler(const std::string& name, Texture& texture,
+				Sampler& sampler, uint32 textureUnit);
 
 		inline uint32 getID() { return programID; }
 

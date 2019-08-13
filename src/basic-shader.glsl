@@ -1,23 +1,32 @@
 
 #if defined(VS_BUILD)
 
-layout(location = 0) in vec4 position;
-layout(location = 1) in mat4 transform;
+out vec2 texCoord0;
+
+layout(location = 0) in vec2 position;
+layout(location = 2) in mat4 transform;
 
 layout (std140) uniform ShaderData {
 	vec3 cameraPosition;
 };
 
 void main() {
-	gl_Position = transform * position;
+	vec2 pos0 = position - vec2(0.5);
+	pos0 *= vec2(1.0, 4.0 / 3.0);
+	gl_Position = vec4(pos0, 0.0, 1.0);
+	texCoord0 = position;
 }
 
 #elif defined(FS_BUILD)
 
+in vec2 texCoord0;
+
+uniform sampler2D diffuse;
+
 out vec4 outColor;
 
 void main() {
-	outColor = vec4(1.0, 1.0, 1.0, 1.0);
+	outColor = texture2D(diffuse, texCoord0);
 }
 
 #endif

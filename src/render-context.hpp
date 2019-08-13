@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 #include <string>
+#include <GL/glew.h>
 
 class Shader;
 class VertexArray;

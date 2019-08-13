@@ -1,8 +1,5 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #include "render-context.hpp"
 #include "indexed-model.hpp"
 

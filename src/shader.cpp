@@ -1,8 +1,5 @@
 #include "shader.hpp"
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #define SHADER_INFO_LOG_SIZE	1024
 
 static bool addShader(GLuint program, const std::string& text,
@@ -61,10 +58,20 @@ Shader::Shader(RenderContext& context, const std::string& text)
 
 void Shader::setUniformBuffer(const std::string& name,
 		UniformBuffer& buffer, uint32 index, uint32 block) {
-	glUseProgram(programID);
+	context->setShader(programID);
 
 	glUniformBlockBinding(programID, uniformMap[name], block);
 	glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.getID());
+}
+
+void Shader::setSampler(const std::string& name, Texture& texture,
+		Sampler& sampler, uint32 textureUnit) {
+	context->setShader(programID);
+
+	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	glBindTexture(GL_TEXTURE_2D, texture.getID());
+	glBindSampler(textureUnit, sampler.getID());
+	glUniform1i(samplerMap[name], textureUnit);
 }
 
 Shader::~Shader() {

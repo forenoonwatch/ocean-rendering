@@ -67,6 +67,23 @@ int main() {
 	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
+	Bitmap bitmap(64, 64);
+
+	bitmap.clear();
+
+	for (int32 y = 0; y < 64; ++y) {
+		for (int32 x = 0; x < 64; ++x) {
+			int32 c = (x + y) << 1;
+			c |= (c << 16) | (c << 8);
+			bitmap.set(x, y, 0xFF000000 | c);
+		}
+	}
+
+	Texture texture(context, bitmap, GL_RGBA);
+	Sampler sampler(context, GL_LINEAR, GL_LINEAR);
+
+	basicShader.setSampler("diffuse", texture, sampler, 0);
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -87,21 +104,9 @@ int main() {
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
-			context.setShader(0);
-			
-			glBegin(GL_POINTS);
-			for (float y = 0.f; y <= 1.f; y += 0.1f) {
-				for (float x = 0.f; x <= 1.f; x += 0.1f) {
-					const glm::vec4 a = glm::mix(projector.getCorners()[0],
-							projector.getCorners()[2], x);
-					const glm::vec4 b = glm::mix(projector.getCorners()[1],
-							projector.getCorners()[3], x);
-					const glm::vec4 c = glm::mix(a, b, y);
-
-					glVertex4fv(glm::value_ptr(camera->getViewProjection() * c));
-				}
-			}
-			glEnd();
+			glDisable(GL_CULL_FACE);
+			context.draw(basicShader, oceanArray, primitive);
+			glEnable(GL_CULL_FACE);
 		}
 
 		display.render();
