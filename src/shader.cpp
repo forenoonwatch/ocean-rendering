@@ -77,6 +77,14 @@ void Shader::setUniformBuffer(const std::string& name,
 	glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.getID());
 }
 
+void Shader::setShaderStorageBuffer(const std::string& name,
+		ShaderStorageBuffer& buffer, uint32 index, uint32 block) {
+	context->setShader(programID);
+
+	glUniformBlockBinding(programID, uniformBlockMap[name], block);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, buffer.getID());
+}
+
 void Shader::setSampler(const std::string& name, Texture& texture,
 		Sampler& sampler, uint32 textureUnit) {
 	context->setShader(programID);
