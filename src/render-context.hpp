@@ -27,6 +27,8 @@ class RenderContext {
 		void setShader(uint32);
 		void setVertexArray(uint32);
 	private:
+		NULL_COPY_AND_ASSIGN(RenderContext);
+
 		uint32 version;
 		std::string shaderVersion;
 

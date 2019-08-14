@@ -12,6 +12,8 @@ class Sampler {
 
 		~Sampler();
 	private:
+		NULL_COPY_AND_ASSIGN(Sampler);
+
 		RenderContext* context;
 
 		uint32 samplerID;

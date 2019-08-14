@@ -19,6 +19,8 @@ class Display {
 
 		~Display();
 	private:
+		NULL_COPY_AND_ASSIGN(Display);
+
 		GLFWwindow* window;
 		int width;
 		int height;

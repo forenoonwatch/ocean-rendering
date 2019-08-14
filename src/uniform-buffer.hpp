@@ -15,6 +15,8 @@ class UniformBuffer {
 
 		~UniformBuffer();
 	private:
+		NULL_COPY_AND_ASSIGN(UniformBuffer);
+
 		RenderContext* context;
 		uint32 bufferID;
 		uintptr size;

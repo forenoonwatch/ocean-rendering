@@ -14,6 +14,8 @@ class VertexArray {
 
 		~VertexArray();
 	private:
+		NULL_COPY_AND_ASSIGN(VertexArray);
+
 		RenderContext* context;
 
 		uint32 arrayID;

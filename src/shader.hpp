@@ -28,6 +28,8 @@ class Shader {
 
 		~Shader();
 	private:
+		NULL_COPY_AND_ASSIGN(Shader);
+
 		RenderContext* context;
 		
 		uint32 programID;

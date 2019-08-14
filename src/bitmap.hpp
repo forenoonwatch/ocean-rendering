@@ -23,6 +23,8 @@ class Bitmap {
 
 		~Bitmap();
 	private:
+		NULL_COPY_AND_ASSIGN(Bitmap);
+
 		int32 width;
 		int32 height;
 		int32* pixels;

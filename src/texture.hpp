@@ -20,6 +20,8 @@ class Texture {
 
 		~Texture();
 	private:
+		NULL_COPY_AND_ASSIGN(Texture);
+
 		RenderContext* context;
 
 		uint32 textureID;
