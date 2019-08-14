@@ -14,6 +14,7 @@
 #include "util.hpp"
 
 #include "ocean.hpp"
+#include "ocean-fft.hpp"
 
 #define MOVE_SPEED	0.05f
 
@@ -29,7 +30,7 @@ bool renderWater;
 uint32 primitive;
 
 int main() {
-	Display display("MoIsT", 800, 600);
+	Display display("MoIsT - Sponsored by Lays(TM) Ruffles(TM)", 800, 600);
 
 	lockCamera = true;
 	renderWater = true;
@@ -43,7 +44,7 @@ int main() {
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
 
-	Ocean ocean(0.f, 1.f, 256);
+	Ocean ocean(0.f, 4.f, 256);
 
 	OceanProjector projector(ocean, userCamera);
 
@@ -68,16 +69,31 @@ int main() {
 
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4), GL_DYNAMIC_DRAW);
 
-	basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
+	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
-	uint32 n = 256;
-	Texture texture(context, n, n, GL_RGBA32F);
-	Sampler sampler(context, GL_NEAREST, GL_NEAREST);
+	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 
-	basicShader.setSampler("diffuse", texture, sampler, 0);
+	OceanFFT oceanFFT(context, 256, 1000);
+	oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
+	//oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
+	context.awaitFinish();
 
-	computeShader.bindComputeTexture(texture, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	IndexedModel quadModel;
+	quadModel.allocateElement(2);
+	quadModel.setInstancedElementStartIndex(1);
+	quadModel.allocateElement(2);
+
+	quadModel.addElement2f(0, 0.f, 0.f);
+	quadModel.addElement2f(0, 0.f, 1.f);
+	quadModel.addElement2f(0, 1.f, 0.f);
+	quadModel.addElement2f(0, 1.f, 1.f);
+
+	quadModel.addIndices3i(2, 1, 0);
+	quadModel.addIndices3i(1, 2, 3);
+
+	VertexArray quad(context, quadModel, GL_STATIC_DRAW);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -86,6 +102,8 @@ int main() {
 		if (lockCamera) {
 			projector.update();
 		}
+
+		oceanFFT.update(1.f / 60.f);
 
 		// BEGIN DRAW
 		context.clear();
@@ -96,15 +114,25 @@ int main() {
 				sizeof(glm::mat4));
 
 		if (renderWater) {
+			oceanShader.setSampler("ocean", oceanFFT.getDY(), oceanSampler, 0);
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
-			context.compute(computeShader, texture.getWidth(), texture.getHeight());
-			context.awaitFinish();
+			basicShader.setSampler("diffuse", oceanFFT.getBufferTexture(), sampler, 0);
+			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, 0.f)), sizeof(glm::vec2));
+			context.draw(basicShader, quad, primitive);
 
-			glDisable(GL_CULL_FACE);
-			context.draw(basicShader, oceanArray, primitive);
-			glEnable(GL_CULL_FACE);
+			basicShader.setSampler("diffuse", oceanFFT.getCoeffDY(), sampler, 0);
+			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, 0.f)), sizeof(glm::vec2));
+			context.draw(basicShader, quad, primitive);
+
+			basicShader.setSampler("diffuse", oceanFFT.getButterflyTexture(), sampler, 0);
+			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
+			context.draw(basicShader, quad, primitive);
+
+			basicShader.setSampler("diffuse", oceanFFT.getDY(), sampler, 0);
+			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
+			context.draw(basicShader, quad, primitive);
 		}
 
 		display.render();

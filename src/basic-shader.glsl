@@ -4,16 +4,14 @@
 out vec2 texCoord0;
 
 layout(location = 0) in vec2 position;
-layout(location = 2) in mat4 transform;
+layout(location = 1) in vec2 offset;
 
 layout (std140) uniform ShaderData {
 	vec3 cameraPosition;
 };
 
 void main() {
-	vec2 pos0 = position - vec2(0.5);
-	pos0 *= vec2(1.0, 4.0 / 3.0);
-	gl_Position = vec4(pos0, 0.0, 1.0);
+	gl_Position = vec4(position + offset, 0.0, 1.0);
 	texCoord0 = position;
 }
 
