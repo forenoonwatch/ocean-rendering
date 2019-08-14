@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.hpp"
+
 #include <algorithm>
 #include <string>
 #include <sstream>
@@ -25,4 +27,30 @@ namespace Util {
 
 	bool resolveFileLinking(std::stringstream& out, const std::string& fileName,
 			const std::string& linkKeyword);
+
+	template <typename T>
+	inline T reverseBits(T v) {
+		T r = v;
+		uint32 s = sizeof(T) * 8 - 1;
+
+		for (v >>= 1; v; v >>= 1) {
+			r <<= 1;
+			r |= v & 1;
+			--s;
+		}
+
+		r <<= s;
+
+		return r;
+	}
+
+	template <typename T>
+	inline T rotateLeft(T v, int32 shift) {
+		return (v << shift) | (v >> (sizeof(T) * 8 - shift));
+	}
+
+	template <typename T>
+	inline T rotateRight(T v, int32 shift) {
+		return (v >> shift) | (v << (sizeof(T) * 8 - shift));
+	}
 };
