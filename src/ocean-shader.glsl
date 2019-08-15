@@ -2,6 +2,7 @@
 #if defined(VS_BUILD)
 
 out vec3 normal;
+out vec2 texCoord0;
 
 uniform sampler2D ocean;
 
@@ -45,9 +46,19 @@ float textureBicubic( sampler2D samp, vec2 uv00, vec2 texel, vec2 frac ) {
     frac.y );
 }
 
+vec3 oceanData(vec2 pos) {
+	return fma(texture2D(ocean, pos).xyz, vec3(2.0), vec3(-1.0))
+			+ 0.01 * texture2D(ocean, 100 * pos).xyz;
+}
+
 float height(vec2 pos) {
-	return 2 * texture2D(ocean, pos).y - 1
-		+ 0.01 * texture2D(ocean, 100 * pos).y;
+	const vec3 oceanPos = fma(texture2D(ocean, pos).xyz, vec3(2.0), vec3(-1.0))
+			+ 0.01 * texture2D(ocean, 100 * pos).xyz;
+
+	return oceanPos.y;
+
+	//return 2 * texture2D(ocean, pos).y - 1
+	//	+ 0.01 * texture2D(ocean, 100 * pos).y;
 	
 	/*vec2 heightSize = vec2(256.0, 256.0);
 	heightSize /= 0.1;
@@ -64,9 +75,22 @@ vec4 getOceanPosition(vec2 pos) {
 	const vec4 b = mix(corners[1], corners[3], pos.x);
 
 	vec4 o = mix(a, b, pos.y);
-	o.y = height(o.xz / o.w * 0.01) * o.w;
+	//o.y = height(o.xz / o.w * 0.01) * o.w;
+	const vec3 data = oceanData(o.xz / o.w * 0.01);
+
+	o.y = data.y * o.w;
+	o.xz += data.xz * o.w;
 
 	return o;
+}
+
+vec2 getOceanTexCoord(vec2 pos) {
+	const vec4 a = mix(corners[0], corners[2], pos.x);
+	const vec4 b = mix(corners[1], corners[3], pos.x);
+
+	vec4 o = mix(a, b, pos.y);
+
+	return o.xz / o.w;
 }
 
 void main() {
@@ -81,6 +105,7 @@ void main() {
 	normal = normalize(cross(p1 - p0, p2 - p0));
 
 	gl_Position = transform * p0Raw;
+	texCoord0 = getOceanTexCoord(xyPos) * 0.01;
 }
 
 #elif defined(FS_BUILD)
@@ -88,12 +113,16 @@ void main() {
 uniform sampler2D ocean;
 
 in vec3 normal;
+in vec2 texCoord0;
 
 out vec4 outColor;
 
 void main() {
 	float diffuse = dot(normal, normalize(vec3(1, 1, 0)));
-	outColor = vec4(vec3(diffuse), 1.0);
+	float mask = clamp(texture2D(ocean, texCoord0).y, 0.0, 1.0);
+	
+	outColor = vec4(mix(vec3(0, 0.41, 0.58), vec3(1), mask) * diffuse, 1.0);
+	//outColor = vec4(vec3(diffuse), 1.0);
 }
 
 #endif

@@ -6,7 +6,7 @@
 
 class OceanFFT {
 	public:
-		OceanFFT(RenderContext& context, int32 N, int32 L);
+		OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy);
 
 		void init(float amplitude, const glm::vec2& direction,
 				float intensity, float capillarSuppressFactor);
@@ -17,9 +17,15 @@ class OceanFFT {
 		inline Texture& getH0MinusK() { return imageH0MinusK; }
 		inline Texture& getButterflyTexture() { return butterflyTexture; }
 
+		inline Texture& getCoeffDX() { return coeffDX; }
 		inline Texture& getCoeffDY() { return coeffDY; }
+		inline Texture& getCoeffDZ() { return coeffDZ; }
+
 		inline Texture& getBufferTexture() { return bufferTexture; }
+
+		inline Texture& getDX() { return dX; }
 		inline Texture& getDY() { return dY; }
+		inline Texture& getDZ() { return dZ; }
 
 		~OceanFFT();
 	private:
@@ -28,6 +34,8 @@ class OceanFFT {
 		int32 N;
 		int32 L;
 		int32 log2N;
+
+		bool choppy;
 
 		bool altBuffer;
 
@@ -45,4 +53,6 @@ class OceanFFT {
 		Texture dX, dY, dZ;
 
 		Texture bufferTexture;
+
+		void computeIFFT(Texture&, Texture&, const glm::vec3&);
 };

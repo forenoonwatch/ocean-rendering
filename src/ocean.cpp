@@ -70,6 +70,10 @@ OceanProjector::OceanProjector(Ocean& ocean, Camera& viewCamera)
 void OceanProjector::update() {
 	glm::vec3 camPos = viewCamera.getPosition() + viewCamera.getLookVector() * 2.f;
 
+	/*if (camPos.y < ocean.getOceanHeight() + ocean.getMaxAmplitude()) {
+		camPos.y = ocean.getOceanHeight() + ocean.getMaxAmplitude();
+	}*/
+
 	projectorCamera.setPosition(camPos);
 	projectorCamera.setRotation(viewCamera.getRotationX(), viewCamera.getRotationY());
 	projectorCamera.update();

@@ -10,24 +10,25 @@ static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0M
 		float intensity, float capillarSuppressFactor);
 static void initButterflyTexture(RenderContext& context, int32 N, Texture& butterflyTexture);
 
-OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L)
+OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy)
 		: context(&context)
 		, N(N)
 		, L(L)
 		, log2N(std::ilogb(N))
+		, choppy(choppy)
 		, altBuffer(false)
 		, timeCounter(0.f)
 		, butterflyShader(butterflyShader)
-		, imageH0k(context, N, N, GL_RGBA32F, false)
-		, imageH0MinusK(context, N, N, GL_RGBA32F, false)
-		, butterflyTexture(context, log2N, N, GL_RGBA32F, false)
-		, coeffDX(context, N, N, GL_RGBA32F, false)
-		, coeffDY(context, N, N, GL_RGBA32F, false)
-		, coeffDZ(context, N, N, GL_RGBA32F, false)
-		, dX(context, N, N, GL_RGBA32F, false)
-		, dY(context, N, N, GL_RGBA32F, false)
-		, dZ(context, N, N, GL_RGBA32F, false)
-		, bufferTexture(context, N, N, GL_RGBA32F, false) {
+		, imageH0k(context, N, N, GL_RGBA32F)
+		, imageH0MinusK(context, N, N, GL_RGBA32F)
+		, butterflyTexture(context, log2N, N, GL_RGBA32F)
+		, coeffDX(context, N, N, GL_RGBA32F)
+		, coeffDY(context, N, N, GL_RGBA32F)
+		, coeffDZ(context, N, N, GL_RGBA32F)
+		, dX(context, N, N, GL_RGBA32F)
+		, dY(context, N, N, GL_RGBA32F)
+		, dZ(context, N, N, GL_RGBA32F)
+		, bufferTexture(context, N, N, GL_RGBA32F) {
 	std::stringstream ss;
 
 	Util::resolveFileLinking(ss, "./src/hkt-shader.glsl", "#include");
@@ -48,17 +49,12 @@ void OceanFFT::init(float amplitude, const glm::vec2& direction,
 			intensity, capillarSuppressFactor);
 	initButterflyTexture(*context, N, butterflyTexture);
 
+	context->awaitFinish();
+
 	context->setShader(hktShader->getID());
 
 	glUniform1i(hktShader->getUniform("N"), N);
 	glUniform1i(hktShader->getUniform("L"), L);
-
-	hktShader->bindComputeTexture(coeffDX, 0, GL_READ_WRITE, GL_RGBA32F);
-	hktShader->bindComputeTexture(coeffDY, 1, GL_READ_WRITE, GL_RGBA32F);
-	hktShader->bindComputeTexture(coeffDZ, 2, GL_READ_WRITE, GL_RGBA32F);
-	
-	hktShader->bindComputeTexture(imageH0k, 3, GL_READ_ONLY, GL_RGBA32F);
-	hktShader->bindComputeTexture(imageH0MinusK, 4, GL_READ_ONLY, GL_RGBA32F);
 
 	context->setShader(inversionShader->getID());
 	glUniform1i(inversionShader->getUniform("N"), N);
@@ -70,16 +66,40 @@ void OceanFFT::update(float delta) {
 
 	glUniform1f(hktShader->getUniform("t"), timeCounter);
 
+	hktShader->bindComputeTexture(coeffDX, 0, GL_READ_WRITE, GL_RGBA32F);
+	hktShader->bindComputeTexture(coeffDY, 1, GL_READ_WRITE, GL_RGBA32F);
+	hktShader->bindComputeTexture(coeffDZ, 2, GL_READ_WRITE, GL_RGBA32F);
+	
+	hktShader->bindComputeTexture(imageH0k, 3, GL_READ_ONLY, GL_RGBA32F);
+	hktShader->bindComputeTexture(imageH0MinusK, 4, GL_READ_ONLY, GL_RGBA32F);
+
 	context->compute(*hktShader, N / 16, N / 16);
 	context->awaitFinish();
 
-	// compute dy
+	computeIFFT(coeffDY, dY, glm::vec3(0, 1, 0));
+
+	if (choppy) {
+		computeIFFT(coeffDX, dY, glm::vec3(1, 0, 0));
+		computeIFFT(coeffDZ, dY, glm::vec3(0, 0, 1));
+	}
+
+	timeCounter += delta;
+}
+
+OceanFFT::~OceanFFT() {
+	delete hktShader;
+	delete butterflyShader;
+	delete inversionShader;
+}
+
+inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
+		const glm::vec3& mask) {
 	altBuffer = false;
 
 	context->setShader(butterflyShader->getID());
 
 	butterflyShader->bindComputeTexture(butterflyTexture, 0, GL_READ_ONLY, GL_RGBA32F);
-	butterflyShader->bindComputeTexture(coeffDY, 1, GL_READ_WRITE, GL_RGBA32F);
+	butterflyShader->bindComputeTexture(coeff, 1, GL_READ_WRITE, GL_RGBA32F);
 	butterflyShader->bindComputeTexture(bufferTexture, 2, GL_READ_WRITE, GL_RGBA32F);
 
 	// 1D FFT horizontal
@@ -111,18 +131,12 @@ void OceanFFT::update(float delta) {
 	context->setShader(inversionShader->getID());
 
 	glUniform1i(inversionShader->getUniform("bufferNum"), altBuffer);
-	inversionShader->bindComputeTexture(dY, 0, GL_READ_WRITE, GL_RGBA32F);
+	glUniform3fv(inversionShader->getUniform("mask"), 1, glm::value_ptr(mask));
+
+	inversionShader->bindComputeTexture(output, 0, GL_READ_WRITE, GL_RGBA32F);
 
 	context->compute(*inversionShader, N / 16, N / 16);
 	context->awaitFinish();
-
-	timeCounter += delta;
-}
-
-OceanFFT::~OceanFFT() {
-	delete hktShader;
-	delete butterflyShader;
-	delete inversionShader;
 }
 
 static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0MinusK,
