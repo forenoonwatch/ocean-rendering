@@ -23,9 +23,7 @@ class OceanFFT {
 
 		inline Texture& getBufferTexture() { return bufferTexture; }
 
-		inline Texture& getDX() { return dX; }
-		inline Texture& getDY() { return dY; }
-		inline Texture& getDZ() { return dZ; }
+		inline Texture& getDXYZ() { return dXYZ; }
 
 		~OceanFFT();
 	private:
@@ -50,7 +48,7 @@ class OceanFFT {
 		Texture butterflyTexture;
 
 		Texture coeffDX, coeffDY, coeffDZ;
-		Texture dX, dY, dZ;
+		Texture dXYZ;
 
 		Texture bufferTexture;
 

@@ -25,9 +25,7 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy)
 		, coeffDX(context, N, N, GL_RGBA32F)
 		, coeffDY(context, N, N, GL_RGBA32F)
 		, coeffDZ(context, N, N, GL_RGBA32F)
-		, dX(context, N, N, GL_RGBA32F)
-		, dY(context, N, N, GL_RGBA32F)
-		, dZ(context, N, N, GL_RGBA32F)
+		, dXYZ(context, N, N, GL_RGBA32F)
 		, bufferTexture(context, N, N, GL_RGBA32F) {
 	std::stringstream ss;
 
@@ -76,11 +74,11 @@ void OceanFFT::update(float delta) {
 	context->compute(*hktShader, N / 16, N / 16);
 	context->awaitFinish();
 
-	computeIFFT(coeffDY, dY, glm::vec3(0, 1, 0));
+	computeIFFT(coeffDY, dXYZ, glm::vec3(0, 1, 0));
 
 	if (choppy) {
-		computeIFFT(coeffDX, dY, glm::vec3(1, 0, 0));
-		computeIFFT(coeffDZ, dY, glm::vec3(0, 0, 1));
+		computeIFFT(coeffDX, dXYZ, glm::vec3(1, 0, 0));
+		computeIFFT(coeffDZ, dXYZ, glm::vec3(0, 0, 1));
 	}
 
 	timeCounter += delta;
