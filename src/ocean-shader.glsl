@@ -110,18 +110,24 @@ void main() {
 
 #elif defined(FS_BUILD)
 
+#define FOAM_THRESH 0.2
+
 uniform sampler2D ocean;
+uniform sampler2D foam;
 
 in vec3 normal;
 in vec2 texCoord0;
 
 out vec4 outColor;
 
+const vec3 oceanColor = vec3(0, 0.41, 0.58);
+
 void main() {
 	float diffuse = dot(normal, normalize(vec3(1, 1, 0)));
-	float mask = clamp(texture2D(ocean, texCoord0).y, 0.0, 1.0);
-	
-	outColor = vec4(mix(vec3(0, 0.41, 0.58), vec3(1), mask) * diffuse, 1.0);
+	float mask = clamp(pow(texture2D(ocean, texCoord0).y, 3.0), 0.0, 0.5);
+	vec3 foamCol = texture2D(foam, 10.0 * texCoord0).rrr;	
+
+	outColor = vec4(mix(oceanColor, foamCol, mask) * diffuse, 1.0);
 	//outColor = vec4(vec3(diffuse), 1.0);
 }
 

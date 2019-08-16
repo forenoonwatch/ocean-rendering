@@ -30,7 +30,7 @@ bool renderWater;
 uint32 primitive;
 
 int main() {
-	Display display("MoIsT - Sponsored by Lays(TM) Ruffles(TM)", 800, 600);
+	Display display("MoIsT - Sponsored by Doritos(TM)", 800, 600);
 
 	lockCamera = true;
 	renderWater = true;
@@ -75,10 +75,10 @@ int main() {
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 
-	OceanFFT oceanFFT(context, 256, 1000, true);
+	OceanFFT oceanFFT(context, 256, 1000, false);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
 	//oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
-	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
+	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -95,6 +95,10 @@ int main() {
 	quadModel.addIndices3i(1, 2, 3);
 
 	VertexArray quad(context, quadModel, GL_STATIC_DRAW);
+
+	Bitmap bmp;
+	bmp.load("./res/foam.jpg");
+	Texture foam(context, bmp, GL_RGBA);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -115,7 +119,8 @@ int main() {
 				sizeof(glm::mat4));
 
 		if (renderWater) {
-			oceanShader.setSampler("ocean", oceanFFT.getDY(), oceanSampler, 0);
+			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
+			oceanShader.setSampler("foam", foam, oceanSampler, 1);
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
@@ -127,7 +132,7 @@ int main() {
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, 0.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 
-			basicShader.setSampler("diffuse", oceanFFT.getDY(), sampler, 0);
+			basicShader.setSampler("diffuse", oceanFFT.getDXYZ(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 
