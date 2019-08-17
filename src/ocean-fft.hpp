@@ -25,6 +25,8 @@ class OceanFFT {
 
 		inline Texture& getDXYZ() { return dXYZ; }
 
+		inline Texture& getFoldingMap() { return foldingMap; }
+
 		~OceanFFT();
 	private:
 		RenderContext* context;
@@ -42,6 +44,7 @@ class OceanFFT {
 		Shader* hktShader;
 		Shader* butterflyShader;
 		Shader* inversionShader;
+		Shader* foldingShader;
 
 		Texture imageH0k;
 		Texture imageH0MinusK;
@@ -51,6 +54,8 @@ class OceanFFT {
 		Texture dXYZ;
 
 		Texture bufferTexture;
+
+		Texture foldingMap;
 
 		void computeIFFT(Texture&, Texture&, const glm::vec3&);
 };

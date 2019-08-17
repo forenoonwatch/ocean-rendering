@@ -75,10 +75,10 @@ int main() {
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 
-	OceanFFT oceanFFT(context, 256, 1000, false);
+	OceanFFT oceanFFT(context, 256, 1000, true);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
 	//oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
-	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
+	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 20.f, 0.5f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -120,7 +120,8 @@ int main() {
 
 		if (renderWater) {
 			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-			oceanShader.setSampler("foam", foam, oceanSampler, 1);
+			oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
+			oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
@@ -136,7 +137,7 @@ int main() {
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 
-			basicShader.setSampler("diffuse", oceanFFT.getCoeffDZ(), sampler, 0);
+			basicShader.setSampler("diffuse", oceanFFT.getFoldingMap(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 		}
