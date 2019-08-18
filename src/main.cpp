@@ -81,10 +81,11 @@ int main() {
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+	Sampler dudvSampler(context, GL_LINEAR, GL_LINEAR);
 
 	OceanFFT oceanFFT(context, 256, 1000, true);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 40.f, 2.f);
+	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 40.f, 5.f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -105,6 +106,9 @@ int main() {
 	Bitmap bmp;
 	bmp.load("./res/foam.jpg");
 	Texture foam(context, bmp, GL_RGBA);
+
+	bmp.load("./res/water-dudv.png");
+	Texture oceanDUDV(context, bmp, GL_RGBA);
 
 	IndexedModel cubeModel;
 	createCube(cubeModel);
@@ -164,6 +168,7 @@ int main() {
 			oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			oceanShader.setSampler("reflectionMap", reflection, oceanSampler, 3);
 			oceanShader.setSampler("refractionMap", refraction, oceanSampler, 4);
+			oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 5);
 			context.draw(screen, oceanShader, oceanArray, primitive);
 
 			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
