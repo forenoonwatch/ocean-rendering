@@ -2,14 +2,14 @@
 
 #include "shader.hpp"
 #include "vertex-array.hpp"
-
-#include <GL/glew.h>
+#include "render-target.hpp"
 
 RenderContext::RenderContext()
 		: version(0)
 		, shaderVersion("")
 		, currentShader(-1)
-		, currentVertexArray(-1) {
+		, currentVertexArray(-1)
+		, currentRenderTarget(0) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
@@ -19,16 +19,17 @@ RenderContext::RenderContext()
 	glEnable(GL_TEXTURE_2D);
 }
 
-void RenderContext::clear() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void RenderContext::clear(uint32 flags) {
+	glClear(flags);
 }
 
 void RenderContext::awaitFinish() {
 	glFinish();
 }
 
-void RenderContext::draw(Shader& shader, VertexArray& vertexArray,
-		uint32 primitive, uint32 numInstances) {
+void RenderContext::draw(RenderTarget& target, Shader& shader,
+		VertexArray& vertexArray, uint32 primitive, uint32 numInstances) {
+	setRenderTarget(target.getID());
 	setShader(shader.getID());
 	setVertexArray(vertexArray.getID());
 
@@ -105,5 +106,12 @@ void RenderContext::setVertexArray(uint32 vao) {
 	if (currentVertexArray != vao) {
 		currentVertexArray = vao;
 		glBindVertexArray(vao);
+	}
+}
+
+void RenderContext::setRenderTarget(uint32 fbo) {
+	if (currentRenderTarget != fbo) {
+		currentRenderTarget = fbo;
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	}
 }

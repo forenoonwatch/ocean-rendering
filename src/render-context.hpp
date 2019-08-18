@@ -7,15 +7,16 @@
 
 class Shader;
 class VertexArray;
+class RenderTarget;
 
 class RenderContext {
 	public:
 		RenderContext();
 
-		void clear();
+		void clear(uint32 flags);
 		void awaitFinish();
 
-		void draw(Shader& shader, VertexArray& vertexArray,
+		void draw(RenderTarget& target, Shader& shader, VertexArray& vertexArray,
 				uint32 primitive, uint32 numInstances = 1);
 
 		void compute(Shader& shader, uint32 numGroupsX,
@@ -26,6 +27,7 @@ class RenderContext {
 
 		void setShader(uint32);
 		void setVertexArray(uint32);
+		void setRenderTarget(uint32);
 	private:
 		NULL_COPY_AND_ASSIGN(RenderContext);
 
@@ -34,4 +36,5 @@ class RenderContext {
 
 		uint32 currentShader;
 		uint32 currentVertexArray;
+		uint32 currentRenderTarget;
 };

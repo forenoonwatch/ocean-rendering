@@ -9,6 +9,7 @@
 #include "display.hpp"
 #include "camera.hpp"
 
+#include "render-target.hpp"
 #include "vertex-array.hpp"
 #include "shader.hpp"
 #include "util.hpp"
@@ -117,6 +118,13 @@ int main() {
 
 	CubeMap skybox(context, cubeTextures);
 
+	RenderTarget screen(context);
+
+	Texture reflection(context, display.getWidth() / 2, 
+			display.getHeight() / 2, GL_RGBA);
+	RenderTarget reflectionTarget(context, reflection,
+			display.getWidth(), display.getHeight(), GL_COLOR_ATTACHMENT0);
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -128,7 +136,7 @@ int main() {
 		oceanFFT.update(1.f / 60.f);
 
 		// BEGIN DRAW
-		context.clear();
+		screen.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
 		dataBuffer.update(glm::value_ptr(camera->getPosition()),
@@ -137,17 +145,23 @@ int main() {
 		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
-		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
-				camera->getPosition())), sizeof(glm::mat4));
-
 		if (renderWater) {
+			reflectionTarget.clear(GL_COLOR_BUFFER_BIT);
+
+			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
+				camera->getPosition())), sizeof(glm::mat4));
+			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
+			context.draw(reflectionTarget, skyboxShader, cube, GL_TRIANGLES);
+
 			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 			oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 			oceanShader.setSampler("foam", foam, oceanSampler, 2);
-			context.draw(oceanShader, oceanArray, primitive);
+			context.draw(screen, oceanShader, oceanArray, primitive);
 
+			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
+				camera->getPosition())), sizeof(glm::mat4));
 			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
-			context.draw(skyboxShader, cube, GL_TRIANGLES);
+			context.draw(screen, skyboxShader, cube, GL_TRIANGLES);
 		}
 		else {
 			/*basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
@@ -166,9 +180,9 @@ int main() {
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);*/
 
-			basicShader.setSampler("diffuse", oceanFFT.getDXYZ(), sampler, 0);
+			basicShader.setSampler("diffuse", reflection, sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
-			context.draw(basicShader, quad, primitive);
+			context.draw(screen, basicShader, quad, primitive);
 		}
 
 		display.render();
