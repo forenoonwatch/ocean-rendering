@@ -5,8 +5,10 @@
 
 #include "uniform-buffer.hpp"
 #include "shader-storage-buffer.hpp"
+
 #include "sampler.hpp"
 #include "texture.hpp"
+#include "cube-map.hpp"
 
 class Shader {
 	public:
@@ -24,6 +26,8 @@ class Shader {
 				ShaderStorageBuffer& buffer, uint32 index);
 
 		void setSampler(const std::string& name, Texture& texture,
+				Sampler& sampler, uint32 textureUnit);
+		void setSampler(const std::string& name, CubeMap& cubeMap,
 				Sampler& sampler, uint32 textureUnit);
 
 		void bindComputeTexture(Texture& texture, uint32 unit,

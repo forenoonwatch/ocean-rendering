@@ -95,6 +95,16 @@ void Shader::setSampler(const std::string& name, Texture& texture,
 	glUniform1i(samplerMap[name], textureUnit);
 }
 
+void Shader::setSampler(const std::string& name, CubeMap& cubeMap,
+		Sampler& sampler, uint32 textureUnit) {
+	context->setShader(programID);
+
+	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.getID());
+	glBindSampler(textureUnit, sampler.getID());
+	glUniform1i(samplerMap[name], textureUnit);
+}
+
 void Shader::bindComputeTexture(Texture& texture, uint32 unit,
 		uint32 access, uint32 internalFormat) {
 	context->setShader(programID);
