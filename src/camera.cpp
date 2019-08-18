@@ -55,3 +55,18 @@ void Camera::update(const Camera& target) {
 	viewProjection = projection * glm::inverse(view);
 	iViewProjection = glm::inverse(viewProjection);
 }
+
+glm::mat4 Camera::getReflectionVP() const {
+	glm::mat4 refView = glm::rotate(glm::mat4(1.f), rotationY,
+			glm::vec3(0.f, 1.f, 0.f));
+	refView *= glm::rotate(glm::mat4(1.f), -rotationX, glm::vec3(1.f, 0.f, 0.f));
+	refView = glm::translate(glm::mat4(1.f),
+			glm::vec3(position.x, -position.y, position.z)) * refView;
+
+	return projection * glm::inverse(refView);
+}
+
+glm::mat4 Camera::getReflectionSkybox() const {
+	return glm::translate(getReflectionVP(),
+			glm::vec3(position.x, -position.y, position.z));
+}

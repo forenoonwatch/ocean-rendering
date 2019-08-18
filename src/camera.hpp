@@ -17,6 +17,9 @@ class Camera {
 			this->rotationY = rotationY;
 		}
 
+		glm::mat4 getReflectionVP() const;
+		glm::mat4 getReflectionSkybox() const;
+
 		inline const glm::mat4& getProjection() const { return projection; }
 		inline const glm::mat4& getView() const { return view; }
 		inline const glm::mat4& getViewProjection() const { return viewProjection; }
