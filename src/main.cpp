@@ -24,6 +24,8 @@ void onMouseMoved(GLFWwindow*, double, double);
 
 void updateCameraMovement(Display&);
 
+void createCube(IndexedModel&);
+
 Camera* camera;
 bool lockCamera;
 bool renderWater;
@@ -39,7 +41,7 @@ int main() {
 	float fieldOfView = glm::radians(70.f);
 	float aspectRatio = (float)display.getWidth() / (float)display.getHeight();
 	float zNear = 0.1f;
-	float zFar = 10.f;//100.f;
+	float zFar = 100.f;//100.f;
 
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
@@ -67,6 +69,10 @@ int main() {
 	Util::resolveFileLinking(fileData, "./src/basic-compute.glsl", "#include");
 	Shader computeShader(context, fileData.str());
 
+	fileData.str("");
+	Util::resolveFileLinking(fileData, "./src/skybox-shader.glsl", "#include");
+	Shader skyboxShader(context, fileData.str());
+
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), GL_DYNAMIC_DRAW);
 
 	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
@@ -75,9 +81,9 @@ int main() {
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 
-	OceanFFT oceanFFT(context, 256, 1000, true);
+	OceanFFT oceanFFT(context, 256, 1000, false);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
+	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 20.f, 5.f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -99,6 +105,18 @@ int main() {
 	bmp.load("./res/foam.jpg");
 	Texture foam(context, bmp, GL_RGBA);
 
+	IndexedModel cubeModel;
+	createCube(cubeModel);
+
+	VertexArray cube(context, cubeModel, GL_STATIC_DRAW);
+
+	std::string cubeTextures[] = {"./res/skybox/right.jpg",
+		"./res/skybox/left.jpg", "./res/skybox/top.jpg",
+		"./res/skybox/bottom.jpg", "./res/skybox/front.jpg",
+		"./res/skybox/back.jpg"};
+
+	CubeMap skybox(context, cubeTextures);
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -119,11 +137,17 @@ int main() {
 		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
+		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
+				camera->getPosition())), sizeof(glm::mat4));
+
 		if (renderWater) {
 			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 			oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 			oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			context.draw(oceanShader, oceanArray, primitive);
+
+			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
+			context.draw(skyboxShader, cube, GL_TRIANGLES);
 		}
 		else {
 			/*basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
@@ -221,4 +245,41 @@ void updateCameraMovement(Display& display) {
 	}
 
 	camera->move(dx, dy, dz);
+}
+
+void createCube(IndexedModel& model) {
+	model.allocateElement(3); // position
+	model.setInstancedElementStartIndex(1);
+	model.allocateElement(16); // transform
+
+	for (float z = -1.f; z <= 1.f; z += 2.f) {
+		for (float y = -1.f; y <= 1.f; y += 2.f) {
+			for (float x = -1.f; x <= 1.f; x += 2.f) {
+				model.addElement3f(0, x, y, z);
+			}
+		}
+	}
+
+	// back
+	model.addIndices3i(0, 1, 2);
+	model.addIndices3i(3, 2, 1);
+
+	// front
+	model.addIndices3i(6, 5, 4);
+	model.addIndices3i(5, 6, 7);
+
+	// bottom
+	model.addIndices3i(4, 1, 0);
+	model.addIndices3i(1, 4, 5);
+
+	// top
+	model.addIndices3i(2, 3, 6);
+	model.addIndices3i(7, 6, 3);
+
+	// left
+	model.addIndices3i(0, 2, 6);
+	model.addIndices3i(6, 4, 0);
+
+	model.addIndices3i(1, 5, 7);
+	model.addIndices3i(7, 3, 1);
 }

@@ -14,6 +14,7 @@ RenderContext::RenderContext()
 	glCullFace(GL_BACK);
 	
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
 	glEnable(GL_TEXTURE_2D);
 }
