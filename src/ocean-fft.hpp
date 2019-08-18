@@ -29,6 +29,8 @@ class OceanFFT {
 
 		~OceanFFT();
 	private:
+		NULL_COPY_AND_ASSIGN(OceanFFT);
+
 		RenderContext* context;
 
 		int32 N;

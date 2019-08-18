@@ -10,6 +10,8 @@ class Ocean : public IndexedModel {
 		inline float getOceanHeight() const { return oceanHeight; }
 		inline float getMaxAmplitude() const { return maxAmplitude; }
 	private:
+		NULL_COPY_AND_ASSIGN(Ocean);
+
 		float oceanHeight;
 		float maxAmplitude;
 		uint32 gridLength;

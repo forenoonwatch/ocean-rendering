@@ -12,6 +12,8 @@ class CubeMap {
 
 		~CubeMap();
 	private:
+		NULL_COPY_AND_ASSIGN(CubeMap);
+
 		RenderContext* context;
 		uint32 textureID;
 
