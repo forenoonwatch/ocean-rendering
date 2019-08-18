@@ -30,7 +30,7 @@ bool renderWater;
 uint32 primitive;
 
 int main() {
-	Display display("MoIsT - Sponsored by Doritos(TM)", 800, 600);
+	Display display("MoIsT - Sponsored by Doritos(TM)", 1200, 900);
 
 	lockCamera = true;
 	renderWater = true;
@@ -67,18 +67,17 @@ int main() {
 	Util::resolveFileLinking(fileData, "./src/basic-compute.glsl", "#include");
 	Shader computeShader(context, fileData.str());
 
-	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4), GL_DYNAMIC_DRAW);
+	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), GL_DYNAMIC_DRAW);
 
 	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+	Sampler sampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 
 	OceanFFT oceanFFT(context, 256, 1000, true);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	//oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
-	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 20.f, 0.5f);
+	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 80.f, 0.1f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -114,6 +113,8 @@ int main() {
 		context.clear();
 
 		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
+		dataBuffer.update(glm::value_ptr(camera->getPosition()),
+				4 * sizeof(glm::vec4), sizeof(glm::vec3));
 
 		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
@@ -125,7 +126,7 @@ int main() {
 			context.draw(oceanShader, oceanArray, primitive);
 		}
 		else {
-			basicShader.setSampler("diffuse", oceanFFT.getCoeffDX(), sampler, 0);
+			/*basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, 0.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 
@@ -139,6 +140,10 @@ int main() {
 
 			basicShader.setSampler("diffuse", oceanFFT.getFoldingMap(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
+			context.draw(basicShader, quad, primitive);*/
+
+			basicShader.setSampler("diffuse", oceanFFT.getDXYZ(), sampler, 0);
+			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);
 		}
 
