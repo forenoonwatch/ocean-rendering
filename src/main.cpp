@@ -126,11 +126,8 @@ int main() {
 
 	Texture reflection(context, display.getWidth(), 
 			display.getHeight(), GL_RGBA);
-	Texture refraction(context, display.getWidth(),
-			display.getHeight(), GL_RGBA);
 
 	RenderTarget reflectionTarget(context, reflection, GL_COLOR_ATTACHMENT0);
-	RenderTarget refractionTarget(context, refraction, GL_COLOR_ATTACHMENT0);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -158,17 +155,11 @@ int main() {
 			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
 			context.draw(reflectionTarget, skyboxShader, cube, GL_TRIANGLES);
 
-			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
-				camera->getPosition())), sizeof(glm::mat4));
-			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
-			context.draw(refractionTarget, skyboxShader, cube, GL_TRIANGLES);
-
 			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 			oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 			oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			oceanShader.setSampler("reflectionMap", reflection, oceanSampler, 3);
-			oceanShader.setSampler("refractionMap", refraction, oceanSampler, 4);
-			oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 5);
+			oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
 			context.draw(screen, oceanShader, oceanArray, primitive);
 
 			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
@@ -193,7 +184,7 @@ int main() {
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
 			context.draw(basicShader, quad, primitive);*/
 
-			basicShader.setSampler("diffuse", refraction, sampler, 0);
+			basicShader.setSampler("diffuse", reflection, sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
 			context.draw(screen, basicShader, quad, primitive);
 		}

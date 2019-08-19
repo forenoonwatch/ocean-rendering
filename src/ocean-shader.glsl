@@ -1,6 +1,7 @@
 
 #define OCEAN_SAMPLE 0.01
 #define AMPLITUDE 2.0
+#define F0 0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 
 #if defined(VS_BUILD)
 
@@ -86,7 +87,10 @@ void main() {
 	localPos = p0;
 	lightDir = normalize(vec3(50, 20, 0) - localPos) * TBN;
 	//lightDir = normalize(vec3(1, 1, 0)) * TBN;
-	fresnel = clamp(dot(N, normalize(cameraPosition - p0)), 0.0, 1.0);
+	
+	const float F = clamp(1.0 - dot(N, normalize(cameraPosition - p0)), 0.0, 1.0);
+	fresnel = F * F;
+	fresnel = F0 + (1.0 - F0) * fresnel;
 }
 
 #elif defined(FS_BUILD)
@@ -102,7 +106,6 @@ uniform sampler2D foldingMap;
 uniform sampler2D foam;
 
 uniform sampler2D reflectionMap;
-uniform sampler2D refractionMap;
 
 uniform sampler2D dudv;
 
@@ -134,12 +137,12 @@ void main() {
 			0.0, 1.0);
 	const vec3 foamCol = texture2D(foam, 10.0 * texCoord0).rgb;
 
-	vec2 distort = texture2D(dudv, 10 * texCoord0).xy * DISTORT_STRENGTH;
-	distort = fma(distort, vec2(2.0), vec2(-1.0));
+	vec2 distort = texture2D(dudv, 10 * texCoord0).xy;
+	distort = fma(distort, vec2(2.0), vec2(-1.0)) * DISTORT_STRENGTH;
 
 	const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y) + distort).rgb;
-	const vec3 fract = texture2D(refractionMap, ndc + distort).rgb;
-	const vec3 col = mix(mix(flect, fract, fresnel) * oceanColor, oceanColor, OPACITY);
+
+	const vec3 col = mix(oceanColor, flect * oceanColor, fresnel);
 
 	const float light = AMBIENT_LIGHT + (1 - AMBIENT_LIGHT) * (diffuse + specular);
 
