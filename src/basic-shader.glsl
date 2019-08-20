@@ -11,7 +11,7 @@ layout (std140) uniform ShaderData {
 };
 
 void main() {
-	gl_Position = vec4(2 * position + offset, 0.0, 1.0);
+	gl_Position = vec4(position + offset, 0.0, 1.0);
 	texCoord0 = position;
 }
 

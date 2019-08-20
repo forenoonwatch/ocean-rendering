@@ -74,18 +74,19 @@ int main() {
 	Util::resolveFileLinking(fileData, "./src/skybox-shader.glsl", "#include");
 	Shader skyboxShader(context, fileData.str());
 
-	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), GL_DYNAMIC_DRAW);
+	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
+			+ sizeof(float), GL_DYNAMIC_DRAW);
 
 	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-	Sampler sampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-	Sampler dudvSampler(context, GL_LINEAR, GL_LINEAR);
+	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
 	OceanFFT oceanFFT(context, 256, 1000, true);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 40.f, 5.f);
+	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -146,46 +147,46 @@ int main() {
 		dataBuffer.update(glm::value_ptr(camera->getPosition()),
 				4 * sizeof(glm::vec4), sizeof(glm::vec3));
 
+		float t[] = {(float)glfwGetTime()};
+		dataBuffer.update(t, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(float));
+
 		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
 		if (renderWater) {
 			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
 					sizeof(glm::mat4));
-			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
+			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
 			context.draw(reflectionTarget, skyboxShader, cube, GL_TRIANGLES);
 
 			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-			oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
-			oceanShader.setSampler("foam", foam, oceanSampler, 2);
+			oceanShader.setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
+			//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
+			//oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			oceanShader.setSampler("reflectionMap", reflection, oceanSampler, 3);
-			oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
+			//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
 			context.draw(screen, oceanShader, oceanArray, primitive);
 
 			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 				camera->getPosition())), sizeof(glm::mat4));
-			skyboxShader.setSampler("skybox", skybox, oceanSampler, 0);
+			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
 			context.draw(screen, skyboxShader, cube, GL_TRIANGLES);
 		}
 		else {
-			/*basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
+			basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, 0.f)), sizeof(glm::vec2));
-			context.draw(basicShader, quad, primitive);
+			context.draw(screen, basicShader, quad, primitive);
 
-			basicShader.setSampler("diffuse", oceanFFT.getCoeffDY(), sampler, 0);
+			basicShader.setSampler("diffuse", oceanFFT.getFoldingMap(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, 0.f)), sizeof(glm::vec2));
-			context.draw(basicShader, quad, primitive);
+			context.draw(screen, basicShader, quad, primitive);
 
 			basicShader.setSampler("diffuse", oceanFFT.getDXYZ(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
-			context.draw(basicShader, quad, primitive);
+			context.draw(screen, basicShader, quad, primitive);
 
-			basicShader.setSampler("diffuse", oceanFFT.getFoldingMap(), sampler, 0);
+			basicShader.setSampler("diffuse", oceanFFT.getNormalMap(), sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
-			context.draw(basicShader, quad, primitive);*/
-
-			basicShader.setSampler("diffuse", reflection, sampler, 0);
-			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
 			context.draw(screen, basicShader, quad, primitive);
 		}
 

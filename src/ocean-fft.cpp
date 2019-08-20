@@ -27,6 +27,7 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy)
 		, coeffDZ(context, N, N, GL_RGBA32F)
 		, dXYZ(context, N, N, GL_RGBA32F)
 		, bufferTexture(context, N, N, GL_RGBA32F)
+		, normalMap(context, N, N, GL_RGBA32F)
 		, foldingMap(context, N, N, GL_RGBA32F) {
 	std::stringstream ss;
 
@@ -44,6 +45,10 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy)
 	ss.str("");
 	Util::resolveFileLinking(ss, "./src/folding-shader.glsl", "#include");
 	foldingShader = new Shader(context, ss.str());
+
+	ss.str("");
+	Util::resolveFileLinking(ss, "./src/normal-map-shader.glsl", "#include");
+	normalShader = new Shader(context, ss.str());
 }
 
 void OceanFFT::init(float amplitude, const glm::vec2& direction,
@@ -64,6 +69,9 @@ void OceanFFT::init(float amplitude, const glm::vec2& direction,
 
 	context->setShader(foldingShader->getID());
 	glUniform1i(foldingShader->getUniform("N"), N);
+
+	context->setShader(normalShader->getID());
+	glUniform1i(normalShader->getUniform("N"), N);
 }
 
 void OceanFFT::update(float delta) {
@@ -95,6 +103,11 @@ void OceanFFT::update(float delta) {
 	context->compute(*foldingShader, N / 16, N / 16);
 	context->awaitFinish();
 
+	normalShader->bindComputeTexture(normalMap, 1, GL_WRITE_ONLY, GL_RGBA32F);
+
+	context->compute(*normalShader, N / 16, N / 16);
+	context->awaitFinish();
+
 	timeCounter += delta;
 }
 
@@ -103,6 +116,7 @@ OceanFFT::~OceanFFT() {
 	delete butterflyShader;
 	delete inversionShader;
 	delete foldingShader;
+	delete normalShader;
 }
 
 inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
