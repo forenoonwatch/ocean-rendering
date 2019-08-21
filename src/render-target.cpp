@@ -41,6 +41,14 @@ void RenderTarget::addTextureTarget(Texture& texture,
 			+ attachmentNumber, GL_TEXTURE_2D, texture.getID(), 0);
 }
 
+void RenderTarget::addRenderBuffer(RenderBuffer& buffer,
+		uint32 attachmentType, uint32 attachmentNumber) {
+	context->setRenderTarget(bufferID);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentType
+			+ attachmentNumber, GL_RENDERBUFFER, buffer.getID());
+}
+
 RenderTarget::~RenderTarget() {
 	glDeleteFramebuffers(1, &bufferID);
 }

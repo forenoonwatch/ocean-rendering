@@ -148,14 +148,17 @@ int main() {
 			display.getHeight(), GL_RGBA);
 	Texture hdrTexture(context, display.getWidth(),
 			display.getHeight(), GL_RGBA32F);
-	Texture hdrDepthStencil(context, display.getWidth(),
-			display.getHeight(), GL_DEPTH24_STENCIL8, false, nullptr,
-			GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	//Texture hdrDepthStencil(context, display.getWidth(),
+	//		display.getHeight(), GL_DEPTH24_STENCIL8, false, nullptr,
+	//		GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	
+	RenderBuffer hdrDepthStencil(context, display.getWidth(),
+			display.getHeight(), GL_DEPTH24_STENCIL8);
 
 	RenderTarget reflectionTarget(context, reflection, GL_COLOR_ATTACHMENT0);
 	RenderTarget hdrTarget(context, hdrTexture, GL_COLOR_ATTACHMENT0);
 
-	hdrTarget.addTextureTarget(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
+	hdrTarget.addRenderBuffer(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);

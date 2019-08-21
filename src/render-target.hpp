@@ -1,6 +1,7 @@
 #pragma once
 
 #include "texture.hpp"
+#include "render-buffer.hpp"
 
 class RenderTarget {
 	public:
@@ -22,6 +23,8 @@ class RenderTarget {
 				uint32 filter = GL_NEAREST);
 
 		void addTextureTarget(Texture& texture, uint32 attachmentType,
+				uint32 attachmentNumber = 0);
+		void addRenderBuffer(RenderBuffer& buffer, uint32 attachmentType,
 				uint32 attachmentNumber = 0);
 
 		inline uint32 getID() { return bufferID; }
