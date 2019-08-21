@@ -296,6 +296,12 @@ void updateCameraMovement(Display& display) {
 		dy += MOVE_SPEED;
 	}
 
+	if (glfwGetKey(display.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		dx *= 10.f;
+		dy *= 10.f;
+		dz *= 10.f;
+	}
+
 	camera->move(dx, dy, dz);
 }
 
