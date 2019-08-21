@@ -101,10 +101,12 @@ void main() {
 
 #elif defined(FS_BUILD)
 
-#define SPECULAR_STRENGTH 2
+#define SPECULAR_STRENGTH 5.0
 #define OPACITY 0.7
 #define DISTORT_STRENGTH 0.03
 #define AMBIENT_LIGHT 0.5
+
+#define BRIGHT_THRESH vec3(0.2126, 0.7152, 0.0722)
 
 //uniform sampler2D foldingMap;
 //uniform sampler2D foam;
@@ -122,7 +124,8 @@ in vec2 texCoord0;
 in vec4 clipSpace;
 in float fresnel;
 
-out vec4 outColor;
+layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 brightColor;
 
 layout (std140) uniform ShaderData {
 	vec4 corners[4];
@@ -174,7 +177,17 @@ void main() {
 	const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb;
 	const vec3 col = mix(oceanColor0, oceanColor1, y);
 
-	outColor = vec4(mix(mix(flect * col, col, fresnel), vec3(1), mask) * light, 1.0);
+	const vec3 inColor = mix(mix(flect * col, col, fresnel), vec3(1), mask) * light;
+	const float brightness = dot(inColor, BRIGHT_THRESH);
+
+	outColor = vec4(inColor, 1.0);
+
+	if (brightness > 1.0) {
+		brightColor = vec4(inColor, 1.0);
+	}
+	else {
+		brightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 }
 
 #endif

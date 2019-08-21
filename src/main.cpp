@@ -20,6 +20,8 @@
 #include "ocean.hpp"
 #include "ocean-fft.hpp"
 
+#include "gaussian-blur.hpp"
+
 #define MOVE_SPEED	0.05f
 
 void onKeyEvent(GLFWwindow*, int, int, int, int);
@@ -141,6 +143,8 @@ int main() {
 			display.getHeight(), GL_RGBA);
 	Texture hdrTexture(context, display.getWidth(),
 			display.getHeight(), GL_RGBA32F);
+	Texture brightTexture(context, display.getWidth(),
+			display.getHeight(), GL_RGBA32F);
 	//Texture hdrDepthStencil(context, display.getWidth(),
 	//		display.getHeight(), GL_DEPTH24_STENCIL8, false, nullptr,
 	//		GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
@@ -152,6 +156,12 @@ int main() {
 	RenderTarget hdrTarget(context, hdrTexture, GL_COLOR_ATTACHMENT0);
 
 	hdrTarget.addRenderBuffer(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
+	hdrTarget.addTextureTarget(brightTexture, GL_COLOR_ATTACHMENT0, 1);
+
+	uint32 attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, attachments);
+
+	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], hdrTexture);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -197,9 +207,11 @@ int main() {
 			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
 			context.draw(hdrTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
+			blurBuffer.update();
+
 			shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
 			context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
-
+			
 			shaders["screen-render-shader"]->setSampler("screen", hdrTexture, sampler, 0);
 			context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
 		//}
@@ -320,7 +332,8 @@ void createCube(IndexedModel& model) {
 void loadShaders(RenderContext& context,
 		std::unordered_map<std::string, std::shared_ptr<Shader>>& shaders) {
 	const std::string shaderNames[] = {"basic-shader", "ocean-shader",
-			"skybox-shader", "screen-render-shader", "tone-map-shader"};
+			"skybox-shader", "screen-render-shader", "tone-map-shader",
+			"gaussian-blur-shader"};
 
 	std::stringstream fileData;
 
