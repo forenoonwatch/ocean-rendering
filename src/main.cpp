@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <algorithm>
 
+#include <memory>
+#include <unordered_map>
+
 #include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
@@ -26,6 +29,8 @@ void onMouseMoved(GLFWwindow*, double, double);
 void updateCameraMovement(Display&);
 
 void createCube(IndexedModel&);
+void loadShaders(RenderContext&,
+		std::unordered_map<std::string, std::shared_ptr<Shader>>&);
 
 Camera* camera;
 bool lockCamera;
@@ -56,29 +61,17 @@ int main() {
 	glfwSetCursorPosCallback(display.getWindow(), onMouseMoved);
 
 	RenderContext context;
+	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
+
+	loadShaders(context, shaders);
+
 	VertexArray oceanArray(context, ocean, GL_STATIC_DRAW);
-
-	std::stringstream fileData;
-	Util::resolveFileLinking(fileData, "./src/basic-shader.glsl", "#include");
-	Shader basicShader(context, fileData.str());
-	
-	fileData.str("");
-	Util::resolveFileLinking(fileData, "./src/ocean-shader.glsl", "#include");
-	Shader oceanShader(context, fileData.str());
-
-	fileData.str("");
-	Util::resolveFileLinking(fileData, "./src/skybox-shader.glsl", "#include");
-	Shader skyboxShader(context, fileData.str());
-
-	fileData.str("");
-	Util::resolveFileLinking(fileData, "./src/screen-render-shader.glsl", "#include");
-	Shader screenRenderShader(context, fileData.str());
 
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ sizeof(float), GL_DYNAMIC_DRAW);
 
 	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
-	oceanShader.setUniformBuffer("ShaderData", dataBuffer, 0);
+	shaders["ocean-shader"]->setUniformBuffer("ShaderData", dataBuffer, 0);
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
@@ -183,47 +176,33 @@ int main() {
 		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
-		if (renderWater) {
+		//if (renderWater) {
 			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
 					sizeof(glm::mat4));
-			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
-			context.draw(reflectionTarget, skyboxShader, cube, GL_TRIANGLES);
+			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
+			context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
-			oceanShader.setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-			oceanShader.setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
+			shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
+			shaders["ocean-shader"]->setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
 			//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 			//oceanShader.setSampler("foam", foam, oceanSampler, 2);
-			oceanShader.setSampler("reflectionMap", reflection, oceanSampler, 3);
+			shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 3);
 			//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
-			context.draw(hdrTarget, oceanShader, oceanArray, primitive);
+			context.draw(hdrTarget, *shaders["ocean-shader"], oceanArray, primitive);
 
 			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 				camera->getPosition())), sizeof(glm::mat4));
-			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
-			context.draw(hdrTarget, skyboxShader, cube, GL_TRIANGLES);
+			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
+			context.draw(hdrTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
-			screenRenderShader.setSampler("screen", hdrTexture, sampler, 0);
-			context.draw(screen, screenRenderShader, screenQuad, GL_TRIANGLES);
-		}
-		else {
-			basicShader.setSampler("diffuse", hdrTexture, sampler, 0);
-			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, 0.f)), sizeof(glm::vec2));
-			context.draw(screen, basicShader, quad, primitive);
+			shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
+			context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
 
-			basicShader.setSampler("diffuse", oceanFFT.getFoldingMap(), sampler, 0);
-			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, 0.f)), sizeof(glm::vec2));
-			context.draw(screen, basicShader, quad, primitive);
-
-			basicShader.setSampler("diffuse", oceanFFT.getDXYZ(), sampler, 0);
-			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, -1.f)), sizeof(glm::vec2));
-			context.draw(screen, basicShader, quad, primitive);
-
-			basicShader.setSampler("diffuse", oceanFFT.getNormalMap(), sampler, 0);
-			quad.updateBuffer(1, glm::value_ptr(glm::vec2(0.f, -1.f)), sizeof(glm::vec2));
-			context.draw(screen, basicShader, quad, primitive);
-		}
+			shaders["screen-render-shader"]->setSampler("screen", hdrTexture, sampler, 0);
+			context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
+		//}
 
 		display.render();
 		display.pollEvents();
@@ -336,4 +315,22 @@ void createCube(IndexedModel& model) {
 
 	model.addIndices3i(1, 5, 7);
 	model.addIndices3i(7, 3, 1);
+}
+
+void loadShaders(RenderContext& context,
+		std::unordered_map<std::string, std::shared_ptr<Shader>>& shaders) {
+	const std::string shaderNames[] = {"basic-shader", "ocean-shader",
+			"skybox-shader", "screen-render-shader", "tone-map-shader"};
+
+	std::stringstream fileData;
+
+	for (uint32 i = 0; i < ARRAY_SIZE_IN_ELEMENTS(shaderNames); ++i) {
+		std::string fileName = "./src/" + shaderNames[i] + ".glsl";
+
+		fileData.str("");
+		Util::resolveFileLinking(fileData, fileName, "#include");
+
+		shaders.insert( std::make_pair( shaderNames[i],
+				std::make_shared<Shader>(context, fileData.str()) ) );
+	}
 }
