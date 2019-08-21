@@ -1,8 +1,8 @@
 #include "texture.hpp"
 
 Texture::Texture(RenderContext& context, uint32 width,
-			uint32 height, uint32 internalPixelFormat,
-			bool storage, const void* data)
+			uint32 height, uint32 internalPixelFormat, bool storage,
+			const void* data, uint32 pixelFormat, uint32 dataType)
 		: context(&context)
 		, textureID(-1)
 		, width(width)
@@ -22,7 +22,7 @@ Texture::Texture(RenderContext& context, uint32 width,
 	}
 	else {
 		glTexImage2D(GL_TEXTURE_2D, 0, internalPixelFormat,
-				width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+				width, height, 0, pixelFormat, dataType, data);
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);

@@ -7,7 +7,9 @@ class Texture {
 	public:
 		Texture(RenderContext& context, uint32 width,
 				uint32 height, uint32 internalPixelFormat,
-				bool storage = false, const void* data = nullptr);
+				bool storage = false, const void* data = nullptr,
+				uint32 pixelFormat = GL_RGBA,
+				uint32 dataType = GL_UNSIGNED_BYTE);
 		Texture(RenderContext& context, const Bitmap& bitmap,
 				uint32 internalPixelFormat);
 
