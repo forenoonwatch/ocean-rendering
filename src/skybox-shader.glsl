@@ -19,10 +19,12 @@ uniform samplerCube skybox;
 
 in vec3 texCoord0;
 
-out vec4 outColor;
+layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 brightColor;
 
 void main() {
 	outColor = texture(skybox, texCoord0);
+	brightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 #endif

@@ -13,7 +13,7 @@ void main() {
 
 #elif defined(FS_BUILD)
 
-#define EXPOSURE 2.0
+#define EXPOSURE 1.0
 
 in vec2 texCoord0;
 

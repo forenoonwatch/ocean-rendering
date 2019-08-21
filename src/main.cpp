@@ -159,9 +159,8 @@ int main() {
 	hdrTarget.addTextureTarget(brightTexture, GL_COLOR_ATTACHMENT0, 1);
 
 	uint32 attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(2, attachments);
 
-	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], hdrTexture);
+	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -188,6 +187,7 @@ int main() {
 
 		//if (renderWater) {
 			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glDrawBuffers(2, attachments);
 
 			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
 					sizeof(glm::mat4));
@@ -195,7 +195,7 @@ int main() {
 			context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
 			shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-			shaders["ocean-shader"]->setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
+			//shaders["ocean-shader"]->setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
 			//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 			//oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 3);
@@ -209,10 +209,17 @@ int main() {
 
 			blurBuffer.update();
 
+			glDrawBuffers(1, attachments);
+
+			shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
+			shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
+			context.draw(hdrTarget, *shaders["bloom-shader"], screenQuad, GL_TRIANGLES);
+			
 			shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
 			context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
 			
-			shaders["screen-render-shader"]->setSampler("screen", hdrTexture, sampler, 0);
+			shaders["screen-render-shader"]->setSampler("screen", renderWater
+					? hdrTexture : brightTexture, sampler, 0);
 			context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
 		//}
 
@@ -333,7 +340,7 @@ void loadShaders(RenderContext& context,
 		std::unordered_map<std::string, std::shared_ptr<Shader>>& shaders) {
 	const std::string shaderNames[] = {"basic-shader", "ocean-shader",
 			"skybox-shader", "screen-render-shader", "tone-map-shader",
-			"gaussian-blur-shader"};
+			"gaussian-blur-shader", "bloom-shader"};
 
 	std::stringstream fileData;
 
