@@ -4,11 +4,12 @@
 
 class RenderTarget {
 	public:
-		inline RenderTarget(RenderContext& context)
+		inline RenderTarget(RenderContext& context, uint32 width,
+					uint32 height)
 				: context(&context)
 				, bufferID(0)
-				, width(0) 
-				, height(0) {}
+				, width(width) 
+				, height(height) {}
 
 		RenderTarget(RenderContext& context, Texture& texture,
 				uint32 width, uint32 height, uint32 attachmentType,
@@ -17,6 +18,11 @@ class RenderTarget {
 				uint32 attachmentType, uint32 attachmentNumber = 0);
 
 		void clear(uint32 flags);
+		void drawTo(RenderTarget& target, uint32 mask = GL_COLOR_BUFFER_BIT,
+				uint32 filter = GL_NEAREST);
+
+		void addTextureTarget(Texture& texture, uint32 attachmentType,
+				uint32 attachmentNumber = 0);
 
 		inline uint32 getID() { return bufferID; }
 

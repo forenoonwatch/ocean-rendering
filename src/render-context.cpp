@@ -9,6 +9,7 @@ RenderContext::RenderContext()
 		, shaderVersion("")
 		, currentShader(-1)
 		, currentVertexArray(-1)
+		, currentRenderSource(0)
 		, currentRenderTarget(0) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -109,9 +110,32 @@ void RenderContext::setVertexArray(uint32 vao) {
 	}
 }
 
-void RenderContext::setRenderTarget(uint32 fbo) {
-	if (currentRenderTarget != fbo) {
-		currentRenderTarget = fbo;
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+void RenderContext::setRenderTarget(uint32 fbo, uint32 bufferType) {
+	switch (bufferType) {
+		case GL_FRAMEBUFFER:
+			if (currentRenderSource != fbo || currentRenderTarget != fbo) {
+				currentRenderSource = fbo;
+				currentRenderTarget = fbo;
+
+				glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+			}
+
+			return;
+		case GL_READ_FRAMEBUFFER:
+			if (currentRenderSource != fbo) {
+				currentRenderSource = fbo;
+
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+			}
+
+			return;
+		case GL_DRAW_FRAMEBUFFER:
+			if (currentRenderTarget != fbo) {
+				currentRenderTarget = fbo;
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+			}
+
+			return;
 	}
 }

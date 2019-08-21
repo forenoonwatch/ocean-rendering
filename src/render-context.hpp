@@ -27,7 +27,8 @@ class RenderContext {
 
 		void setShader(uint32);
 		void setVertexArray(uint32);
-		void setRenderTarget(uint32);
+
+		void setRenderTarget(uint32 fbo, uint32 bufferType = GL_FRAMEBUFFER);
 	private:
 		NULL_COPY_AND_ASSIGN(RenderContext);
 
@@ -36,5 +37,7 @@ class RenderContext {
 
 		uint32 currentShader;
 		uint32 currentVertexArray;
+
+		uint32 currentRenderSource;
 		uint32 currentRenderTarget;
 };

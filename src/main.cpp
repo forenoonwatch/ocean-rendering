@@ -67,12 +67,12 @@ int main() {
 	Shader oceanShader(context, fileData.str());
 
 	fileData.str("");
-	Util::resolveFileLinking(fileData, "./src/basic-compute.glsl", "#include");
-	Shader computeShader(context, fileData.str());
-
-	fileData.str("");
 	Util::resolveFileLinking(fileData, "./src/skybox-shader.glsl", "#include");
 	Shader skyboxShader(context, fileData.str());
+
+	fileData.str("");
+	Util::resolveFileLinking(fileData, "./src/screen-render-shader.glsl", "#include");
+	Shader screenRenderShader(context, fileData.str());
 
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ sizeof(float), GL_DYNAMIC_DRAW);
@@ -123,12 +123,39 @@ int main() {
 
 	CubeMap skybox(context, cubeTextures);
 
-	RenderTarget screen(context);
+	IndexedModel screenQuadModel;
+	screenQuadModel.allocateElement(2); // position
+	screenQuadModel.allocateElement(2); // texCoord
+
+	screenQuadModel.addElement2f(0, -1.f, -1.f);
+	screenQuadModel.addElement2f(0, -1.f,  1.f);
+	screenQuadModel.addElement2f(0,  1.f, -1.f);
+	screenQuadModel.addElement2f(0,  1.f,  1.f);
+
+	screenQuadModel.addElement2f(1, 0.f, 0.f);
+	screenQuadModel.addElement2f(1, 0.f, 1.f);
+	screenQuadModel.addElement2f(1, 1.f, 0.f);
+	screenQuadModel.addElement2f(1, 1.f, 1.f);
+
+	screenQuadModel.addIndices3i(2, 1, 0);
+	screenQuadModel.addIndices3i(1, 2, 3);
+
+	VertexArray screenQuad(context, screenQuadModel, GL_STATIC_DRAW);
+
+	RenderTarget screen(context, display.getWidth(), display.getHeight());
 
 	Texture reflection(context, display.getWidth(), 
 			display.getHeight(), GL_RGBA);
+	Texture hdrTexture(context, display.getWidth(),
+			display.getHeight(), GL_RGBA32F);
+	Texture hdrDepthStencil(context, display.getWidth(),
+			display.getHeight(), GL_DEPTH24_STENCIL8, false, nullptr,
+			GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 
 	RenderTarget reflectionTarget(context, reflection, GL_COLOR_ATTACHMENT0);
+	RenderTarget hdrTarget(context, hdrTexture, GL_COLOR_ATTACHMENT0);
+
+	hdrTarget.addTextureTarget(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -154,6 +181,8 @@ int main() {
 				sizeof(glm::mat4));
 
 		if (renderWater) {
+			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
 					sizeof(glm::mat4));
 			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
@@ -165,15 +194,18 @@ int main() {
 			//oceanShader.setSampler("foam", foam, oceanSampler, 2);
 			oceanShader.setSampler("reflectionMap", reflection, oceanSampler, 3);
 			//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
-			context.draw(screen, oceanShader, oceanArray, primitive);
+			context.draw(hdrTarget, oceanShader, oceanArray, primitive);
 
 			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 				camera->getPosition())), sizeof(glm::mat4));
 			skyboxShader.setSampler("skybox", skybox, skyboxSampler, 0);
-			context.draw(screen, skyboxShader, cube, GL_TRIANGLES);
+			context.draw(hdrTarget, skyboxShader, cube, GL_TRIANGLES);
+
+			screenRenderShader.setSampler("screen", hdrTexture, sampler, 0);
+			context.draw(screen, screenRenderShader, screenQuad, GL_TRIANGLES);
 		}
 		else {
-			basicShader.setSampler("diffuse", oceanFFT.getH0K(), sampler, 0);
+			basicShader.setSampler("diffuse", hdrTexture, sampler, 0);
 			quad.updateBuffer(1, glm::value_ptr(glm::vec2(-1.f, 0.f)), sizeof(glm::vec2));
 			context.draw(screen, basicShader, quad, primitive);
 
