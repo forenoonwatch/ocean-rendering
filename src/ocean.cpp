@@ -47,14 +47,11 @@ OceanProjector::OceanProjector(Ocean& ocean, Camera& viewCamera)
 		, mProjector(1.f) {}
 
 void OceanProjector::update() {
-	glm::vec3 camPos = viewCamera.getPosition();
+	glm::vec3 camPos = viewCamera.getPosition()
+			+ viewCamera.getLookVector() * 2.f * ocean.getMaxAmplitude();
 
 	if (camPos.y < ocean.getOceanHeight() + ocean.getMaxAmplitude()) {
 		camPos.y = ocean.getOceanHeight() + ocean.getMaxAmplitude();
-	}
-	else {
-		camPos += viewCamera.getLookVector()
-		* 2.f * ocean.getMaxAmplitude();
 	}
 
 	projectorCamera.setPosition(camPos);
