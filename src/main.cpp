@@ -182,7 +182,7 @@ int main() {
 		float t[] = {(float)glfwGetTime()};
 		dataBuffer.update(t, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(float));
 
-		oceanArray.updateBuffer(2, glm::value_ptr(camera->getViewProjection()),
+		oceanArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
 		//if (renderWater) {

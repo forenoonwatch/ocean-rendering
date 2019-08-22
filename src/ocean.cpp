@@ -9,9 +9,8 @@ Ocean::Ocean(float oceanHeight, float maxAmplitude, uint32 gridLength)
 		, maxAmplitude(maxAmplitude)
 		, gridLength(gridLength) {
 	allocateElement(2); // vec2 position
-	allocateElement(4); // vec4 adjacent local-space positions
 
-	setInstancedElementStartIndex(2);
+	setInstancedElementStartIndex(1);
 	allocateElement(16); // mat4 transform;
 
 	initGrid();
@@ -19,10 +18,11 @@ Ocean::Ocean(float oceanHeight, float maxAmplitude, uint32 gridLength)
 
 inline void Ocean::initGrid() {
 	const float fGridLength = (float)gridLength;
+	const float ifGridLength = 1.f / (fGridLength - 1.f);
 
 	for (float y = 0; y < fGridLength; ++y) {
 		for (float x = 0; x < fGridLength; ++x) {
-			addVertex(x / (fGridLength - 1.f), y / (fGridLength - 1.f));
+			addElement2f(0, x / (fGridLength - 1.f), y / (fGridLength - 1.f));
 		}
 	}
 
@@ -33,31 +33,10 @@ inline void Ocean::initGrid() {
 			int32 i2 = y * gridLength + x - 1;
 			int32 i3 = (y - 1) * gridLength + x - 1;
 
-			addIndices(i2, i1, i0);
-			addIndices(i2, i3, i1);
+			addIndices3i(i0, i1, i2);
+			addIndices3i(i1, i3, i2);
 		}
 	}
-}
-
-inline void Ocean::addVertex(float x, float y) {
-	addElement2f(0, x, y);
-	addElement4f(1, 0.f, 0.f, 0.f, 0.f);
-}
-
-inline void Ocean::addIndices(uint32 a, uint32 b, uint32 c) {
-	addIndices3i(c, b, a);
-
-	setAdjacent(a, b, c);
-	setAdjacent(b, a, c);
-	setAdjacent(c, a, b);
-}
-
-inline void Ocean::setAdjacent(uint32 a, uint32 b, uint32 c) {
-	float aX = getElement(0, 2 * a), aY = getElement(0, 2 * a + 1);
-	float bX = getElement(0, 2 * b), bY = getElement(0, 2 * b + 1);
-	float cX = getElement(0, 2 * c), cY = getElement(0, 2 * c + 1);
-
-	setElement4f(1, a, bX - aX, bY - aY, cX - aX, cY - aY);
 }
 
 OceanProjector::OceanProjector(Ocean& ocean, Camera& viewCamera)

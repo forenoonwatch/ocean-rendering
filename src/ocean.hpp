@@ -17,10 +17,6 @@ class Ocean : public IndexedModel {
 		uint32 gridLength;
 
 		void initGrid();
-
-		void addVertex(float, float);
-		void addIndices(uint32, uint32, uint32);
-		void setAdjacent(uint32, uint32, uint32);
 };
 
 class OceanProjector {
