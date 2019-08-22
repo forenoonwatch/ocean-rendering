@@ -1,7 +1,8 @@
+#include "commong.glh"
+
+varying vec2 texCoord0;
 
 #if defined(VS_BUILD)
-
-out vec2 texCoord0;
 
 layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 texCoord;
@@ -14,8 +15,6 @@ void main() {
 #elif defined(FS_BUILD)
 
 #define EXPOSURE 2.0
-
-in vec2 texCoord0;
 
 uniform sampler2D screen;
 

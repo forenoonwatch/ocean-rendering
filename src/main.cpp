@@ -72,7 +72,6 @@ int main() {
 	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ sizeof(float), GL_DYNAMIC_DRAW);
 
-	//basicShader.setUniformBuffer("ShaderData", dataBuffer, 0);
 	shaders["ocean-shader"]->setUniformBuffer("ShaderData", dataBuffer, 0);
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
@@ -145,9 +144,6 @@ int main() {
 			display.getHeight(), GL_RGBA32F);
 	Texture brightTexture(context, display.getWidth(),
 			display.getHeight(), GL_RGBA32F);
-	//Texture hdrDepthStencil(context, display.getWidth(),
-	//		display.getHeight(), GL_DEPTH24_STENCIL8, false, nullptr,
-	//		GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 	
 	RenderBuffer hdrDepthStencil(context, display.getWidth(),
 			display.getHeight(), GL_DEPTH24_STENCIL8);
@@ -185,45 +181,42 @@ int main() {
 		oceanArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
-		//if (renderWater) {
-			reflectionTarget.clear(GL_COLOR_BUFFER_BIT);
+		reflectionTarget.clear(GL_COLOR_BUFFER_BIT);
 
-			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
-					sizeof(glm::mat4));
-			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
-			context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
+		cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
+				sizeof(glm::mat4));
+		shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
+		context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
-			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glDrawBuffers(2, attachments);
+		hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDrawBuffers(2, attachments);
 
-			shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-			//shaders["ocean-shader"]->setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
-			//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
-			//oceanShader.setSampler("foam", foam, oceanSampler, 2);
-			shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 3);
-			//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
-			context.draw(hdrTarget, *shaders["ocean-shader"], oceanArray, primitive);
+		shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
+		shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
+		//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
+		//oceanShader.setSampler("foam", foam, oceanSampler, 2);
+		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
+		context.draw(hdrTarget, *shaders["ocean-shader"], oceanArray, primitive);
 
-			cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
-				camera->getPosition())), sizeof(glm::mat4));
-			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
-			context.draw(hdrTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
+		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
+			camera->getPosition())), sizeof(glm::mat4));
+		shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
+		context.draw(hdrTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
-			blurBuffer.update();
+		blurBuffer.update();
 
-			glDrawBuffers(1, attachments);
+		glDrawBuffers(1, attachments);
 
-			shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
-			shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
-			context.draw(hdrTarget, *shaders["bloom-shader"], screenQuad, GL_TRIANGLES);
-			
-			shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
-			context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
-			
-			shaders["screen-render-shader"]->setSampler("screen", renderWater
-					? hdrTexture : brightTexture, sampler, 0);
-			context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
-		//}
+		shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
+		shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
+		context.draw(hdrTarget, *shaders["bloom-shader"], screenQuad, GL_TRIANGLES);
+		
+		shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
+		context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
+		
+		shaders["screen-render-shader"]->setSampler("screen", renderWater
+				? hdrTexture : brightTexture, sampler, 0);
+		context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
 
 		display.render();
 		display.pollEvents();
@@ -249,14 +242,7 @@ void onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods)
 }
 
 void onMouseClicked(GLFWwindow* window, int button, int action, int mods) {
-	/*if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-		if (action == GLFW_PRESS) {
-			std::cout << "Pressed RMB" << std::endl;
-		}
-		else {
-			std::cout << "Released RMB" << std::endl;
-		}
-	}*/
+	
 }
 
 void onMouseMoved(GLFWwindow* window, double xPos, double yPos) {

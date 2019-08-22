@@ -1,7 +1,8 @@
+#include "common.glh"
+
+varying vec3 texCoord0;
 
 #if defined(VS_BUILD)
-
-out vec3 texCoord0;
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in mat4 transform;
@@ -16,8 +17,6 @@ void main() {
 #elif defined(FS_BUILD)
 
 uniform samplerCube skybox;
-
-in vec3 texCoord0;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 brightColor;

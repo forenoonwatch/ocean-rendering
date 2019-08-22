@@ -1,9 +1,9 @@
+#include "common.glh"
+#include "bicubic-sampling.glh"
 
 #define OCEAN_SAMPLE 0.01
 #define AMPLITUDE 2.0
 #define F0 0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
-
-#include "bicubic-sampling.glh"
 
 #define TEXEL_SIZE 256.0
 #define SMOOTHNESS 2.0
@@ -44,26 +44,17 @@ vec4 getOceanPosition(vec2 pos) {
 	return o;
 }
 
+varying vec3 lightDir;
+
+varying vec2 xyPos0;
+
+varying vec4 clipSpace;
+varying float fresnel;
+
 #if defined(VS_BUILD)
-
-out vec3 lightDir;
-
-out vec2 xyPos0;
-
-out vec4 clipSpace;
-out float fresnel;
 
 layout (location = 0) in vec2 xyPos;
 layout (location = 1) in mat4 transform;
-
-vec2 getOceanTexCoord(vec2 pos) {
-	const vec4 a = mix(corners[0], corners[2], pos.x);
-	const vec4 b = mix(corners[1], corners[3], pos.x);
-
-	vec4 o = mix(a, b, pos.y);
-
-	return o.xz / o.w;
-}
 
 void main() {
 	const vec4 p0Raw = getOceanPosition(xyPos);
@@ -78,11 +69,9 @@ void main() {
 	const vec4 vertPos = transform * p0Raw;
 
 	gl_Position = vertPos;
-	//texCoord0 = getOceanTexCoord(xyPos) * OCEAN_SAMPLE;
 	xyPos0 = xyPos;
 	clipSpace = vertPos;
 	
-	//lightDir = normalize(vec3(cos(0.1 * time), 0, sin(0.1 * time)));
 	lightDir = normalize(vec3(1, 0, 1));
 	
 	const float F = clamp(1.0 - dot(normal, normalize(cameraPosition - p0)), 0.0, 1.0);
@@ -93,35 +82,22 @@ void main() {
 #elif defined(FS_BUILD)
 
 #define SPECULAR_STRENGTH 15.0
-#define OPACITY 0.7
-#define DISTORT_STRENGTH 0.03
-#define AMBIENT_LIGHT 0.5
+#define SPECULAR_BLEND 64
+#define AMBIENT_LIGHT 0.4
 #define SSS_POWER 2.0
 
-#define BRIGHT_THRESH vec3(0.2126, 0.7152, 0.0722)
+const vec3 oceanColor0 = vec3(31, 71, 87) / 255.0;
+const vec3 oceanColor1 = vec3(18, 125, 120) / 255.0;
+
+uniform sampler2D reflectionMap;
 
 //uniform sampler2D foldingMap;
 //uniform sampler2D foam;
 
-//uniform sampler2D normalMap;
-
-uniform sampler2D reflectionMap;
-
 //uniform sampler2D dudv;
-
-in vec3 lightDir;
-
-in vec2 xyPos0;
-
-in vec4 clipSpace;
-in float fresnel;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 brightColor;
-
-//const vec3 oceanColor = vec3(0.416, 0.761, 0.906);
-const vec3 oceanColor0 = /*vec3(11, 49, 58)*/ vec3(31, 71, 87) / 255.0;
-const vec3 oceanColor1 = /*vec3(35, 97, 93)*/ vec3(18, 125, 120) / 255.0;
 
 void main() {
 	const vec2 ndc = (clipSpace.xy / clipSpace.w) * 0.5 + 0.5;
@@ -135,21 +111,18 @@ void main() {
 	const vec3 p2 = p2Raw.xyz / p2Raw.w;
 
 	const vec3 normal = normalize(cross(p2 - p0, p1 - p0));
-	const vec3 pointToEye = cameraPosition - p0;
+	const vec3 pointToEye = normalize(cameraPosition - p0);
 
-	const float diffuse = dot(lightDir, normal);//max(dot(lightDir, normal), 0.0);
-	const float specular = SPECULAR_STRENGTH * pow(max(dot(normalize(pointToEye),
-			reflect(-lightDir, normal)), 0.0), 64);
+	const float diffuse = max(dot(lightDir, normal), 0.0);
+	const float specular = SPECULAR_STRENGTH
+			* pow(max(dot(pointToEye, reflect(-lightDir, normal)), 0.0), SPECULAR_BLEND);
 
 	const float light = AMBIENT_LIGHT + (1.0 - AMBIENT_LIGHT) * diffuse + specular;
 	
-	const float y = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0);
-	//clamp(texture2D(ocean, texCoord0).y, 0.0, 1.0) * fresnel;
+	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0);
 	const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
-	const vec3 col = oceanColor0;
 
-	const vec3 inColor = mix(mix(oceanColor0 * light, oceanColor1, y), flect, fresnel);
-	//const vec3 inColor = mix(mix(flect * col, col, fresnel), vec3(1), mask) * light;
+	const vec3 inColor = mix(mix(oceanColor0 * light, oceanColor1, sssFactor), flect, fresnel);
 	const float brightness = dot(inColor, BRIGHT_THRESH);
 
 	outColor = vec4(inColor, 1.0);
