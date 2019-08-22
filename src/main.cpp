@@ -186,13 +186,15 @@ int main() {
 				sizeof(glm::mat4));
 
 		//if (renderWater) {
-			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glDrawBuffers(2, attachments);
+			reflectionTarget.clear(GL_COLOR_BUFFER_BIT);
 
 			cube.updateBuffer(1, glm::value_ptr(camera->getReflectionSkybox()),
 					sizeof(glm::mat4));
 			shaders["skybox-shader"]->setSampler("skybox", skybox, skyboxSampler, 0);
 			context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
+
+			hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glDrawBuffers(2, attachments);
 
 			shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 			//shaders["ocean-shader"]->setSampler("normalMap", oceanFFT.getNormalMap(), oceanSampler, 1);
