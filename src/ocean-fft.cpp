@@ -3,7 +3,6 @@
 #include "util.hpp"
 
 #include <cmath>
-#include <GLM/gtc/type_ptr.hpp>
 
 static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0MinusK,
 		int32 N, int32 L, float amplitude, const glm::vec2& direction,
@@ -53,24 +52,18 @@ void OceanFFT::init(float amplitude, const glm::vec2& direction,
 	initButterflyTexture(*context, N, butterflyTexture);
 
 	context->awaitFinish();
+	
+	hktShader->setInt("N", N);
+	hktShader->setInt("L", L);
 
-	context->setShader(hktShader->getID());
+	inversionShader->setInt("N", N);
 
-	glUniform1i(hktShader->getUniform("N"), N);
-	glUniform1i(hktShader->getUniform("L"), L);
-
-	context->setShader(inversionShader->getID());
-	glUniform1i(inversionShader->getUniform("N"), N);
-
-	context->setShader(foldingShader->getID());
-	glUniform1i(foldingShader->getUniform("N"), N);
+	foldingShader->setInt("N", N);
 }
 
 void OceanFFT::update(float delta) {
 	// compute hkt
-	context->setShader(hktShader->getID());
-
-	glUniform1f(hktShader->getUniform("t"), timeCounter);
+	hktShader->setFloat("t", timeCounter);
 
 	hktShader->bindComputeTexture(coeffDX, 0, GL_READ_WRITE, GL_RGBA32F);
 	hktShader->bindComputeTexture(coeffDY, 1, GL_READ_WRITE, GL_RGBA32F);
@@ -109,18 +102,16 @@ inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
 		const glm::vec3& mask) {
 	altBuffer = false;
 
-	context->setShader(butterflyShader->getID());
-
 	butterflyShader->bindComputeTexture(butterflyTexture, 0, GL_READ_ONLY, GL_RGBA32F);
 	butterflyShader->bindComputeTexture(coeff, 1, GL_READ_WRITE, GL_RGBA32F);
 	butterflyShader->bindComputeTexture(bufferTexture, 2, GL_READ_WRITE, GL_RGBA32F);
 
 	// 1D FFT horizontal
-	glUniform1i(butterflyShader->getUniform("direction"), 0);
+	butterflyShader->setInt("direction", 0);
 
 	for (uint32 i = 0; i < log2N; ++i) {
-		glUniform1i(butterflyShader->getUniform("bufferNum"), altBuffer);
-		glUniform1i(butterflyShader->getUniform("stage"), i);
+		butterflyShader->setInt("bufferNum", altBuffer);
+		butterflyShader->setInt("stage", i);
 
 		context->compute(*butterflyShader, N / 16, N / 16);
 		context->awaitFinish();
@@ -129,22 +120,20 @@ inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
 	}
 
 	// 1D FFT vertical
-	glUniform1i(butterflyShader->getUniform("direction"), 1);
+	butterflyShader->setInt("direction", 1);
 
 	for (uint32 i = 0; i < log2N; ++i) {
-		glUniform1i(butterflyShader->getUniform("bufferNum"), altBuffer);
-		glUniform1i(butterflyShader->getUniform("stage"), i);
+		butterflyShader->setInt("bufferNum", altBuffer);
+		butterflyShader->setInt("stage", i);
 
 		context->compute(*butterflyShader, N / 16, N / 16);
 		context->awaitFinish();
 
 		altBuffer = !altBuffer;
 	}
-
-	context->setShader(inversionShader->getID());
-
-	glUniform1i(inversionShader->getUniform("bufferNum"), altBuffer);
-	glUniform3fv(inversionShader->getUniform("mask"), 1, glm::value_ptr(mask));
+	
+	inversionShader->setInt("bufferNum", altBuffer);
+	inversionShader->setVector3f("mask", mask);
 
 	inversionShader->bindComputeTexture(output, 0, GL_READ_WRITE, GL_RGBA32F);
 
@@ -177,8 +166,6 @@ static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0M
 	Sampler noiseSampler(context);
 
 	// bind uniforms/textures
-	context.setShader(h0kShader.getID());
-
 	h0kShader.bindComputeTexture(imageH0k, 0, GL_WRITE_ONLY, GL_RGBA32F);
 	h0kShader.bindComputeTexture(imageH0MinusK, 1, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -187,12 +174,14 @@ static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0M
 	h0kShader.setSampler("noise_r1", noise2, noiseSampler, 4);
 	h0kShader.setSampler("noise_i1", noise3, noiseSampler, 5);
 
-	glUniform1i(h0kShader.getUniform("N"), N);
-	glUniform1i(h0kShader.getUniform("L"), L);
-	glUniform1f(h0kShader.getUniform("amplitude"), amplitude);
-	glUniform1f(h0kShader.getUniform("intensity"), intensity);
-	glUniform2fv(h0kShader.getUniform("direction"), 1, glm::value_ptr(direction));
-	glUniform1f(h0kShader.getUniform("l"), capillarSuppressFactor);
+	h0kShader.setInt("N", N);
+	h0kShader.setInt("L", L);
+
+	h0kShader.setFloat("amplitude", amplitude);
+	h0kShader.setFloat("intensity", intensity);
+	h0kShader.setFloat("l", capillarSuppressFactor);
+
+	h0kShader.setVector2f("direction", direction);
 
 	// dispatch computation
 	context.compute(h0kShader, N / 16, N / 16);
@@ -216,12 +205,10 @@ static void initButterflyTexture(RenderContext& context, int32 N,
 			GL_STATIC_DRAW, bitReversedIndices);
 
 	// bind uniforms/textures
-	context.setShader(btShader.getID());
-
 	btShader.setShaderStorageBuffer("bitReversedIndices", bitReversedBuffer, 1, 1);
 	btShader.bindComputeTexture(butterflyTexture, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-	glUniform1i(btShader.getUniform("N"), N);
+	btShader.setInt("N", N);
 
 	context.compute(btShader, bits, N / 16);
 }

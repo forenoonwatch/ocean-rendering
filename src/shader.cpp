@@ -1,5 +1,7 @@
 #include "shader.hpp"
 
+#include <GLM/gtc/type_ptr.hpp>
+
 #define SHADER_INFO_LOG_SIZE	1024
 
 static bool addShader(GLuint program, const std::string& text,
@@ -110,6 +112,26 @@ void Shader::bindComputeTexture(Texture& texture, uint32 unit,
 	context->setShader(programID);
 	glBindImageTexture(unit, texture.getID(), 0, false, 0,
 			access, internalFormat);
+}
+
+void Shader::setInt(const std::string& name, int32 value) {
+	context->setShader(programID);
+	glUniform1i(uniformMap[name], value);
+}
+
+void Shader::setFloat(const std::string& name, float value) {
+	context->setShader(programID);
+	glUniform1f(uniformMap[name], value);
+}
+
+void Shader::setVector2f(const std::string& name, const glm::vec2& value) {
+	context->setShader(programID);
+	glUniform2fv(uniformMap[name], 1, glm::value_ptr(value));
+}
+
+void Shader::setVector3f(const std::string& name, const glm::vec3& value) {
+	context->setShader(programID);
+	glUniform3fv(uniformMap[name], 1, glm::value_ptr(value));
 }
 
 Shader::~Shader() {

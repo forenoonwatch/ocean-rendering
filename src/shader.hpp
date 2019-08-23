@@ -3,6 +3,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <GLM/glm.hpp>
+
 #include "uniform-buffer.hpp"
 #include "shader-storage-buffer.hpp"
 
@@ -32,6 +34,12 @@ class Shader {
 
 		void bindComputeTexture(Texture& texture, uint32 unit,
 				uint32 access, uint32 internalFormat);
+
+		void setInt(const std::string& name, int32 value);
+		void setFloat(const std::string& name, float value);
+
+		void setVector2f(const std::string& name, const glm::vec2& value);
+		void setVector3f(const std::string& name, const glm::vec3& value);
 
 		inline int32 getUniform(const std::string& name) { return uniformMap[name]; }
 

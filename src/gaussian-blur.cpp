@@ -13,13 +13,11 @@ GaussianBlur::GaussianBlur(RenderContext& context, Shader& blurShader,
 void GaussianBlur::update() {
 	horizontal = true;
 
-	context->setShader(blurShader.getID());
-
 	blurShader.bindComputeTexture(blurTarget, 0, GL_READ_WRITE, GL_RGBA32F);
 	blurShader.bindComputeTexture(buffer, 1, GL_READ_WRITE, GL_RGBA32F);
 
 	for (uint32 i = 0; i < NUM_PASSES; ++i) {
-		glUniform1i(blurShader.getUniform("horizontal"), horizontal);
+		blurShader.setInt("horizontal", horizontal);
 
 		context->compute(blurShader, blurTarget.getWidth() / 16, blurTarget.getHeight() / 16);
 		context->awaitFinish();
