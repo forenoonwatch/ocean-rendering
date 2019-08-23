@@ -19,6 +19,7 @@
 
 #include "ocean.hpp"
 #include "ocean-fft.hpp"
+#include "ocean-projector.hpp"
 
 #include "gaussian-blur.hpp"
 
