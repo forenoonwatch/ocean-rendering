@@ -9,12 +9,14 @@ static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0M
 		float intensity, float capillarSuppressFactor);
 static void initButterflyTexture(RenderContext& context, int32 N, Texture& butterflyTexture);
 
-OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy)
+OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
+			bool choppy, float timeScale)
 		: context(&context)
 		, N(N)
 		, L(L)
 		, log2N(std::ilogb(N))
 		, choppy(choppy)
+		, timeScale(timeScale)
 		, altBuffer(false)
 		, timeCounter(0.f)
 		, butterflyShader(butterflyShader)
@@ -88,7 +90,7 @@ void OceanFFT::update(float delta) {
 	context->compute(*foldingShader, N / 16, N / 16);
 	context->awaitFinish();
 
-	timeCounter += delta;
+	timeCounter += delta * timeScale;
 }
 
 OceanFFT::~OceanFFT() {

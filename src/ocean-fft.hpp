@@ -6,7 +6,8 @@
 
 class OceanFFT {
 	public:
-		OceanFFT(RenderContext& context, int32 N, int32 L, bool choppy);
+		OceanFFT(RenderContext& context, int32 N, int32 L,
+				bool choppy, float timeScale);
 
 		void init(float amplitude, const glm::vec2& direction,
 				float intensity, float capillarSuppressFactor);
@@ -38,6 +39,8 @@ class OceanFFT {
 		int32 log2N;
 
 		bool choppy;
+
+		float timeScale;
 
 		bool altBuffer;
 

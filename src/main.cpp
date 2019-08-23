@@ -71,7 +71,7 @@ int main() {
 	VertexArray oceanArray(context, ocean, GL_STATIC_DRAW);
 
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
-			+ sizeof(float), GL_DYNAMIC_DRAW);
+			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
 			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
 
@@ -88,9 +88,9 @@ int main() {
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
-	OceanFFT oceanFFT(context, 256, 1000, true);
+	OceanFFT oceanFFT(context, 256, 1000, false, 2.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
+	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 100.f, 0.5f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -167,8 +167,8 @@ int main() {
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
 	{
-		float f[] = {2.f};
-		oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(float));
+		float f[] = {1.f, 0.01f, 1.f};
+		oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(f));
 	}
 
 	while (!display.isCloseRequested()) {

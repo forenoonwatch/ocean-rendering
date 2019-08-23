@@ -2,6 +2,7 @@
 #include "bicubic-sampling.glh"
 
 #define OCEAN_SAMPLE 0.01
+#define DETAIL_SAMPLE_MODIFIER 10.0
 #define F0 0.1 //0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 #define SSS_POWER 2.0
 
@@ -18,6 +19,8 @@ layout (std140) uniform OceanData {
 	vec4 corners[4];
 	vec3 cameraPosition;
 	float amplitude;
+	float detailAmplitude;
+	float lambda;
 };
 
 layout (std140) uniform LightingData {
@@ -31,10 +34,10 @@ vec3 oceanData(vec2 pos) {
 	const vec2 uv00 = floor(pos * texelSize) / texelSize;
 	const vec2 frac = vec2(pos - uv00) * texelSize;
 
-	vec3 height = textureBicubic(ocean, uv00, 1.0 / texelSize, frac);
-	height.y *= amplitude;
+	vec3 height = textureBicubic(ocean, uv00, 1.0 / texelSize, frac)
+			 * vec3(lambda, amplitude, lambda);
 
-	height.y += 0.1 * texture2D(ocean, 10.0 * pos).y;
+	height.y += texture2D(ocean, DETAIL_SAMPLE_MODIFIER * pos).y * detailAmplitude;
 
 	return height;
 }
