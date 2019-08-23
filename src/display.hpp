@@ -1,19 +1,20 @@
 #pragma once
 
+#include "common.hpp"
+
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <GLFW/glfw3.h>
 
 class Display {
 	public:
-		Display(const char* title, int width, int height);
+		Display(const char* title, uint32 width, uint32 height);
 
 		bool isCloseRequested() const;
 		void pollEvents();
 		void render();
 
-		inline int getWidth() const { return width; }
-		inline int getHeight() const { return height; }
+		inline uint32 getWidth() const { return width; }
+		inline uint32 getHeight() const { return height; }
 
 		inline GLFWwindow* getWindow() { return window; }
 
@@ -22,8 +23,8 @@ class Display {
 		NULL_COPY_AND_ASSIGN(Display);
 
 		GLFWwindow* window;
-		int width;
-		int height;
+		uint32 width;
+		uint32 height;
 
-		static int numInstances;
+		static uint32 numInstances;
 };

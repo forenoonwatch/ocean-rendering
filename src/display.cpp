@@ -1,8 +1,8 @@
 #include "display.hpp"
 
-int Display::numInstances = 0;
+uint32 Display::numInstances = 0;
 
-Display::Display(const char* title, int width, int height)
+Display::Display(const char* title, uint32 width, uint32 height)
 		: window(nullptr)
 		, width(width)
 		, height(height) {
