@@ -2,7 +2,7 @@
 #include "bicubic-sampling.glh"
 
 #define OCEAN_SAMPLE 0.01
-#define AMPLITUDE 2.0
+//#define AMPLITUDE 2.0
 #define F0 0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 
 #define TEXEL_SIZE 256.0
@@ -14,10 +14,14 @@ const float texelSize = TEXEL_SIZE / SMOOTHNESS;
 
 uniform sampler2D ocean;
 
-layout (std140) uniform ShaderData {
+layout (std140) uniform OceanData {
 	vec4 corners[4];
 	vec3 cameraPosition;
-	float time;
+	float amplitude;
+};
+
+layout (std140) uniform LightingData {
+	vec3 lightDir;
 };
 
 vec3 oceanData(vec2 pos) {
@@ -25,8 +29,7 @@ vec3 oceanData(vec2 pos) {
 	const vec2 frac = vec2(pos - uv00) * texelSize;
 
 	vec3 height = textureBicubic(ocean, uv00, 1.0 / texelSize, frac);
-	height = fma(height, vec3(2.0), vec3(-1.0));
-	height.y *= AMPLITUDE;
+	height.y *= amplitude;
 
 	return height;
 }
@@ -38,13 +41,10 @@ vec4 getOceanPosition(vec2 pos) {
 	vec4 o = mix(a, b, pos.y);
 	const vec3 data = oceanData(o.xz / o.w * OCEAN_SAMPLE);
 
-	o.y = data.y * o.w;
-	o.xz += data.xz * o.w;
+	o.xyz += data * o.w;
 
 	return o;
 }
-
-varying vec3 lightDir;
 
 varying vec2 xyPos0;
 
@@ -72,8 +72,6 @@ void main() {
 	xyPos0 = xyPos;
 	clipSpace = vertPos;
 	
-	lightDir = normalize(vec3(1, 0, 1));
-	
 	const float F = clamp(1.0 - dot(normal, normalize(cameraPosition - p0)), 0.0, 1.0);
 	fresnel = F * F;
 	fresnel = F0 + (1.0 - F0) * (fresnel * fresnel * F);
@@ -83,7 +81,7 @@ void main() {
 
 #define SPECULAR_STRENGTH 15.0
 #define SPECULAR_BLEND 64
-#define AMBIENT_LIGHT 0.4
+#define AMBIENT_LIGHT 0.2
 #define SSS_POWER 2.0
 
 const vec3 oceanColor0 = vec3(31, 71, 87) / 255.0;
@@ -119,7 +117,8 @@ void main() {
 
 	const float light = AMBIENT_LIGHT + (1.0 - AMBIENT_LIGHT) * diffuse + specular;
 	
-	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0);
+	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
+			* max(lightDir.y, 0.0);
 	const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
 
 	const vec3 inColor = mix(mix(oceanColor0 * light, oceanColor1, sssFactor), flect, fresnel);

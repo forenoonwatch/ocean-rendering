@@ -69,10 +69,14 @@ int main() {
 
 	VertexArray oceanArray(context, ocean, GL_STATIC_DRAW);
 
-	UniformBuffer dataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
+	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ sizeof(float), GL_DYNAMIC_DRAW);
+	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3), GL_DYNAMIC_DRAW);
 
-	shaders["ocean-shader"]->setUniformBuffer("ShaderData", dataBuffer, 0);
+	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer, 0);
+	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
+
+	lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 0, 1))), sizeof(glm::vec3));
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
@@ -80,7 +84,7 @@ int main() {
 
 	OceanFFT oceanFFT(context, 256, 1000, true);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(2.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
+	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
 	context.awaitFinish();
 
 	IndexedModel quadModel;
@@ -158,6 +162,11 @@ int main() {
 
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
+	{
+		float f[] = {2.f};
+		oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(float));
+	}
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -166,17 +175,18 @@ int main() {
 			projector.update();
 		}
 
+		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
+				std::sin(0.2 * glfwGetTime()), 0.f))),
+				sizeof(glm::vec3));
+
 		oceanFFT.update(1.f / 60.f);
 
 		// BEGIN DRAW
 		screen.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		dataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
-		dataBuffer.update(glm::value_ptr(camera->getPosition()),
+		oceanDataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
+		oceanDataBuffer.update(glm::value_ptr(camera->getPosition()),
 				4 * sizeof(glm::vec4), sizeof(glm::vec3));
-
-		float t[] = {(float)glfwGetTime()};
-		dataBuffer.update(t, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(float));
 
 		oceanArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));

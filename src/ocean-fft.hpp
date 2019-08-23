@@ -46,7 +46,6 @@ class OceanFFT {
 		Shader* hktShader;
 		Shader* butterflyShader;
 		Shader* inversionShader;
-		Shader* normalShader;
 		Shader* foldingShader;
 
 		Texture imageH0k;
