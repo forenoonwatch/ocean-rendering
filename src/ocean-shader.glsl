@@ -87,7 +87,8 @@ void main() {
 const vec3 oceanColor0 = vec3(31, 71, 87) / 255.0;
 const vec3 oceanColor1 = vec3(18, 125, 120) / 255.0;
 
-uniform sampler2D reflectionMap;
+//uniform sampler2D reflectionMap;
+uniform samplerCube reflectionMap;
 
 //uniform sampler2D foldingMap;
 //uniform sampler2D foam;
@@ -119,7 +120,8 @@ void main() {
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
 			* max(lightDir.y, 0.0);
-	const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
+	//const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
+	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
 	const vec3 inColor = mix(mix(oceanColor0 * light, oceanColor1, sssFactor), flect, fresnel);
 	const float brightness = dot(inColor, BRIGHT_THRESH);

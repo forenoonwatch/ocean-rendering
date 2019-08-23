@@ -201,7 +201,8 @@ int main() {
 		context.setDrawBuffers(2);
 
 		shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
-		shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
+		//shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
+		shaders["ocean-shader"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
 		//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 		//oceanShader.setSampler("foam", foam, oceanSampler, 2);
 		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
