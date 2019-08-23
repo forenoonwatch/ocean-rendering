@@ -4,6 +4,9 @@
 #include "vertex-array.hpp"
 #include "render-target.hpp"
 
+uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
+		GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+
 RenderContext::RenderContext()
 		: version(0)
 		, shaderVersion("")
@@ -50,6 +53,10 @@ void RenderContext::compute(Shader& shader, uint32 numGroupsX,
 		uint32 numGroupsY, uint32 numGroupsZ) {
 	setShader(shader.getID());
 	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+}
+
+void RenderContext::setDrawBuffers(uint32 numBuffers) {
+	glDrawBuffers(numBuffers, attachments);
 }
 
 uint32 RenderContext::getVersion() {

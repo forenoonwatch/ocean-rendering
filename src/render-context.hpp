@@ -18,9 +18,10 @@ class RenderContext {
 
 		void draw(RenderTarget& target, Shader& shader, VertexArray& vertexArray,
 				uint32 primitive, uint32 numInstances = 1);
-
 		void compute(Shader& shader, uint32 numGroupsX,
 				uint32 numGroupsY = 1, uint32 numGroupsZ = 1);
+
+		void setDrawBuffers(uint32 numBuffers);
 
 		uint32 getVersion();
 		std::string getShaderVersion();
@@ -40,4 +41,6 @@ class RenderContext {
 
 		uint32 currentRenderSource;
 		uint32 currentRenderTarget;
+
+		static uint32 attachments[3];
 };

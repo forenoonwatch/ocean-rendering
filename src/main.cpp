@@ -158,8 +158,6 @@ int main() {
 	hdrTarget.addRenderBuffer(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
 	hdrTarget.addTextureTarget(brightTexture, GL_COLOR_ATTACHMENT0, 1);
 
-	uint32 attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
 	{
@@ -199,7 +197,8 @@ int main() {
 		context.draw(reflectionTarget, *shaders["skybox-shader"], cube, GL_TRIANGLES);
 
 		hdrTarget.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDrawBuffers(2, attachments);
+
+		context.setDrawBuffers(2);
 
 		shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 		shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
@@ -215,7 +214,7 @@ int main() {
 
 		blurBuffer.update();
 
-		glDrawBuffers(1, attachments);
+		context.setDrawBuffers(1);
 
 		shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
 		shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
