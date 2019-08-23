@@ -2,7 +2,7 @@
 #include "bicubic-sampling.glh"
 
 #define OCEAN_SAMPLE 0.01
-#define F0 0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
+#define F0 0.1 //0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 #define SSS_POWER 2.0
 
 #define TEXEL_SIZE 256.0
@@ -33,6 +33,8 @@ vec3 oceanData(vec2 pos) {
 
 	vec3 height = textureBicubic(ocean, uv00, 1.0 / texelSize, frac);
 	height.y *= amplitude;
+
+	height.y += 0.1 * texture2D(ocean, 10.0 * pos).y;
 
 	return height;
 }
@@ -76,8 +78,11 @@ void main() {
 	clipSpace = vertPos;
 	
 	const float F = clamp(1.0 - dot(normal, normalize(cameraPosition - p0)), 0.0, 1.0);
-	fresnel = F * F;
-	fresnel = F0 + (1.0 - F0) * (fresnel * fresnel * F);
+	//fresnel = F * F;
+	//fresnel = F0 + (1.0 - F0) * (fresnel * fresnel * F);
+
+	fresnel = F * (max(clamp(1.0 - exp(-pow(length(cameraPosition - p0) * 0.02, 1)), 0.0, 1.0),
+			1.0 - normal.y) * 0.9 + 0.1);
 }
 
 #elif defined(FS_BUILD)

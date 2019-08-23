@@ -78,8 +78,8 @@ int main() {
 	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
 
 	{
-		float lightData[] = {0.2f, 15.f, 64.f};
-		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 0, 1))), sizeof(glm::vec3));
+		float lightData[] = {0.2f, 15.f, 128.f};
+		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 1, 1))), sizeof(glm::vec3));
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
 	}
 
@@ -178,9 +178,9 @@ int main() {
 			projector.update();
 		}
 
-		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
-				std::sin(0.2 * glfwGetTime()), 0.f))),
-				sizeof(glm::vec3));
+		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
+		//		std::sin(0.2 * glfwGetTime()), 0.f))),
+		//		sizeof(glm::vec3));
 
 		oceanFFT.update(1.f / 60.f);
 
