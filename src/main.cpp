@@ -49,7 +49,7 @@ int main() {
 	float fieldOfView = glm::radians(70.f);
 	float aspectRatio = (float)display.getWidth() / (float)display.getHeight();
 	float zNear = 0.1f;
-	float zFar = 100.f;//100.f;
+	float zFar = 100.f;
 
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
@@ -71,12 +71,17 @@ int main() {
 
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ sizeof(float), GL_DYNAMIC_DRAW);
-	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3), GL_DYNAMIC_DRAW);
+	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
+			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
 
 	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer, 0);
 	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
 
-	lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 0, 1))), sizeof(glm::vec3));
+	{
+		float lightData[] = {0.2f, 15.f, 64.f};
+		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 0, 1))), sizeof(glm::vec3));
+		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
+	}
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);

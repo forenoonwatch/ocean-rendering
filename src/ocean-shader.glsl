@@ -2,8 +2,8 @@
 #include "bicubic-sampling.glh"
 
 #define OCEAN_SAMPLE 0.01
-//#define AMPLITUDE 2.0
 #define F0 0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
+#define SSS_POWER 2.0
 
 #define TEXEL_SIZE 256.0
 #define SMOOTHNESS 2.0
@@ -21,7 +21,10 @@ layout (std140) uniform OceanData {
 };
 
 layout (std140) uniform LightingData {
-	vec3 lightDir;
+	vec3 sunlightDir;
+	float ambientLight;
+	float specularStrength;
+	float specularBlend;
 };
 
 vec3 oceanData(vec2 pos) {
@@ -79,11 +82,6 @@ void main() {
 
 #elif defined(FS_BUILD)
 
-#define SPECULAR_STRENGTH 15.0
-#define SPECULAR_BLEND 64
-#define AMBIENT_LIGHT 0.2
-#define SSS_POWER 2.0
-
 const vec3 oceanColor0 = vec3(31, 71, 87) / 255.0;
 const vec3 oceanColor1 = vec3(18, 125, 120) / 255.0;
 
@@ -112,14 +110,14 @@ void main() {
 	const vec3 normal = normalize(cross(p2 - p0, p1 - p0));
 	const vec3 pointToEye = normalize(cameraPosition - p0);
 
-	const float diffuse = max(dot(lightDir, normal), 0.0);
-	const float specular = SPECULAR_STRENGTH
-			* pow(max(dot(pointToEye, reflect(-lightDir, normal)), 0.0), SPECULAR_BLEND);
+	const float diffuse = max(dot(sunlightDir, normal), 0.0);
+	const float specular = specularStrength
+			* pow(max(dot(pointToEye, reflect(-sunlightDir, normal)), 0.0), specularBlend);
 
-	const float light = AMBIENT_LIGHT + (1.0 - AMBIENT_LIGHT) * diffuse + specular;
+	const float light = ambientLight + (1.0 - ambientLight) * diffuse + specular;
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
-			* max(lightDir.y, 0.0);
+			* max(sunlightDir.y, 0.0);
 	//const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
 	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
