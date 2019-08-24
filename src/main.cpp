@@ -55,10 +55,6 @@ int main() {
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
 
-	Ocean ocean(0.f, 4.f, 256);
-
-	OceanProjector projector(ocean, userCamera);
-
 	glfwSetKeyCallback(display.getWindow(), onKeyEvent);
 	glfwSetMouseButtonCallback(display.getWindow(), onMouseClicked);
 	glfwSetCursorPosCallback(display.getWindow(), onMouseMoved);
@@ -67,8 +63,9 @@ int main() {
 	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
 
 	loadShaders(context, shaders);
-
-	VertexArray oceanArray(context, ocean, GL_STATIC_DRAW);
+	
+	Ocean ocean(context, 0.f, 4.f, 256);
+	OceanProjector projector(ocean, userCamera);
 
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
@@ -88,10 +85,10 @@ int main() {
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
-	OceanFFT oceanFFT(context, 256, 1000, false, 2.f);
+	OceanFFT oceanFFT(context, 256, 1000, false, 1.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	//oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 100.f, 0.5f);
-	//context.awaitFinish();
+	oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
+	context.awaitFinish();
 
 	Bitmap bmp;
 	bmp.load("./res/foam.jpg");
@@ -145,8 +142,8 @@ int main() {
 			projector.update();
 		}
 
-		oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 1000.f + 1000.f * std::sin(0.1 * glfwGetTime()), 0.5f);
-		context.awaitFinish();
+		//oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 40.f, 100.f * std::sin(0.1 * glfwGetTime()));
+		//context.awaitFinish();
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
@@ -161,7 +158,7 @@ int main() {
 		oceanDataBuffer.update(glm::value_ptr(camera->getPosition()),
 				4 * sizeof(glm::vec4), sizeof(glm::vec3));
 
-		oceanArray.updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
+		ocean.getGridArray().updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
 		reflectionTarget.clear(GL_COLOR_BUFFER_BIT);
@@ -181,7 +178,7 @@ int main() {
 		//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 		//oceanShader.setSampler("foam", foam, oceanSampler, 2);
 		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
-		context.draw(hdrTarget, *shaders["ocean-shader"], oceanArray, primitive);
+		context.draw(hdrTarget, *shaders["ocean-shader"], ocean.getGridArray(), primitive);
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));

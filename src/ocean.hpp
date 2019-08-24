@@ -1,20 +1,31 @@
 #pragma once
 
-#include "indexed-model.hpp"
+#include "common.hpp"
 
-class Ocean : public IndexedModel {
+class RenderContext;
+class VertexArray;
+
+class Ocean {
 	public:
-		Ocean(float oceanHeight, float maxAmplitude, uint32 gridLength);
+		Ocean(RenderContext& context, float oceanHeight,
+				float maxAmplitude, uint32 gridLength);
+
+		inline VertexArray& getGridArray() { return *gridArray; }
 
 		inline float getOceanHeight() const { return oceanHeight; }
 		inline float getMaxAmplitude() const { return maxAmplitude; }
+
+		~Ocean();
 	private:
 		NULL_COPY_AND_ASSIGN(Ocean);
 
+		RenderContext* context;
+
+		VertexArray* gridArray;
+		
 		float oceanHeight;
 		float maxAmplitude;
 		uint32 gridLength;
 
-		void initGrid();
 };
 
