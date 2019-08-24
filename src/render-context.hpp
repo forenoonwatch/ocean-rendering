@@ -21,6 +21,8 @@ class RenderContext {
 		void compute(Shader& shader, uint32 numGroupsX,
 				uint32 numGroupsY = 1, uint32 numGroupsZ = 1);
 
+		void drawQuad(RenderTarget& target, Shader& shader);
+
 		void setDrawBuffers(uint32 numBuffers);
 
 		uint32 getVersion();
@@ -30,8 +32,12 @@ class RenderContext {
 		void setVertexArray(uint32);
 
 		void setRenderTarget(uint32 fbo, uint32 bufferType = GL_FRAMEBUFFER);
+
+		~RenderContext();
 	private:
 		NULL_COPY_AND_ASSIGN(RenderContext);
+
+		VertexArray* screenQuad;
 
 		uint32 version;
 		std::string shaderVersion;

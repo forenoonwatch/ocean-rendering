@@ -4,6 +4,10 @@
 #include "vertex-array.hpp"
 #include "render-target.hpp"
 
+#include "indexed-model.hpp"
+
+inline static void initScreenQuad(IndexedModel&);
+
 uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
 
@@ -21,6 +25,11 @@ RenderContext::RenderContext()
 	glDepthFunc(GL_LEQUAL);
 
 	glEnable(GL_TEXTURE_2D);
+
+	IndexedModel screenQuadModel;
+	initScreenQuad(screenQuadModel);
+
+	screenQuad = new VertexArray(*this, screenQuadModel, GL_STATIC_DRAW);
 }
 
 void RenderContext::clear(uint32 flags) {
@@ -53,6 +62,15 @@ void RenderContext::compute(Shader& shader, uint32 numGroupsX,
 		uint32 numGroupsY, uint32 numGroupsZ) {
 	setShader(shader.getID());
 	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+}
+
+void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
+	setRenderTarget(target.getID());
+	setShader(shader.getID());
+	setVertexArray(screenQuad->getID());
+
+	glDrawElements(GL_TRIANGLES, (GLsizei)screenQuad->getNumIndices(),
+			GL_UNSIGNED_INT, 0);
 }
 
 void RenderContext::setDrawBuffers(uint32 numBuffers) {
@@ -145,4 +163,26 @@ void RenderContext::setRenderTarget(uint32 fbo, uint32 bufferType) {
 
 			return;
 	}
+}
+
+RenderContext::~RenderContext() {
+	delete screenQuad;
+}
+
+inline static void initScreenQuad(IndexedModel& screenQuadModel) {
+	screenQuadModel.allocateElement(2); // position
+	screenQuadModel.allocateElement(2); // texCoord
+
+	screenQuadModel.addElement2f(0, -1.f, -1.f);
+	screenQuadModel.addElement2f(0, -1.f,  1.f);
+	screenQuadModel.addElement2f(0,  1.f, -1.f);
+	screenQuadModel.addElement2f(0,  1.f,  1.f);
+
+	screenQuadModel.addElement2f(1, 0.f, 0.f);
+	screenQuadModel.addElement2f(1, 0.f, 1.f);
+	screenQuadModel.addElement2f(1, 1.f, 0.f);
+	screenQuadModel.addElement2f(1, 1.f, 1.f);
+
+	screenQuadModel.addIndices3i(2, 1, 0);
+	screenQuadModel.addIndices3i(1, 2, 3);
 }

@@ -93,21 +93,6 @@ int main() {
 	//oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 100.f, 0.5f);
 	//context.awaitFinish();
 
-	IndexedModel quadModel;
-	quadModel.allocateElement(2);
-	quadModel.setInstancedElementStartIndex(1);
-	quadModel.allocateElement(2);
-
-	quadModel.addElement2f(0, 0.f, 0.f);
-	quadModel.addElement2f(0, 0.f, 1.f);
-	quadModel.addElement2f(0, 1.f, 0.f);
-	quadModel.addElement2f(0, 1.f, 1.f);
-
-	quadModel.addIndices3i(2, 1, 0);
-	quadModel.addIndices3i(1, 2, 3);
-
-	VertexArray quad(context, quadModel, GL_STATIC_DRAW);
-
 	Bitmap bmp;
 	bmp.load("./res/foam.jpg");
 	Texture foam(context, bmp, GL_RGBA);
@@ -126,25 +111,6 @@ int main() {
 		"./res/skybox/back.jpg"};
 
 	CubeMap skybox(context, cubeTextures);
-
-	IndexedModel screenQuadModel;
-	screenQuadModel.allocateElement(2); // position
-	screenQuadModel.allocateElement(2); // texCoord
-
-	screenQuadModel.addElement2f(0, -1.f, -1.f);
-	screenQuadModel.addElement2f(0, -1.f,  1.f);
-	screenQuadModel.addElement2f(0,  1.f, -1.f);
-	screenQuadModel.addElement2f(0,  1.f,  1.f);
-
-	screenQuadModel.addElement2f(1, 0.f, 0.f);
-	screenQuadModel.addElement2f(1, 0.f, 1.f);
-	screenQuadModel.addElement2f(1, 1.f, 0.f);
-	screenQuadModel.addElement2f(1, 1.f, 1.f);
-
-	screenQuadModel.addIndices3i(2, 1, 0);
-	screenQuadModel.addIndices3i(1, 2, 3);
-
-	VertexArray screenQuad(context, screenQuadModel, GL_STATIC_DRAW);
 
 	RenderTarget screen(context, display.getWidth(), display.getHeight());
 
@@ -228,14 +194,14 @@ int main() {
 
 		shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
 		shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
-		context.draw(hdrTarget, *shaders["bloom-shader"], screenQuad, GL_TRIANGLES);
+		context.drawQuad(hdrTarget, *shaders["bloom-shader"]);
 		
 		shaders["tone-map-shader"]->setSampler("screen", hdrTexture, sampler, 0);
-		context.draw(hdrTarget, *shaders["tone-map-shader"], screenQuad, GL_TRIANGLES);
+		context.drawQuad(hdrTarget, *shaders["tone-map-shader"]);
 		
 		shaders["screen-render-shader"]->setSampler("screen", renderWater
 				? hdrTexture : brightTexture, sampler, 0);
-		context.draw(screen, *shaders["screen-render-shader"], screenQuad, GL_TRIANGLES);
+		context.drawQuad(screen, *shaders["screen-render-shader"]);
 
 		display.render();
 		display.pollEvents();
