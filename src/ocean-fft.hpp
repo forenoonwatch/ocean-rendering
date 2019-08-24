@@ -4,18 +4,46 @@
 
 #include <GLM/glm.hpp>
 
+class OceanFFTSeed {
+	public:
+		OceanFFTSeed(RenderContext& context, int32 N, int32 L);
+
+		void setParams(float amplitude, const glm::vec2& direction,
+				float intensity, float capillarSuppressFactor);
+
+		inline Texture& getH0K() { return imageH0k; }
+		inline Texture& getH0MinusK() { return imageH0MinusK; }
+
+		~OceanFFTSeed();
+	private:
+		NULL_COPY_AND_ASSIGN(OceanFFTSeed);
+
+		RenderContext* context;
+
+		uint32 computeSpace;
+
+		Shader* h0kShader;
+
+		Texture* noise[4];
+
+		Texture imageH0k;
+		Texture imageH0MinusK;
+
+		Sampler noiseSampler;
+};
+
 class OceanFFT {
 	public:
 		OceanFFT(RenderContext& context, int32 N, int32 L,
 				bool choppy, float timeScale);
 
-		void init(float amplitude, const glm::vec2& direction,
+		void setOceanParams(float amplitude, const glm::vec2& direction,
 				float intensity, float capillarSuppressFactor);
 
 		void update(float delta);
 
-		inline Texture& getH0K() { return imageH0k; }
-		inline Texture& getH0MinusK() { return imageH0MinusK; }
+		inline Texture& getH0K() { return fftSeed.getH0K(); }
+		inline Texture& getH0MinusK() { return fftSeed.getH0MinusK(); }
 		inline Texture& getButterflyTexture() { return butterflyTexture; }
 
 		inline Texture& getCoeffDX() { return coeffDX; }
@@ -39,11 +67,9 @@ class OceanFFT {
 		int32 log2N;
 
 		bool choppy;
-
 		float timeScale;
 
 		bool altBuffer;
-
 		float timeCounter;
 
 		Shader* hktShader;
@@ -51,8 +77,8 @@ class OceanFFT {
 		Shader* inversionShader;
 		Shader* foldingShader;
 
-		Texture imageH0k;
-		Texture imageH0MinusK;
+		OceanFFTSeed fftSeed;
+
 		Texture butterflyTexture;
 
 		Texture coeffDX, coeffDY, coeffDZ;

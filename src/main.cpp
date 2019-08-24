@@ -90,8 +90,8 @@ int main() {
 
 	OceanFFT oceanFFT(context, 256, 1000, false, 2.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.init(10.f, glm::vec2(1.f, 1.f), 100.f, 0.5f);
-	context.awaitFinish();
+	//oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 100.f, 0.5f);
+	//context.awaitFinish();
 
 	IndexedModel quadModel;
 	quadModel.allocateElement(2);
@@ -178,6 +178,9 @@ int main() {
 		if (lockCamera) {
 			projector.update();
 		}
+
+		oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 1000.f + 1000.f * std::sin(0.1 * glfwGetTime()), 0.5f);
+		context.awaitFinish();
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),

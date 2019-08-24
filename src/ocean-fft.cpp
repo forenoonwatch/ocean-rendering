@@ -4,10 +4,58 @@
 
 #include <cmath>
 
-static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0MinusK,
-		int32 N, int32 L, float amplitude, const glm::vec2& direction,
-		float intensity, float capillarSuppressFactor);
 static void initButterflyTexture(RenderContext& context, int32 N, Texture& butterflyTexture);
+
+OceanFFTSeed::OceanFFTSeed(RenderContext& context, int32 N, int32 L)
+		: context(&context)
+		, computeSpace(N / 16)
+		, imageH0k(context, N, N, GL_RGBA32F)
+		, imageH0MinusK(context, N, N, GL_RGBA32F)
+		, noiseSampler(context) {
+	std::stringstream ss;
+	Bitmap bmp;
+
+	Util::resolveFileLinking(ss, "./src/h0k-shader.glsl", "#include");
+	h0kShader = new Shader(context, ss.str());
+
+	for (uint32 i = 0; i < 4; ++i) {
+		ss.str("");
+		ss << "./res/Noise256_" << i << ".jpg";
+
+		bmp.load(ss.str());
+		noise[i] = new Texture(context, bmp, GL_RGBA32F);
+	}
+
+	h0kShader->setInt("N", N);
+	h0kShader->setInt("L", L);
+}
+
+void OceanFFTSeed::setParams(float amplitude, const glm::vec2& direction,
+		float intensity, float capillarSuppressFactor) {
+	h0kShader->setFloat("amplitude", amplitude);
+	h0kShader->setFloat("intensity", intensity);
+	h0kShader->setFloat("l", capillarSuppressFactor);
+
+	h0kShader->setVector2f("direction", direction);
+
+	h0kShader->bindComputeTexture(imageH0k, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	h0kShader->bindComputeTexture(imageH0MinusK, 1, GL_WRITE_ONLY, GL_RGBA32F);
+
+	h0kShader->setSampler("noise_r0", *noise[0], noiseSampler, 2);
+	h0kShader->setSampler("noise_i0", *noise[1], noiseSampler, 3);
+	h0kShader->setSampler("noise_r1", *noise[2], noiseSampler, 4);
+	h0kShader->setSampler("noise_i1", *noise[3], noiseSampler, 5);
+
+	context->compute(*h0kShader, computeSpace, computeSpace);
+}
+
+OceanFFTSeed::~OceanFFTSeed() {
+	delete h0kShader;
+
+	for (uint32 i = 0; i < 4; ++i) {
+		delete noise[i];
+	}
+}
 
 OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 			bool choppy, float timeScale)
@@ -19,9 +67,8 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 		, timeScale(timeScale)
 		, altBuffer(false)
 		, timeCounter(0.f)
+		, fftSeed(context, N, L)
 		, butterflyShader(butterflyShader)
-		, imageH0k(context, N, N, GL_RGBA32F)
-		, imageH0MinusK(context, N, N, GL_RGBA32F)
 		, butterflyTexture(context, log2N, N, GL_RGBA32F)
 		, coeffDX(context, N, N, GL_RGBA32F)
 		, coeffDY(context, N, N, GL_RGBA32F)
@@ -45,22 +92,19 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 	ss.str("");
 	Util::resolveFileLinking(ss, "./src/folding-shader.glsl", "#include");
 	foldingShader = new Shader(context, ss.str());
-}
 
-void OceanFFT::init(float amplitude, const glm::vec2& direction,
-		float intensity, float capillarSuppressFactor) {
-	initH0k(*context, imageH0k, imageH0MinusK, N, L, amplitude, direction,
-			intensity, capillarSuppressFactor);
-	initButterflyTexture(*context, N, butterflyTexture);
+	initButterflyTexture(context, N, butterflyTexture);
 
-	context->awaitFinish();
-	
 	hktShader->setInt("N", N);
 	hktShader->setInt("L", L);
 
 	inversionShader->setInt("N", N);
-
 	foldingShader->setInt("N", N);
+}
+
+void OceanFFT::setOceanParams(float amplitude, const glm::vec2& direction,
+		float intensity, float capillarSuppressFactor) {
+	fftSeed.setParams(amplitude, direction, intensity, capillarSuppressFactor);
 }
 
 void OceanFFT::update(float delta) {
@@ -71,12 +115,13 @@ void OceanFFT::update(float delta) {
 	hktShader->bindComputeTexture(coeffDY, 1, GL_READ_WRITE, GL_RGBA32F);
 	hktShader->bindComputeTexture(coeffDZ, 2, GL_READ_WRITE, GL_RGBA32F);
 	
-	hktShader->bindComputeTexture(imageH0k, 3, GL_READ_ONLY, GL_RGBA32F);
-	hktShader->bindComputeTexture(imageH0MinusK, 4, GL_READ_ONLY, GL_RGBA32F);
+	hktShader->bindComputeTexture(fftSeed.getH0K(), 3, GL_READ_ONLY, GL_RGBA32F);
+	hktShader->bindComputeTexture(fftSeed.getH0MinusK(), 4, GL_READ_ONLY, GL_RGBA32F);
 
 	context->compute(*hktShader, N / 16, N / 16);
 	context->awaitFinish();
 
+	// compute displacement
 	computeIFFT(coeffDY, dXYZ, glm::vec3(0, 1, 0));
 
 	if (choppy) {
@@ -84,12 +129,14 @@ void OceanFFT::update(float delta) {
 		computeIFFT(coeffDZ, dXYZ, glm::vec3(0, 0, 1));
 	}
 
+	// compute folding map
 	foldingShader->bindComputeTexture(dXYZ, 0, GL_READ_ONLY, GL_RGBA32F);
 	foldingShader->bindComputeTexture(foldingMap, 1, GL_WRITE_ONLY, GL_RGBA32F);
 	
 	context->compute(*foldingShader, N / 16, N / 16);
 	context->awaitFinish();
 
+	// update time counter
 	timeCounter += delta * timeScale;
 }
 
@@ -141,52 +188,6 @@ inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
 
 	context->compute(*inversionShader, N / 16, N / 16);
 	context->awaitFinish();
-}
-
-static void initH0k(RenderContext& context, Texture& imageH0k, Texture& imageH0MinusK,
-		int32 N, int32 L, float amplitude, const glm::vec2& direction,
-		float intensity, float capillarSuppressFactor) {
-	std::stringstream ss;
-	Bitmap bmp;
-
-	// init resources
-	Util::resolveFileLinking(ss, "./src/h0k-shader.glsl", "#include");
-	Shader h0kShader(context, ss.str());
-
-	bmp.load("./res/Noise256_0.jpg");
-	Texture noise0(context, bmp, GL_RGBA32F);
-
-	bmp.load("./res/Noise256_1.jpg");
-	Texture noise1(context, bmp, GL_RGBA32F);
-
-	bmp.load("./res/Noise256_2.jpg");
-	Texture noise2(context, bmp, GL_RGBA32F);
-
-	bmp.load("./res/Noise256_3.jpg");
-	Texture noise3(context, bmp, GL_RGBA32F);
-
-	Sampler noiseSampler(context);
-
-	// bind uniforms/textures
-	h0kShader.bindComputeTexture(imageH0k, 0, GL_WRITE_ONLY, GL_RGBA32F);
-	h0kShader.bindComputeTexture(imageH0MinusK, 1, GL_WRITE_ONLY, GL_RGBA32F);
-
-	h0kShader.setSampler("noise_r0", noise0, noiseSampler, 2);
-	h0kShader.setSampler("noise_i0", noise1, noiseSampler, 3);
-	h0kShader.setSampler("noise_r1", noise2, noiseSampler, 4);
-	h0kShader.setSampler("noise_i1", noise3, noiseSampler, 5);
-
-	h0kShader.setInt("N", N);
-	h0kShader.setInt("L", L);
-
-	h0kShader.setFloat("amplitude", amplitude);
-	h0kShader.setFloat("intensity", intensity);
-	h0kShader.setFloat("l", capillarSuppressFactor);
-
-	h0kShader.setVector2f("direction", direction);
-
-	// dispatch computation
-	context.compute(h0kShader, N / 16, N / 16);
 }
 
 static void initButterflyTexture(RenderContext& context, int32 N,
