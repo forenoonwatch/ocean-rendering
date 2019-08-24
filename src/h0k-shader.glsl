@@ -5,12 +5,11 @@
 layout (local_size_x = 16, local_size_y = 16) in;
 
 layout (binding = 0, rgba32f) writeonly uniform image2D imageH0k;
-layout (binding = 1, rgba32f) writeonly uniform image2D imageH0MinusK;
 
-layout (binding = 2) uniform sampler2D noise_r0;
-layout (binding = 3) uniform sampler2D noise_i0;
-layout (binding = 4) uniform sampler2D noise_r1;
-layout (binding = 5) uniform sampler2D noise_i1;
+layout (binding = 1) uniform sampler2D noise_r0;
+layout (binding = 2) uniform sampler2D noise_i0;
+layout (binding = 3) uniform sampler2D noise_r1;
+layout (binding = 4) uniform sampler2D noise_i1;
 
 uniform	int N;
 uniform int L;
@@ -51,8 +50,7 @@ void main() {
 	
 	const vec4 rnd = gaussRND();
 	
-	imageStore(imageH0k, ivec2(gl_GlobalInvocationID.xy), vec4(rnd.xy * h0K, 0.0, 1.0));
-	imageStore(imageH0MinusK, ivec2(gl_GlobalInvocationID.xy), vec4(rnd.zw * h0MinusK, 0.0, 1.0));
+	imageStore(imageH0k, ivec2(gl_GlobalInvocationID.xy), rnd * vec4(h0K, h0K, h0MinusK, h0MinusK));
 }
 
 #endif

@@ -12,7 +12,6 @@ class OceanFFTSeed {
 				float intensity, float capillarSuppressFactor);
 
 		inline Texture& getH0K() { return imageH0k; }
-		inline Texture& getH0MinusK() { return imageH0MinusK; }
 
 		~OceanFFTSeed();
 	private:
@@ -27,7 +26,6 @@ class OceanFFTSeed {
 		Texture* noise[4];
 
 		Texture imageH0k;
-		Texture imageH0MinusK;
 
 		Sampler noiseSampler;
 };
@@ -43,7 +41,6 @@ class OceanFFT {
 		void update(float delta);
 
 		inline Texture& getH0K() { return fftSeed.getH0K(); }
-		inline Texture& getH0MinusK() { return fftSeed.getH0MinusK(); }
 		inline Texture& getButterflyTexture() { return butterflyTexture; }
 
 		inline Texture& getCoeffDX() { return coeffDX; }

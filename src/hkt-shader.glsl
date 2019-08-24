@@ -10,7 +10,6 @@ layout (binding = 1, rgba32f) writeonly uniform image2D coeffDX;
 layout (binding = 2, rgba32f) writeonly uniform image2D coeffDZ;
 
 layout (binding = 3, rgba32f) readonly uniform image2D imageH0k;
-layout (binding = 4, rgba32f) readonly uniform image2D imageH0MinusK;
 
 uniform int N;
 uniform int L;
@@ -23,10 +22,10 @@ void main() {
 	const float magnitude = max(length(k), 0.00001);
 	const float w = sqrt(GRAVITY * magnitude);
 	
-	const complex fourierAmp = imageLoad(imageH0k,
-			ivec2(gl_GlobalInvocationID.xy)).xy;
-	const complex fourierAmpConj = conj(imageLoad(imageH0MinusK,
-			ivec2(gl_GlobalInvocationID.xy)).xy);
+	const vec4 h0k = imageLoad(imageH0k, ivec2(gl_GlobalInvocationID.xy));
+
+	const complex fourierAmp = h0k.xy;
+	const complex fourierAmpConj = conj(h0k.zw);
 		
 	const complex expIWT = complex(cos(w * t), sin(w * t));
 	const complex invExpIWT = complex(expIWT.x, -expIWT.y);

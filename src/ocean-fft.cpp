@@ -10,7 +10,6 @@ OceanFFTSeed::OceanFFTSeed(RenderContext& context, int32 N, int32 L)
 		: context(&context)
 		, computeSpace(N / 16)
 		, imageH0k(context, N, N, GL_RGBA32F)
-		, imageH0MinusK(context, N, N, GL_RGBA32F)
 		, noiseSampler(context) {
 	std::stringstream ss;
 	Bitmap bmp;
@@ -39,12 +38,11 @@ void OceanFFTSeed::setParams(float amplitude, const glm::vec2& direction,
 	h0kShader->setVector2f("direction", direction);
 
 	h0kShader->bindComputeTexture(imageH0k, 0, GL_WRITE_ONLY, GL_RGBA32F);
-	h0kShader->bindComputeTexture(imageH0MinusK, 1, GL_WRITE_ONLY, GL_RGBA32F);
 
-	h0kShader->setSampler("noise_r0", *noise[0], noiseSampler, 2);
-	h0kShader->setSampler("noise_i0", *noise[1], noiseSampler, 3);
-	h0kShader->setSampler("noise_r1", *noise[2], noiseSampler, 4);
-	h0kShader->setSampler("noise_i1", *noise[3], noiseSampler, 5);
+	h0kShader->setSampler("noise_r0", *noise[0], noiseSampler, 1);
+	h0kShader->setSampler("noise_i0", *noise[1], noiseSampler, 2);
+	h0kShader->setSampler("noise_r1", *noise[2], noiseSampler, 3);
+	h0kShader->setSampler("noise_i1", *noise[3], noiseSampler, 4);
 
 	context->compute(*h0kShader, computeSpace, computeSpace);
 }
@@ -116,7 +114,6 @@ void OceanFFT::update(float delta) {
 	hktShader->bindComputeTexture(coeffDZ, 2, GL_READ_WRITE, GL_RGBA32F);
 	
 	hktShader->bindComputeTexture(fftSeed.getH0K(), 3, GL_READ_ONLY, GL_RGBA32F);
-	hktShader->bindComputeTexture(fftSeed.getH0MinusK(), 4, GL_READ_ONLY, GL_RGBA32F);
 
 	context->compute(*hktShader, N / 16, N / 16);
 	context->awaitFinish();
