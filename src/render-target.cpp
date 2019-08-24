@@ -21,7 +21,8 @@ RenderTarget::RenderTarget(RenderContext& context, Texture& texture,
 
 void RenderTarget::clear(uint32 flags) {
 	context->setRenderTarget(bufferID);
-	context->clear(flags);
+
+	glClear(flags);
 }
 
 void RenderTarget::drawTo(RenderTarget& target, uint32 mask,

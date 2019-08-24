@@ -32,10 +32,6 @@ RenderContext::RenderContext()
 	screenQuad = new VertexArray(*this, screenQuadModel, GL_STATIC_DRAW);
 }
 
-void RenderContext::clear(uint32 flags) {
-	glClear(flags);
-}
-
 void RenderContext::awaitFinish() {
 	glFinish();
 }

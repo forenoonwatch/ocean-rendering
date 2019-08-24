@@ -13,7 +13,6 @@ class RenderContext {
 	public:
 		RenderContext();
 
-		void clear(uint32 flags);
 		void awaitFinish();
 
 		void draw(RenderTarget& target, Shader& shader, VertexArray& vertexArray,
