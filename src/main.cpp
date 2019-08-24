@@ -105,10 +105,10 @@ int main() {
 
 	VertexArray cube(context, cubeModel, GL_STATIC_DRAW);
 
-	std::string cubeTextures[] = {"./res/skybox/right.jpg",
-		"./res/skybox/left.jpg", "./res/skybox/top.jpg",
-		"./res/skybox/bottom.jpg", "./res/skybox/front.jpg",
-		"./res/skybox/back.jpg"};
+	std::string cubeTextures[] = {"./res/sargasso_sea/right.tga",
+		"./res/sargasso_sea/left.tga", "./res/sargasso_sea/top.tga",
+		"./res/sargasso_sea/bottom.tga", "./res/sargasso_sea/front.tga",
+		"./res/sargasso_sea/back.tga"};
 
 	CubeMap skybox(context, cubeTextures);
 
