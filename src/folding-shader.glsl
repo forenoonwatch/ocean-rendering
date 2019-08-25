@@ -9,30 +9,27 @@ layout (binding = 1, rgba32f) writeonly uniform image2D foldingMap;
 
 uniform int N;
 
-#define LAMBDA 1
+#define LAMBDA 1.0
+#define BIAS 1.75
 
 void main() {
 	const ivec2 x = ivec2(gl_GlobalInvocationID.xy);
 
-	const vec3 d00 = imageLoad(displacement, x).xyz;
-	const vec3 d10 = imageLoad(displacement, ivec2( mod(x + vec2(1, 0), vec2(N)) )).xyz;
-	const vec3 dn10 = imageLoad(displacement, ivec2( mod(x + vec2(-1, 0), vec2(N)) )).xyz;
-	const vec3 d01 = imageLoad(displacement, ivec2( mod(x + vec2(0, 1), vec2(N)) )).xyz;
-	const vec3 dn01 = imageLoad(displacement, ivec2( mod(x + vec2(0, -1), vec2(N)) )).xyz;
+	//const vec2 d00 = imageLoad(displacement, x).xz;
+	const vec2 d10 = imageLoad(displacement, ivec2( mod(x + vec2(1, 0), vec2(N)) )).xz;
+	const vec2 dn10 = imageLoad(displacement, ivec2( mod(x + vec2(-1, 0), vec2(N)) )).xz;
+	const vec2 d01 = imageLoad(displacement, ivec2( mod(x + vec2(0, 1), vec2(N)) )).xz;
+	const vec2 dn01 = imageLoad(displacement, ivec2( mod(x + vec2(0, -1), vec2(N)) )).xz;
 
-	const float dXdx = (dn10.x - 2 * d00.x + d10.x);
-	const float dZdz = (dn01.z - 2 * d00.z + d01.z);
-	const float dXdz = (dn01.x - 2 * d00.x + d01.x);
-	const float dZdx = (dn10.z - 2 * d00.z + d10.z);
+	const vec2 dx = (dn10 - d10) * LAMBDA * BIAS;
+	const vec2 dy = (dn01 - d01) * LAMBDA * BIAS;
 
-	const float Jxx = 1 + LAMBDA * dXdx;
-	const float Jxy = 1 + LAMBDA * dXdz;
-	const float Jyx = 1 + LAMBDA * dZdx;
-	const float Jyy = 1 + LAMBDA * dZdz;
+	const float J = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
 
-	const float J = Jyy * Jxx - Jxy * Jyx;
+	imageStore(foldingMap, x, vec4(vec3(smoothstep(max(J, 0.0), 0.0, 1.0)), 1.0));
 
-	imageStore(foldingMap, x, vec4(vec3(J), 1.0));
+	// 'correct' equation
+	//imageStore(foldingMap, x, vec4(vec3(max(1.0 - J, 0.0)), 1.0));
 }
 
 #endif

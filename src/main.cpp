@@ -85,9 +85,9 @@ int main() {
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
-	OceanFFT oceanFFT(context, 256, 1000, false, 1.f);
+	OceanFFT oceanFFT(context, 256, 1000, true, 1.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
+	oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
 	context.awaitFinish();
 
 	Bitmap bmp;
@@ -175,8 +175,8 @@ int main() {
 		shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
 		//shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
 		shaders["ocean-shader"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
-		//oceanShader.setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
-		//oceanShader.setSampler("foam", foam, oceanSampler, 2);
+		shaders["ocean-shader"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 2);
+		shaders["ocean-shader"]->setSampler("foam", foam, oceanSampler, 3);
 		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
 		context.draw(hdrTarget, *shaders["ocean-shader"], ocean.getGridArray(), primitive);
 
@@ -197,7 +197,7 @@ int main() {
 		context.drawQuad(hdrTarget, *shaders["tone-map-shader"]);
 		
 		shaders["screen-render-shader"]->setSampler("screen", renderWater
-				? hdrTexture : brightTexture, sampler, 0);
+				? hdrTexture : oceanFFT.getFoldingMap(), sampler, 0);
 		context.drawQuad(screen, *shaders["screen-render-shader"]);
 
 		display.render();
