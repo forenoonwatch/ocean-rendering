@@ -71,7 +71,7 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 		, coeffDX(context, N, N, GL_RGBA32F)
 		, coeffDY(context, N, N, GL_RGBA32F)
 		, coeffDZ(context, N, N, GL_RGBA32F)
-		, dXYZ(context, N, N, GL_RGBA32F)
+		, displacement(context, N, N, GL_RGBA32F)
 		, bufferTexture(context, N, N, GL_RGBA32F)
 		, foldingMap(context, N, N, GL_RGBA32F) {
 	std::stringstream ss;
@@ -119,16 +119,16 @@ void OceanFFT::update(float delta) {
 	context->awaitFinish();
 
 	// compute displacement
-	computeIFFT(coeffDY, dXYZ, glm::vec3(0, 1, 0));
+	computeIFFT(coeffDY, displacement, glm::vec3(0, 1, 0));
 
 	if (choppy) {
-		computeIFFT(coeffDX, dXYZ, glm::vec3(1, 0, 0));
-		computeIFFT(coeffDZ, dXYZ, glm::vec3(0, 0, 1));
+		computeIFFT(coeffDX, displacement, glm::vec3(1, 0, 0));
+		computeIFFT(coeffDZ, displacement, glm::vec3(0, 0, 1));
 	}
 
 	// compute folding map
-	foldingShader->bindComputeTexture(dXYZ, 0, GL_READ_ONLY, GL_RGBA32F);
-	foldingShader->bindComputeTexture(foldingMap, 1, GL_WRITE_ONLY, GL_RGBA32F);
+	foldingShader->bindComputeTexture(displacement, 0, GL_READ_ONLY, GL_RGBA32F);
+	foldingShader->bindComputeTexture(foldingMap, 1, GL_READ_WRITE, GL_RGBA32F);
 	
 	context->compute(*foldingShader, N / 16, N / 16);
 	context->awaitFinish();

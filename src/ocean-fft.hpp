@@ -49,7 +49,7 @@ class OceanFFT {
 
 		inline Texture& getBufferTexture() { return bufferTexture; }
 
-		inline Texture& getDXYZ() { return dXYZ; }
+		inline Texture& getDisplacement() { return displacement; }
 
 		inline Texture& getFoldingMap() { return foldingMap; }
 
@@ -79,7 +79,7 @@ class OceanFFT {
 		Texture butterflyTexture;
 
 		Texture coeffDX, coeffDY, coeffDZ;
-		Texture dXYZ;
+		Texture displacement;
 
 		Texture bufferTexture;
 

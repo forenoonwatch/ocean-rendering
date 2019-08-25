@@ -13,7 +13,7 @@
 
 const float texelSize = TEXEL_SIZE / SMOOTHNESS;
 
-uniform sampler2D ocean;
+uniform sampler2D displacementMap;
 
 layout (std140) uniform OceanData {
 	vec4 corners[4];
@@ -34,10 +34,11 @@ vec3 oceanData(vec2 pos) {
 	const vec2 uv00 = floor(pos * texelSize) / texelSize;
 	const vec2 frac = vec2(pos - uv00) * texelSize;
 
-	vec3 height = textureBicubic(ocean, uv00, 1.0 / texelSize, frac)
+	vec3 height = textureBicubic(displacementMap, uv00, 1.0 / texelSize, frac)
 			 * vec3(lambda, amplitude, lambda);
 
-	height.y += texture2D(ocean, DETAIL_SAMPLE_MODIFIER * pos).y * detailAmplitude;
+	height.y += texture2D(displacementMap,
+			DETAIL_SAMPLE_MODIFIER * pos).y * detailAmplitude;
 
 	return height;
 }
@@ -55,20 +56,11 @@ vec4 getOceanPosition(vec2 pos) {
 }
 
 varying vec2 xyPos0;
-varying vec2 texCoord0;
 
 varying vec4 clipSpace;
 varying float fresnel;
 
 #if defined(VS_BUILD)
-
-vec2 getOceanTexCoord(vec2 pos) {
-	const vec4 a = mix(corners[0], corners[2], pos.x);
-	const vec4 b = mix(corners[1], corners[3], pos.x);
-	const vec4 o = mix(a, b, pos.y);
-	
-	return o.xz / o.w;
-}
 
 layout (location = 0) in vec2 xyPos;
 layout (location = 1) in mat4 transform;
@@ -88,7 +80,6 @@ void main() {
 	gl_Position = vertPos;
 
 	xyPos0 = xyPos;
-	texCoord0 = getOceanTexCoord(xyPos) * OCEAN_SAMPLE;
 	clipSpace = vertPos;
 	
 	const float F = clamp(1.0 - dot(normal, normalize(cameraPosition - p0)), 0.0, 1.0);
@@ -154,16 +145,10 @@ void main() {
 	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
 	const vec3 waterColor = mix(oceanColor0 * light, oceanColor1, sssFactor);
-	//const float foamMask = 1.0//texture2D(foam, 0.9 * p0.xz).y
-			//* min(pow(max(p0.y / amplitude, 0.0), 10), 1.0);
-	//		* foamData(p0.xz * OCEAN_SAMPLE);
 
-	const float foamColor = texture2D(foam, 0.3 * p0.xz).y;
-	float foamMask = foamData(xyPos0) * foamColor;
+	const float foamMask = foamData(xyPos0) * texture2D(foam, 0.3 * p0.xz).y;
 
-	// * max(p0.y / amplitude, 0.0);
-
-	const vec3 inColor = mix(mix(waterColor, vec3(1), foamMask), flect,
+	const vec3 inColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
 			fresnel * (1.0 - foamMask));
 	const float brightness = dot(inColor, BRIGHT_THRESH);
 

@@ -85,7 +85,7 @@ int main() {
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
-	OceanFFT oceanFFT(context, 256, 1000, true, 1.f);
+	OceanFFT oceanFFT(context, 256, 1000, true, 4.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
 	oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
 	context.awaitFinish();
@@ -172,7 +172,7 @@ int main() {
 
 		context.setDrawBuffers(2);
 
-		shaders["ocean-shader"]->setSampler("ocean", oceanFFT.getDXYZ(), oceanSampler, 0);
+		shaders["ocean-shader"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
 		//shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
 		shaders["ocean-shader"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
 		shaders["ocean-shader"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 2);
