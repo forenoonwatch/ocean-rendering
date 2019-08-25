@@ -5,12 +5,15 @@
 layout (local_size_x = 16, local_size_y = 16) in;
 
 layout (binding = 0, rgba32f) readonly uniform image2D displacement;
-layout (binding = 1, rgba32f) writeonly uniform image2D foldingMap;
+layout (binding = 1, rgba32f) uniform image2D foldingMap;
 
 uniform int N;
 
 #define LAMBDA 1.0
-#define BIAS 1.75
+#define BIAS 0.25//1.75
+
+#define ACCUM 0.1
+#define DECAY 0.8
 
 void main() {
 	const ivec2 x = ivec2(gl_GlobalInvocationID.xy);
@@ -24,12 +27,18 @@ void main() {
 	const vec2 dx = (dn10 - d10) * LAMBDA * BIAS;
 	const vec2 dy = (dn01 - d01) * LAMBDA * BIAS;
 
-	const float J = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
+	float J = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
+	J = max(1.0 - J, 0.0);
 
-	imageStore(foldingMap, x, vec4(vec3(smoothstep(max(J, 0.0), 0.0, 1.0)), 1.0));
+	const float fPrev = imageLoad(foldingMap, x).x;
+	imageStore(foldingMap, x, vec4(vec3(J * ACCUM + fPrev * DECAY), 1.0));
+
+	//imageStore(foldingMap, x, vec4(vec3(smoothstep(max(J, 0.0), 0.0, 1.0)), 1.0));
 
 	// 'correct' equation
 	//imageStore(foldingMap, x, vec4(vec3(max(1.0 - J, 0.0)), 1.0));
+	//
+	//
 }
 
 #endif
