@@ -16,13 +16,31 @@ void main() {
 
 #elif defined(FS_BUILD)
 
+#define LOWER_LIMIT 0.0
+#define UPPER_LIMIT 0.5
+
+layout (std140) uniform LightingData {
+	vec3 sunlightDir;
+	float ambientLight;
+	float specularStrength;
+	float specularBlend;
+	vec3 fogColor;
+	float fogDensity;
+	float fogGradient;
+};
+
 uniform samplerCube skybox;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 brightColor;
 
 void main() {
-	outColor = texture(skybox, texCoord0);
+	const vec3 skyColor = texture(skybox, texCoord0).rgb;
+
+	const float fact = clamp((texCoord0.y - LOWER_LIMIT)
+			/ (UPPER_LIMIT - LOWER_LIMIT), 0.0, 1.0);
+
+	outColor = vec4(mix(fogColor, skyColor, fact), 1.0);
 	brightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 

@@ -70,15 +70,21 @@ int main() {
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
 			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
-			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
+			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW);
 
 	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer, 0);
 	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
+	shaders["skybox-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
 
 	{
 		float lightData[] = {0.2f, 15.f, 128.f};
 		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 1, 1))), sizeof(glm::vec3));
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
+
+		float fogData[] = {0.5f, 0.5f, 0.5f, 0.001f, 1.f};
+
+		lightDataBuffer.update(fogData, sizeof(glm::vec3) + sizeof(lightData)
+				+ 2 * sizeof(float), sizeof(fogData));
 	}
 
 	Sampler oceanSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);

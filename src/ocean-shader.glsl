@@ -28,6 +28,9 @@ layout (std140) uniform LightingData {
 	float ambientLight;
 	float specularStrength;
 	float specularBlend;
+	vec3 fogColor;
+	float fogDensity;
+	float fogGradient;
 };
 
 vec3 oceanData(vec2 pos) {
@@ -60,6 +63,8 @@ varying vec2 xyPos0;
 varying vec4 clipSpace;
 varying float fresnel;
 
+varying float fogVisibility;
+
 #if defined(VS_BUILD)
 
 layout (location = 0) in vec2 xyPos;
@@ -81,13 +86,17 @@ void main() {
 
 	xyPos0 = xyPos;
 	clipSpace = vertPos;
+
+	const float cameraDist = length(cameraPosition - p0);
 	
 	const float F = clamp(1.0 - dot(normal, normalize(cameraPosition - p0)), 0.0, 1.0);
 	//fresnel = F * F;
 	//fresnel = F0 + (1.0 - F0) * (fresnel * fresnel * F);
 
-	fresnel = F * (max(clamp(1.0 - exp(-pow(length(cameraPosition - p0) * 0.02, 1)), 0.0, 1.0),
+	fresnel = F * (max(clamp(1.0 - exp(-pow(cameraDist * 0.02, 1)), 0.0, 1.0),
 			1.0 - normal.y) * 0.9 + 0.1);
+
+	fogVisibility = clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 }
 
 #elif defined(FS_BUILD)
@@ -144,12 +153,13 @@ void main() {
 	//const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
 	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
-	const vec3 waterColor = mix(oceanColor0 * light, oceanColor1, sssFactor);
-
 	const float foamMask = foamData(xyPos0) * texture2D(foam, 0.3 * p0.xz).y;
 
-	const vec3 inColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
+	vec3 waterColor = mix(oceanColor0 * light, oceanColor1, sssFactor);
+	waterColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
 			fresnel * (1.0 - foamMask));
+
+	const vec3 inColor = mix(fogColor, waterColor, fogVisibility);
 	const float brightness = dot(inColor, BRIGHT_THRESH);
 
 	outColor = vec4(inColor, 1.0);
