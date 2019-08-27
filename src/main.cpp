@@ -23,6 +23,8 @@
 
 #include "gaussian-blur.hpp"
 
+#include "asset-loader.hpp"
+
 #define MOVE_SPEED	0.05f
 
 void onKeyEvent(GLFWwindow*, int, int, int, int);
@@ -144,6 +146,9 @@ int main() {
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
 	setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
+
+	std::vector<IndexedModel> loadedModels;
+	AssetLoader::loadAssets("./res/cube.obj", loadedModels);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);

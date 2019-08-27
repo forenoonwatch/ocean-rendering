@@ -4,7 +4,6 @@ Rendering ocean water in OpenGL utilizing J. Tessendorf's inverse Fourier transf
 
 ## TODO List
 - Add buoyancy sampling for floating objects
-- Add model loading support (assimp)
 - Wakes/foam for moving objects
 - Underwater rendering
 - Add deferred lighting
@@ -19,3 +18,4 @@ Rendering ocean water in OpenGL utilizing J. Tessendorf's inverse Fourier transf
 * GLFW
 * Glew
 * GLM
+* Assimp

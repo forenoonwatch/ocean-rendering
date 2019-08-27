@@ -1,5 +1,15 @@
 #include "indexed-model.hpp"
 
+void IndexedModel::initStaticMesh() {
+	allocateElement(3); // Positions
+	allocateElement(2); // TexCoords
+	allocateElement(3); // Normals
+	allocateElement(3); // Tangents
+	allocateElement(2 * 16); // MVP, model matrix
+
+	setInstancedElementStartIndex(4); // Begin instanced data
+}
+
 void IndexedModel::addElement1f(uint32 elementIndex, float e0) {
 	elements[elementIndex].push_back(e0);
 }

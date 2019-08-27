@@ -9,6 +9,8 @@ class IndexedModel {
 		inline IndexedModel()
 			: instancedElementStartIndex((uint32)-1) {}
 
+		void initStaticMesh();
+
 		inline void allocateElement(uint32 elementSize);
 		inline void setInstancedElementStartIndex(uint32 elementIndex);
 
