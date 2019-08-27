@@ -1,0 +1,10 @@
+
+layout (std140) uniform LightingData {
+	vec3 sunlightDir;
+	float ambientLight;
+	float specularStrength;
+	float specularBlend;
+	vec3 fogColor;
+	float fogDensity;
+	float fogGradient;
+};

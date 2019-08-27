@@ -84,6 +84,7 @@ int main() {
 	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer);
 	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer);
 	shaders["skybox-shader"]->setUniformBuffer("LightingData", lightDataBuffer);
+	shaders["static-mesh-shader"]->setUniformBuffer("LightingData", lightDataBuffer);
 
 	{
 		float lightData[] = {0.2f, 15.f, 128.f};
@@ -150,6 +151,8 @@ int main() {
 	std::vector<IndexedModel> loadedModels;
 	AssetLoader::loadAssets("./res/cube.obj", loadedModels);
 
+	VertexArray loadedModel(context, loadedModels[0], GL_STATIC_DRAW);
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -157,6 +160,9 @@ int main() {
 		if (lockCamera) {
 			projector.update();
 		}
+
+		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
+				1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
 
 		//oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 40.f, 100.f * std::sin(0.1 * glfwGetTime()));
 		//context.awaitFinish();
@@ -167,8 +173,8 @@ int main() {
 
 		//lastBeaufort = beaufort;
 
-		setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1),
-				6.f + 6.f * std::sin(0.1 * glfwGetTime()));
+		//setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1),
+		//		6.f + 6.f * std::sin(0.1 * glfwGetTime()));
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
@@ -204,6 +210,11 @@ int main() {
 		shaders["ocean-shader"]->setSampler("foam", foam, oceanSampler, 3);
 		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
 		context.draw(hdrTarget, *shaders["ocean-shader"], ocean.getGridArray(), primitive);
+
+		glm::mat4 mats[] = {camera->getViewProjection(), glm::mat4(1.f)};
+		loadedModel.updateBuffer(4, mats, sizeof(mats));
+
+		context.draw(hdrTarget, *shaders["static-mesh-shader"], loadedModel, GL_TRIANGLES);
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));
@@ -347,7 +358,7 @@ void loadShaders(RenderContext& context,
 		std::unordered_map<std::string, std::shared_ptr<Shader>>& shaders) {
 	const std::string shaderNames[] = {"basic-shader", "ocean-shader",
 			"skybox-shader", "screen-render-shader", "tone-map-shader",
-			"gaussian-blur-shader", "bloom-shader"};
+			"gaussian-blur-shader", "bloom-shader", "static-mesh-shader"};
 
 	std::stringstream fileData;
 

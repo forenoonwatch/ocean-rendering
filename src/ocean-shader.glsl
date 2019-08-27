@@ -1,37 +1,14 @@
 #include "common.glh"
 #include "bicubic-sampling.glh"
 
-#define OCEAN_SAMPLE 0.01
-#define DETAIL_SAMPLE_MODIFIER 10.0
+#include "ocean-common.glh"
+
+#include "lighting.glh"
+
 #define F0 0.1 //0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 #define SSS_POWER 2.0
 
-#define TEXEL_SIZE 256.0
-#define SMOOTHNESS 2.0
-
-#define GRID_LENGTH 256.0
-
-const float texelSize = TEXEL_SIZE / SMOOTHNESS;
-
 uniform sampler2D displacementMap;
-
-layout (std140) uniform OceanData {
-	vec4 corners[4];
-	vec3 cameraPosition;
-	float amplitude;
-	float detailAmplitude;
-	float lambda;
-};
-
-layout (std140) uniform LightingData {
-	vec3 sunlightDir;
-	float ambientLight;
-	float specularStrength;
-	float specularBlend;
-	vec3 fogColor;
-	float fogDensity;
-	float fogGradient;
-};
 
 vec3 oceanData(vec2 pos) {
 	const vec2 uv00 = floor(pos * texelSize) / texelSize;
