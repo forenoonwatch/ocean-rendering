@@ -32,6 +32,22 @@ void ShaderStorageBuffer::update(const void* data, uintptr offset, uintptr dataS
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
+void* ShaderStorageBuffer::map(uint32 access) {
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferID);
+
+	return glMapBuffer(GL_SHADER_STORAGE_BUFFER, access);
+}
+
+void* ShaderStorageBuffer::map(uintptr offset, uintptr size, uint32 access) {
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferID);
+
+	return glMapBufferRange(GL_SHADER_STORAGE_BUFFER, offset, size, access);
+}
+
+void ShaderStorageBuffer::unmap() {
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
 ShaderStorageBuffer::~ShaderStorageBuffer() {
 	glDeleteBuffers(1, &bufferID);
 }

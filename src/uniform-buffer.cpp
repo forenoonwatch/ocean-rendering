@@ -35,6 +35,22 @@ void UniformBuffer::update(const void* data, uintptr offset, uintptr dataSize) {
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
+void* UniformBuffer::map() {
+	glBindBuffer(GL_UNIFORM_BUFFER, bufferID);
+
+	return glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+}
+
+void* UniformBuffer::map(uintptr offset, uintptr size) {
+	glBindBuffer(GL_UNIFORM_BUFFER, bufferID);
+
+	return glMapBufferRange(GL_UNIFORM_BUFFER, offset, size, GL_WRITE_ONLY);
+}
+
+void UniformBuffer::unmap() {
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
 UniformBuffer::~UniformBuffer() {
 	glDeleteBuffers(1, &bufferID);
 }

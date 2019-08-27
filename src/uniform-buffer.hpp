@@ -11,6 +11,11 @@ class UniformBuffer {
 		void update(const void* data, uintptr offset, uintptr dataSize);
 		inline void update(const void* data) { update(data, size); }
 
+		void* map();
+		void* map(uintptr offset, uintptr size);
+
+		void unmap();
+
 		inline uint32 getID() { return bufferID; }
 		inline uint32 getBlockBinding() { return blockBinding; }
 
