@@ -6,14 +6,17 @@
 #include <GL/gl.h>
 
 UniformBuffer::UniformBuffer(RenderContext& context, uintptr dataSize,
-			uint32 usage, const void* data)
+			uint32 usage, uint32 blockBinding, const void* data)
 		: context(&context)
 		, bufferID(0)
+		, blockBinding(blockBinding)
 		, size(dataSize) {
 	glGenBuffers(1, &bufferID);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, bufferID);
 	glBufferData(GL_UNIFORM_BUFFER, dataSize, data, usage);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, bufferID);
 }
 
 void UniformBuffer::update(const void* data, uintptr dataSize) {

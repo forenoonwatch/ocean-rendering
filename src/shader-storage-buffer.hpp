@@ -5,13 +5,14 @@
 class ShaderStorageBuffer {
 	public:
 		ShaderStorageBuffer(RenderContext& context, uintptr dataSize,
-				uint32 usage, const void* data = nullptr);
+				uint32 usage, uint32 blockBinding, const void* data = nullptr);
 
 		void update(const void* data, uintptr dataSize);
 		void update(const void* data, uintptr offset, uintptr dataSize);
 		inline void update(const void* data) { update(data, size); }
 
 		inline uint32 getID() { return bufferID; }
+		inline uint32 getBlockBinding() { return blockBinding; }
 
 		~ShaderStorageBuffer();
 	private:
@@ -19,5 +20,6 @@ class ShaderStorageBuffer {
 
 		RenderContext* context;
 		uint32 bufferID;
+		uint32 blockBinding;
 		uintptr size;
 };

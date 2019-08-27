@@ -16,16 +16,10 @@ class Shader {
 	public:
 		Shader(RenderContext& context, const std::string& text);
 
-		void setUniformBuffer(const std::string& name,
-				UniformBuffer& buffer, uint32 index, uint32 block);
-		inline void setUniformBuffer(const std::string& name,
-				UniformBuffer& buffer, uint32 index);
-
+		void setUniformBuffer(const std::string& name, UniformBuffer& buffer);
 
 		void setShaderStorageBuffer(const std::string& name,
-				ShaderStorageBuffer& buffer, uint32 index, uint32 block);
-		inline void setShaderStorageBuffer(const std::string& name,
-				ShaderStorageBuffer& buffer, uint32 index);
+				ShaderStorageBuffer& buffer);
 
 		void setSampler(const std::string& name, Texture& texture,
 				Sampler& sampler, uint32 textureUnit);
@@ -59,12 +53,3 @@ class Shader {
 		std::unordered_map<std::string, int32> uniformMap;
 };
 
-inline void Shader::setUniformBuffer(const std::string& name,
-		UniformBuffer& buffer, uint32 index) {
-	setUniformBuffer(name, buffer, index, index);
-}
-
-inline void Shader::setShaderStorageBuffer(const std::string& name,
-		ShaderStorageBuffer& buffer, uint32 index) {
-	setShaderStorageBuffer(name, buffer, index, index);
-}

@@ -71,20 +71,15 @@ Shader::Shader(RenderContext& context, const std::string& text)
 			samplerMap, uniformMap);
 }
 
-void Shader::setUniformBuffer(const std::string& name,
-		UniformBuffer& buffer, uint32 index, uint32 block) {
-	context->setShader(programID);
-
-	glUniformBlockBinding(programID, uniformBlockMap[name], block);
-	glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.getID());
+void Shader::setUniformBuffer(const std::string& name, UniformBuffer& buffer) {
+	glUniformBlockBinding(programID, uniformBlockMap[name],
+			buffer.getBlockBinding());
 }
 
 void Shader::setShaderStorageBuffer(const std::string& name,
-		ShaderStorageBuffer& buffer, uint32 index, uint32 block) {
-	context->setShader(programID);
-
-	glUniformBlockBinding(programID, uniformBlockMap[name], block);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, buffer.getID());
+		ShaderStorageBuffer& buffer) {
+	glUniformBlockBinding(programID, uniformBlockMap[name],
+			buffer.getBlockBinding());
 }
 
 void Shader::setSampler(const std::string& name, Texture& texture,

@@ -2,18 +2,18 @@
 
 #include <cstring>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 ShaderStorageBuffer::ShaderStorageBuffer(RenderContext& context, uintptr dataSize,
-			uint32 usage, const void* data)
+			uint32 usage, uint32 blockBinding, const void* data)
 		: context(&context)
 		, bufferID(0)
+		, blockBinding(blockBinding)
 		, size(dataSize) {
 	glGenBuffers(1, &bufferID);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferID);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, dataSize, data, usage);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, blockBinding, bufferID);
 }
 
 void ShaderStorageBuffer::update(const void* data, uintptr dataSize) {

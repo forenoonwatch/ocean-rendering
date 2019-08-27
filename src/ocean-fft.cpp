@@ -208,10 +208,10 @@ static void initButterflyTexture(RenderContext& context, int32 N,
 	Shader btShader(context, ss.str());
 
 	ShaderStorageBuffer bitReversedBuffer(context, N * sizeof(int32),
-			GL_STATIC_DRAW, bitReversedIndices);
+			GL_STATIC_DRAW, 1, bitReversedIndices);
 
 	// bind uniforms/textures
-	btShader.setShaderStorageBuffer("bitReversedIndices", bitReversedBuffer, 1, 1);
+	btShader.setShaderStorageBuffer("bitReversedIndices", bitReversedBuffer);
 	btShader.bindComputeTexture(butterflyTexture, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 	btShader.setInt("N", N);

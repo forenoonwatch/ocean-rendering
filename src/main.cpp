@@ -75,13 +75,13 @@ int main() {
 	OceanProjector projector(ocean, userCamera);
 
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
-			+ 3 * sizeof(float), GL_DYNAMIC_DRAW);
+			+ 3 * sizeof(float), GL_DYNAMIC_DRAW, 0);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
-			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW);
+			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW, 1);
 
-	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer, 0);
-	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
-	shaders["skybox-shader"]->setUniformBuffer("LightingData", lightDataBuffer, 1);
+	shaders["ocean-shader"]->setUniformBuffer("OceanData", oceanDataBuffer);
+	shaders["ocean-shader"]->setUniformBuffer("LightingData", lightDataBuffer);
+	shaders["skybox-shader"]->setUniformBuffer("LightingData", lightDataBuffer);
 
 	{
 		float lightData[] = {0.2f, 15.f, 128.f};
