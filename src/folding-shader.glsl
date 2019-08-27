@@ -9,6 +9,10 @@ layout (binding = 1, rgba32f) uniform image2D foldingMap;
 
 uniform int N;
 
+uniform float lambda;
+uniform float accum;
+uniform float decay;
+
 #define LAMBDA 1.0
 #define BIAS 0.25//1.75
 
@@ -24,21 +28,20 @@ void main() {
 	const vec2 d01 = imageLoad(displacement, ivec2( mod(x + vec2(0, 1), vec2(N)) )).xz;
 	const vec2 dn01 = imageLoad(displacement, ivec2( mod(x + vec2(0, -1), vec2(N)) )).xz;
 
-	const vec2 dx = (dn10 - d10) * LAMBDA * BIAS;
-	const vec2 dy = (dn01 - d01) * LAMBDA * BIAS;
+	const vec2 dx = (dn10 - d10) * lambda * BIAS;
+	const vec2 dy = (dn01 - d01) * lambda * BIAS;
 
 	float J = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
 	J = max(1.0 - J, 0.0);
 
 	const float fPrev = imageLoad(foldingMap, x).x;
-	imageStore(foldingMap, x, vec4(vec3(J * ACCUM + fPrev * DECAY), 1.0));
+	imageStore(foldingMap, x, vec4(vec3(max(J * accum + fPrev - decay, 0.0)), 1.0));
 
+	// incorrect, 'peak mapping' equation
 	//imageStore(foldingMap, x, vec4(vec3(smoothstep(max(J, 0.0), 0.0, 1.0)), 1.0));
 
 	// 'correct' equation
 	//imageStore(foldingMap, x, vec4(vec3(max(1.0 - J, 0.0)), 1.0));
-	//
-	//
 }
 
 #endif

@@ -17,7 +17,7 @@ void main() {
 #elif defined(FS_BUILD)
 
 #define LOWER_LIMIT 0.0
-#define UPPER_LIMIT 0.5
+#define UPPER_LIMIT 0.003
 
 layout (std140) uniform LightingData {
 	vec3 sunlightDir;

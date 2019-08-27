@@ -38,7 +38,11 @@ class OceanFFT {
 		void setOceanParams(float amplitude, const glm::vec2& direction,
 				float intensity, float capillarSuppressFactor);
 
+		void setFoldingParams(float lambda, float accum, float decay);
+
 		void update(float delta);
+
+		inline void setTimeScale(float timeScale) { this->timeScale = timeScale; }
 
 		inline Texture& getH0K() { return fftSeed.getH0K(); }
 		inline Texture& getButterflyTexture() { return butterflyTexture; }

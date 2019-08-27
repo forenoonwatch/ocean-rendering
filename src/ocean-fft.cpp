@@ -35,7 +35,7 @@ void OceanFFTSeed::setParams(float amplitude, const glm::vec2& direction,
 	h0kShader->setFloat("intensity", intensity);
 	h0kShader->setFloat("l", capillarSuppressFactor);
 
-	h0kShader->setVector2f("direction", direction);
+	h0kShader->setVector2f("direction", glm::normalize(direction));
 
 	h0kShader->bindComputeTexture(imageH0k, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -103,6 +103,12 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 void OceanFFT::setOceanParams(float amplitude, const glm::vec2& direction,
 		float intensity, float capillarSuppressFactor) {
 	fftSeed.setParams(amplitude, direction, intensity, capillarSuppressFactor);
+}
+
+void OceanFFT::setFoldingParams(float lambda, float accum, float decay) {
+	foldingShader->setFloat("lambda", lambda);
+	foldingShader->setFloat("accum", accum);
+	foldingShader->setFloat("decay", decay);
 }
 
 void OceanFFT::update(float delta) {

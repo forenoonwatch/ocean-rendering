@@ -13,10 +13,11 @@ layout (binding = 4) uniform sampler2D noise_i1;
 
 uniform	int N;
 uniform int L;
+
 uniform float amplitude;
 uniform float intensity;
 uniform vec2 direction;
-uniform float l;
+uniform float l; // capillar suppression factor
 
 vec4 gaussRND() {
 	const vec2 texCoord = vec2(gl_GlobalInvocationID.xy) / float(N);
@@ -42,11 +43,11 @@ void main() {
 	const float magSq = max(dot(k, k), 0.0000001);
 
 	const float n = sqrt((amplitude/(magSq*magSq))
-			* exp(-(1.0/(magSq * L_ * L_)))
+			* exp(-(1.0 / (magSq * L_ * L_)))
 			* exp(-magSq*pow(l,2.0))) / sqrt(2.0);
 	
-	const float h0K = clamp(n * pow(dot(normalize(k), normalize(direction)), 2.0), -4000.0, 4000.0);
-	const float h0MinusK = clamp(n * pow(dot(normalize(-k), normalize(direction)), 2.0), -4000.0, 4000.0);
+	const float h0K = clamp(n * pow(dot(normalize(k), direction), 2.0), -4000.0, 4000.0);
+	const float h0MinusK = clamp(n * pow(dot(normalize(-k), direction), 2.0), -4000.0, 4000.0);
 	
 	const vec4 rnd = gaussRND();
 	

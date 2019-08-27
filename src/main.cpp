@@ -35,10 +35,14 @@ void createCube(IndexedModel&);
 void loadShaders(RenderContext&,
 		std::unordered_map<std::string, std::shared_ptr<Shader>>&);
 
+void setBeaufortLevel(OceanFFT&, UniformBuffer&, const glm::vec2&, float);
+
 Camera* camera;
 bool lockCamera;
 bool renderWater;
 uint32 primitive;
+
+float beaufort;
 
 int main() {
 	Display display("MoIsT - Sponsored by Doritos(TM)", 1200, 900);
@@ -46,6 +50,9 @@ int main() {
 	lockCamera = true;
 	renderWater = true;
 	primitive = GL_TRIANGLES;
+
+	beaufort = 0.f;
+	float lastBeaufort = 0.f;
 
 	float fieldOfView = glm::radians(70.f);
 	float aspectRatio = (float)display.getWidth() / (float)display.getHeight();
@@ -81,7 +88,8 @@ int main() {
 		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 1, 1))), sizeof(glm::vec3));
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
 
-		float fogData[] = {0.5f, 0.5f, 0.5f, 0.001f, 1.f};
+		float fogData[] = {202.f / 255.f, 243.f / 255.f, 246.f / 255.f,
+			0.002f, 1.f};
 
 		lightDataBuffer.update(fogData, sizeof(glm::vec3) + sizeof(lightData)
 				+ 2 * sizeof(float), sizeof(fogData));
@@ -91,9 +99,9 @@ int main() {
 	Sampler sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 	Sampler skyboxSampler(context, GL_LINEAR, GL_LINEAR);
 
-	OceanFFT oceanFFT(context, 256, 1000, true, 4.f);
+	OceanFFT oceanFFT(context, 256, 1000, true, 5.f);
 	//oceanFFT.init(4.f, glm::vec2(1.f, 1.f), 40.f, 0.5f);
-	oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
+	//oceanFFT.setOceanParams(10.f, glm::vec2(1.f, 1.f), 80.f, 0.5f);
 	context.awaitFinish();
 
 	Bitmap bmp;
@@ -135,10 +143,7 @@ int main() {
 
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
-	{
-		float f[] = {1.f, 0.01f, 1.f};
-		oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(f));
-	}
+	setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -150,6 +155,15 @@ int main() {
 
 		//oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 40.f, 100.f * std::sin(0.1 * glfwGetTime()));
 		//context.awaitFinish();
+		
+		//if (beaufort != lastBeaufort) {
+		//	setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
+		//}
+
+		//lastBeaufort = beaufort;
+
+		setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1),
+				6.f + 6.f * std::sin(0.1 * glfwGetTime()));
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
@@ -224,6 +238,12 @@ void onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods)
 				break;
 			case GLFW_KEY_G:
 				primitive = primitive == GL_TRIANGLES ? GL_LINES : GL_TRIANGLES;
+				break;
+			case GLFW_KEY_Z:
+				beaufort = beaufort - 1.f >= 0.f ? beaufort - 1.f : 0.f;
+				break;
+			case GLFW_KEY_X:
+				beaufort = beaufort + 1.f <= 12.f ? beaufort + 1.f : 12.f;
 				break;
 		}
 	}
@@ -335,4 +355,18 @@ void loadShaders(RenderContext& context,
 		shaders.insert( std::make_pair( shaderNames[i],
 				std::make_shared<Shader>(context, fileData.str()) ) );
 	}
+}
+
+void setBeaufortLevel(OceanFFT& oceanFFT, UniformBuffer& oceanDataBuffer,
+		const glm::vec2& windDir, float beaufortLevel) {
+	float normBF = beaufortLevel / 12.f;
+
+	float f[] = {1.f + normBF, 0.01f, 0.5f + 0.5f * normBF};
+	oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(f));
+
+	oceanFFT.setOceanParams(2.f * (beaufortLevel + 1.f), windDir,
+			10.f * (beaufortLevel + 1.f), 0.5f);
+	oceanFFT.setTimeScale(5.f);
+	oceanFFT.setFoldingParams(0.5f + 0.5f * normBF,
+			0.2f + 0.05f * normBF, 0.0075f + 0.0025f * normBF);
 }

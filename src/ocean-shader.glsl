@@ -146,18 +146,22 @@ void main() {
 	const float specular = specularStrength
 			* pow(max(dot(pointToEye, reflect(-sunlightDir, normal)), 0.0), specularBlend);
 
-	const float light = ambientLight + (1.0 - ambientLight) * diffuse + specular;
+	float foamMask = foamData(xyPos0);
+	const float shininess = 1.0 - foamMask;
+
+	foamMask *= texture2D(foam, 0.3 * p0.xz).y;
+
+	const float light = ambientLight + (1.0 - ambientLight) * diffuse
+			+ specular * shininess;
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
 			* max(sunlightDir.y, 0.0);
 	//const vec3 flect = texture2D(reflectionMap, vec2(ndc.x, -ndc.y)).rgb * light;
 	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
-	const float foamMask = foamData(xyPos0) * texture2D(foam, 0.3 * p0.xz).y;
-
 	vec3 waterColor = mix(oceanColor0 * light, oceanColor1, sssFactor);
 	waterColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
-			fresnel * (1.0 - foamMask));
+			fresnel * shininess);
 
 	const vec3 inColor = mix(fogColor, waterColor, fogVisibility);
 	const float brightness = dot(inColor, BRIGHT_THRESH);
