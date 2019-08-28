@@ -2,6 +2,8 @@
 
 #include "shader.hpp"
 
+#include <vector>
+
 #include <GLM/glm.hpp>
 
 class OceanFFTSeed {
@@ -42,6 +44,9 @@ class OceanFFT {
 
 		void update(float delta);
 
+		inline void addFloatingTransform(const glm::mat4& transform,
+				const glm::vec2& size);
+
 		inline void setTimeScale(float timeScale) { this->timeScale = timeScale; }
 
 		inline Texture& getH0K() { return fftSeed.getH0K(); }
@@ -56,6 +61,8 @@ class OceanFFT {
 		inline Texture& getDisplacement() { return displacement; }
 
 		inline Texture& getFoldingMap() { return foldingMap; }
+
+		inline std::vector<glm::mat4>& getFloatingTransforms() { return outputTransforms; }
 
 		~OceanFFT();
 	private:
@@ -77,6 +84,7 @@ class OceanFFT {
 		Shader* butterflyShader;
 		Shader* inversionShader;
 		Shader* foldingShader;
+		Shader* floatingShader;
 
 		OceanFFTSeed fftSeed;
 
@@ -89,5 +97,19 @@ class OceanFFT {
 
 		Texture foldingMap;
 
+		ShaderStorageBuffer floatingObjectBuffer;
+		Sampler floatingObjectSampler;
+
+		std::vector<glm::mat4> floatingTransforms;
+		std::vector<glm::vec2> floatingSizes;
+		std::vector<glm::mat4> outputTransforms;
+
 		void computeIFFT(Texture&, Texture&, const glm::vec3&);
+		void flushFloatingTransforms();
 };
+
+inline void OceanFFT::addFloatingTransform(const glm::mat4& transform,
+		const glm::vec2& size) {
+	floatingTransforms.push_back(transform);
+	floatingSizes.push_back(size);
+}

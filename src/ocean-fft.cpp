@@ -3,6 +3,11 @@
 #include "util.hpp"
 
 #include <cmath>
+#include <cstring>
+
+#define MAX_FLOATING_OBJECTS 128
+#define FLOATING_BUF_SIZE (MAX_FLOATING_OBJECTS * sizeof(glm::mat4) \
+		+ MAX_FLOATING_OBJECTS * sizeof(glm::vec2))
 
 static void initButterflyTexture(RenderContext& context, int32 N, Texture& butterflyTexture);
 
@@ -73,7 +78,9 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 		, coeffDZ(context, N, N, GL_RGBA32F)
 		, displacement(context, N, N, GL_RGBA32F)
 		, bufferTexture(context, N, N, GL_RGBA32F)
-		, foldingMap(context, N, N, GL_RGBA32F) {
+		, foldingMap(context, N, N, GL_RGBA32F)
+		, floatingObjectBuffer(context, FLOATING_BUF_SIZE, GL_DYNAMIC_DRAW, 0)
+		, floatingObjectSampler(context, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT) {
 	std::stringstream ss;
 
 	Util::resolveFileLinking(ss, "./src/hkt-shader.glsl", "#include");
@@ -90,6 +97,10 @@ OceanFFT::OceanFFT(RenderContext& context, int32 N, int32 L,
 	ss.str("");
 	Util::resolveFileLinking(ss, "./src/folding-shader.glsl", "#include");
 	foldingShader = new Shader(context, ss.str());
+
+	ss.str("");
+	Util::resolveFileLinking(ss, "./src/ocean-surface-transform.glsl", "#include");
+	floatingShader = new Shader(context, ss.str());
 
 	initButterflyTexture(context, N, butterflyTexture);
 
@@ -141,6 +152,9 @@ void OceanFFT::update(float delta) {
 
 	// update time counter
 	timeCounter += delta * timeScale;
+
+	// update floating objects
+	flushFloatingTransforms();
 }
 
 OceanFFT::~OceanFFT() {
@@ -148,6 +162,7 @@ OceanFFT::~OceanFFT() {
 	delete butterflyShader;
 	delete inversionShader;
 	delete foldingShader;
+	delete floatingShader;
 }
 
 inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
@@ -191,6 +206,36 @@ inline void OceanFFT::computeIFFT(Texture& coeff, Texture& output,
 
 	context->compute(*inversionShader, N / 16, N / 16);
 	context->awaitFinish();
+}
+
+inline void OceanFFT::flushFloatingTransforms() {
+	if (floatingTransforms.size() == 0) {
+		return;
+	}
+
+	floatingShader->setSampler("displacement", displacement,
+			floatingObjectSampler, 0);
+
+	floatingObjectBuffer.update(&floatingTransforms[0],
+			floatingTransforms.size() * sizeof(glm::mat4));
+	floatingObjectBuffer.update(&floatingSizes[0],
+			MAX_FLOATING_OBJECTS * sizeof(glm::mat4),
+			floatingSizes.size() * sizeof(glm::vec2));
+
+	context->compute(*floatingShader, floatingTransforms.size());
+	context->awaitFinish();
+
+	outputTransforms.resize(floatingTransforms.size());
+
+	void* data = floatingObjectBuffer.map(GL_READ_ONLY);
+
+	std::memcpy(&outputTransforms[0], data,
+			floatingTransforms.size() * sizeof(glm::mat4));
+
+	floatingObjectBuffer.unmap();
+
+	floatingTransforms.clear();
+	floatingSizes.clear();
 }
 
 static void initButterflyTexture(RenderContext& context, int32 N,
