@@ -2,9 +2,6 @@
 
 #include <cstring>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 UniformBuffer::UniformBuffer(RenderContext& context, uintptr dataSize,
 			uint32 usage, uint32 blockBinding, const void* data)
 		: context(&context)

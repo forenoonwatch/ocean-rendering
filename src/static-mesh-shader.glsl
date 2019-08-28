@@ -48,6 +48,7 @@ void main() {
 #elif defined(FS_BUILD)
 
 layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 brightColor;
 
 void main() {
 	const vec3 normal = vec3(0, 0, 1);
@@ -59,7 +60,17 @@ void main() {
 	const float light = ambientLight + (1.0 - ambientLight) * diffuse
 			+ specular;
 
-	outColor = vec4(mix(fogColor, vec3(light), fogVisibility), 1.0);
+	const vec3 inColor = mix(fogColor, vec3(light), fogVisibility);
+	const float brightness = dot(inColor, BRIGHT_THRESH);
+
+	outColor = vec4(inColor, 1.0);
+
+	if (brightness > 1.0) {
+		brightColor = vec4(inColor, 1.0);
+	}
+	else {
+		brightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 }
 
 #endif

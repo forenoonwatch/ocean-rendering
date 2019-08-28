@@ -6,6 +6,4 @@
 	#define varying out
 #elif defined(FS_BUILD)
 	#define varying in
-	
-	#define BRIGHT_THRESH vec3(0.2126, 0.7152, 0.0722)
 #endif
