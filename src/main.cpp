@@ -114,6 +114,9 @@ int main() {
 	bmp.load("./res/water-dudv.png");
 	Texture oceanDUDV(context, bmp, GL_RGBA);
 
+	bmp.load("./res/foam_trail.jpg");
+	Texture foamTrail(context, bmp, GL_RGBA);
+
 	IndexedModel cubeModel;
 	createCube(cubeModel);
 
@@ -135,23 +138,32 @@ int main() {
 	Texture brightTexture(context, display.getWidth(),
 			display.getHeight(), GL_RGBA32F);
 	
-	RenderBuffer hdrDepthStencil(context, display.getWidth(),
-			display.getHeight(), GL_DEPTH24_STENCIL8);
+	//RenderBuffer hdrDepthStencil(context, display.getWidth(),
+	//		display.getHeight(), GL_DEPTH24_STENCIL8);
+	//Texture depthBuffer(context, display.getWidth(), display.getHeight(),
+	//		GL_DEPTH24_STENCIL8, false, nullptr, GL_DEPTH_STENCIL,
+	//		GL_UNSIGNED_INT_24_8);
+	Texture depthBuffer(context, display.getWidth(), display.getHeight(),
+			GL_DEPTH_COMPONENT, false, nullptr, GL_DEPTH_COMPONENT, GL_FLOAT);
 
 	RenderTarget reflectionTarget(context, reflection, GL_COLOR_ATTACHMENT0);
 	RenderTarget hdrTarget(context, hdrTexture, GL_COLOR_ATTACHMENT0);
 
-	hdrTarget.addRenderBuffer(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
+	//hdrTarget.addRenderBuffer(hdrDepthStencil, GL_DEPTH_STENCIL_ATTACHMENT);
 	hdrTarget.addTextureTarget(brightTexture, GL_COLOR_ATTACHMENT0, 1);
+	//hdrTarget.addTextureTarget(depthBuffer, GL_DEPTH_STENCIL_ATTACHMENT);
+	hdrTarget.addTextureTarget(depthBuffer, GL_DEPTH_ATTACHMENT);
 
 	GaussianBlur blurBuffer(context, *shaders["gaussian-blur-shader"], brightTexture);
 
-	setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
+	//setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
 
 	std::vector<IndexedModel> loadedModels;
 	AssetLoader::loadAssets("./res/cube.obj", loadedModels);
 
 	VertexArray loadedModel(context, loadedModels[0], GL_STATIC_DRAW);
+
+	glm::mat4 blockPos(1.f);
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
@@ -161,8 +173,8 @@ int main() {
 			projector.update();
 		}
 
-		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
-				1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
+		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
+		//		1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
 
 		//oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 40.f, 100.f * std::sin(0.1 * glfwGetTime()));
 		//context.awaitFinish();
@@ -180,7 +192,7 @@ int main() {
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
 		//		sizeof(glm::vec3));
 		
-		oceanFFT.addFloatingTransform(glm::mat4(1.f), glm::vec2(1.f, 1.f));
+		oceanFFT.addFloatingTransform(blockPos, glm::vec2(1.f, 1.f));
 
 		oceanFFT.update(1.f / 60.f);
 
@@ -205,22 +217,21 @@ int main() {
 
 		context.setDrawBuffers(2);
 
-		glm::mat4& floatResult = oceanFFT.getFloatingTransforms()[0];
+		blockPos = oceanFFT.getFloatingTransforms()[0];
 
 		//DEBUG_LOG_TEMP("%.2f, %.2f, %.2f, %.2f",
 		//		floatResult[3][0], floatResult[3][1], floatResult[3][2],
 		//		floatResult[3][3]);
 
-		glm::mat4 mats[] = {camera->getViewProjection() * floatResult, floatResult};
+		glm::mat4 mats[] = {camera->getViewProjection() * blockPos, blockPos};
 		loadedModel.updateBuffer(4, mats, sizeof(mats));
-		context.draw(hdrTarget, *shaders["static-mesh-shader"], loadedModel, GL_TRIANGLES);
+		//context.draw(hdrTarget, *shaders["static-mesh-shader"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-shader"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
 		//shaders["ocean-shader"]->setSampler("reflectionMap", reflection, oceanSampler, 1);
 		shaders["ocean-shader"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
 		shaders["ocean-shader"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 2);
 		shaders["ocean-shader"]->setSampler("foam", foam, oceanSampler, 3);
-		//oceanShader.setSampler("dudv", oceanDUDV, oceanSampler, 4);
 		context.draw(hdrTarget, *shaders["ocean-shader"], ocean.getGridArray(), primitive);
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
@@ -232,6 +243,23 @@ int main() {
 
 		context.setDrawBuffers(1);
 
+		//shaders["decal-shader"]->setVector2f("screenSize", glm::vec2(display.getWidth() / 2,
+		//			display.getHeight() / 2);
+		//shaders["decal-shader"]->setVector2f("deProject", glm::vec2(camera->getProjection()[1][1],
+		//			camera->getProjection()[2][2]));
+		//shaders["decal-shader"]->setMatrix4f("invWorldView", glm::inverse(camera->getViewProjection()));
+		//shaders["decal-shader"]->setMatrix4f("view", glm::inverse(camera->getView()));
+		//shaders["decal-shader"]->setMatrix4f("projection", camera->getProjection());
+		shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
+
+		//shaders["decal-shader"]->setSampler("screen", hdrTexture, sampler, 0);
+		shaders["decal-shader"]->setSampler("depthBuffer", depthBuffer, sampler, 0);
+		shaders["decal-shader"]->setSampler("testTexture", foamTrail, sampler, 1);
+
+		glDepthMask(false);
+		context.draw(hdrTarget, *shaders["decal-shader"], loadedModel, GL_TRIANGLES);
+		glDepthMask(true);
+
 		shaders["bloom-shader"]->setSampler("scene", hdrTexture, sampler, 0);
 		shaders["bloom-shader"]->setSampler("brightBlur", brightTexture, sampler, 1);
 		context.drawQuad(hdrTarget, *shaders["bloom-shader"]);
@@ -240,7 +268,7 @@ int main() {
 		context.drawQuad(hdrTarget, *shaders["tone-map-shader"]);
 		
 		shaders["screen-render-shader"]->setSampler("screen", renderWater
-				? hdrTexture : oceanFFT.getFoldingMap(), sampler, 0);
+				? hdrTexture : depthBuffer, sampler, 0);
 		context.drawQuad(screen, *shaders["screen-render-shader"]);
 
 		display.render();
@@ -316,9 +344,9 @@ void updateCameraMovement(Display& display) {
 	}
 
 	if (glfwGetKey(display.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		dx *= 10.f;
-		dy *= 10.f;
-		dz *= 10.f;
+		dx *= 0.1f;
+		dy *= 0.1f;
+		dz *= 0.1f;
 	}
 
 	camera->move(dx, dy, dz);
@@ -366,7 +394,7 @@ void loadShaders(RenderContext& context,
 	const std::string shaderNames[] = {"basic-shader", "ocean-shader",
 			"skybox-shader", "screen-render-shader", "tone-map-shader",
 			"gaussian-blur-shader", "bloom-shader", "static-mesh-shader",
-			"ocean-surface-transform"};
+			"ocean-surface-transform", "decal-shader"};
 
 	std::stringstream fileData;
 

@@ -35,6 +35,8 @@ class Shader {
 		void setVector2f(const std::string& name, const glm::vec2& value);
 		void setVector3f(const std::string& name, const glm::vec3& value);
 
+		void setMatrix4f(const std::string& name, const glm::mat4& value);
+
 		inline int32 getUniform(const std::string& name) { return uniformMap[name]; }
 
 		inline uint32 getID() { return programID; }

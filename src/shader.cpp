@@ -129,6 +129,11 @@ void Shader::setVector3f(const std::string& name, const glm::vec3& value) {
 	glUniform3fv(uniformMap[name], 1, glm::value_ptr(value));
 }
 
+void Shader::setMatrix4f(const std::string& name, const glm::mat4& value) {
+	context->setShader(programID);
+	glUniformMatrix4fv(uniformMap[name], 1, false, glm::value_ptr(value));
+}
+
 Shader::~Shader() {
 	for (auto it = std::begin(shaders), end = std::end(shaders);
 			it != end; ++it) {
