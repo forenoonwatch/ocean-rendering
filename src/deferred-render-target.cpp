@@ -38,6 +38,10 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 	Util::resolveFileLinking(ss, "./src/tone-map-shader.glsl", "#include");
 	toneMapShader = new Shader(context, ss.str());
 
+	ss.str("");
+	Util::resolveFileLinking(ss, "./src/deferred-lighting.glsl", "#include");
+	lightingShader = new Shader(context, ss.str());
+
 	bloomBlur = new GaussianBlur(context, *blurShader, brightBuffer);
 }
 
@@ -49,6 +53,12 @@ void DeferredRenderTarget::clear() {
 }
 
 void DeferredRenderTarget::flush() {
+	// apply lighting
+	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
+	lightingShader->setSampler("positionBuffer", positionBuffer, sampler, 1);
+	lightingShader->setSampler("normalBuffer", normalBuffer, sampler, 2);
+	context->drawQuad(target, *lightingShader);
+
 	// calculate bloom blur
 	bloomBlur->update();
 
@@ -73,6 +83,7 @@ DeferredRenderTarget::~DeferredRenderTarget() {
 	delete bloomShader;
 	delete blurShader;
 	delete toneMapShader;
+	delete lightingShader;
 
 	delete bloomBlur;
 }

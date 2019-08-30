@@ -35,6 +35,7 @@ class DeferredRenderTarget {
 		Shader* bloomShader;
 		Shader* blurShader;
 		Shader* toneMapShader;
+		Shader* lightingShader;
 
 		GaussianBlur* bloomBlur;
 };
