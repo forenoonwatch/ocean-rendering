@@ -16,8 +16,8 @@ RenderTarget::RenderTarget(RenderContext& context, Texture& texture,
 
 RenderTarget::RenderTarget(RenderContext& context, Texture& texture,
 			uint32 attachmentType, uint32 attachmentNumber)
-		: RenderTarget(context, texture, width,
-				height, attachmentType, attachmentNumber) {}
+		: RenderTarget(context, texture, texture.getWidth(),
+				texture.getHeight(), attachmentType, attachmentNumber) {}
 
 void RenderTarget::clear(uint32 flags) {
 	context->setRenderTarget(bufferID);

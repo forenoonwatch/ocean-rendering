@@ -47,5 +47,5 @@ class RenderContext {
 		uint32 currentRenderSource;
 		uint32 currentRenderTarget;
 
-		static uint32 attachments[3];
+		static uint32 attachments[4];
 };

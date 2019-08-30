@@ -8,8 +8,11 @@
 
 inline static void initScreenQuad(IndexedModel&);
 
+static void GLAPIENTRY errorCallback(GLenum source, GLenum type, GLuint id,
+		GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+
 uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
-		GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+		GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
 
 RenderContext::RenderContext()
 		: version(0)
@@ -25,6 +28,9 @@ RenderContext::RenderContext()
 	glDepthFunc(GL_LEQUAL);
 
 	glEnable(GL_TEXTURE_2D);
+
+	//glEnable(GL_DEBUG_OUTPUT);
+	//glDebugMessageCallback(errorCallback, 0);
 
 	IndexedModel screenQuadModel;
 	initScreenQuad(screenQuadModel);
@@ -181,4 +187,13 @@ inline static void initScreenQuad(IndexedModel& screenQuadModel) {
 
 	screenQuadModel.addIndices3i(2, 1, 0);
 	screenQuadModel.addIndices3i(1, 2, 3);
+}
+
+static void GLAPIENTRY errorCallback(GLenum source, GLenum type, GLuint id,
+		GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+	if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
+		return;
+	}
+
+	DEBUG_LOG_TEMP2(message);
 }
