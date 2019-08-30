@@ -1,7 +1,9 @@
 #include "common.glh"
 #include "bicubic-sampling.glh"
-#include "lighting.glh"
+
+#include "scene-info.glh"
 #include "ocean-common.glh"
+#include "lighting.glh"
 
 #define F0 0.1 //0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 #define SSS_POWER 2.0
@@ -109,12 +111,17 @@ void main() {
 	const float shininess = 1.0 - foamMask;
 
 	foamMask *= texture2D(foam, 0.3 * p0.xz).y;
+
+	const float diffuse = max(dot(sunlightDir, normal), 0.0);
+	const float specular = specularStrength
+			* pow(max(dot(pointToEye, reflect(-sunlightDir, normal)), 0.0), specularBlend);
+	const float light = ambientLight + (1.0 - ambientLight) * diffuse + specular * shininess;
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
 			* max(sunlightDir.y, 0.0);
-	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb;
+	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
-	vec3 waterColor = mix(oceanColor0, oceanColor1, sssFactor);
+	vec3 waterColor = mix(oceanColor0, oceanColor1 / light, sssFactor);
 	waterColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
 			fresnel * shininess);
 

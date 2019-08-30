@@ -75,17 +75,12 @@ int main() {
 	Ocean ocean(context, 0.f, 4.f, 256);
 	OceanProjector projector(ocean, userCamera);
 
-	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4) + sizeof(glm::vec3)
-			+ 3 * sizeof(float), GL_DYNAMIC_DRAW, 0);
+	UniformBuffer sceneDataBuffer(context, sizeof(glm::vec3) + sizeof(glm::vec2),
+			GL_DYNAMIC_DRAW, 0);
+	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4)
+			+ 3 * sizeof(float), GL_DYNAMIC_DRAW, 1);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
-			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW, 1);
-
-	shaders["ocean-deferred"]->setUniformBuffer("OceanData", oceanDataBuffer);
-	shaders["ocean-deferred"]->setUniformBuffer("LightingData", lightDataBuffer);
-	shaders["skybox-deferred"]->setUniformBuffer("LightingData", lightDataBuffer);
-
-	shaders["static-mesh-deferred"]->setUniformBuffer("OceanData", oceanDataBuffer);
-	shaders["static-mesh-deferred"]->setUniformBuffer("LightingData", lightDataBuffer);
+			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW, 2);
 
 	{
 		float lightData[] = {0.2f, 15.f, 128.f};
@@ -174,8 +169,7 @@ int main() {
 		oceanFFT.update(1.f / 60.f);
 
 		oceanDataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
-		oceanDataBuffer.update(glm::value_ptr(camera->getPosition()),
-				4 * sizeof(glm::vec4), sizeof(glm::vec3));
+		sceneDataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
 
 		ocean.getGridArray().updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
@@ -352,11 +346,12 @@ void setBeaufortLevel(OceanFFT& oceanFFT, UniformBuffer& oceanDataBuffer,
 	float normBF = beaufortLevel / 12.f;
 
 	float f[] = {1.f + normBF, 0.01f, 0.5f + 0.5f * normBF};
-	oceanDataBuffer.update(f, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), sizeof(f));
+	oceanDataBuffer.update(f, 4 * sizeof(glm::vec4), sizeof(f));
 
 	oceanFFT.setOceanParams(2.f * (beaufortLevel + 1.f), windDir,
 			10.f * (beaufortLevel + 1.f), 0.5f);
 	oceanFFT.setTimeScale(5.f);
+	//oceanFFT.setTimeScale(0.f);
 	oceanFFT.setFoldingParams(0.5f + 0.5f * normBF,
 			0.2f + 0.05f * normBF, 0.0075f + 0.0025f * normBF);
 }

@@ -1,5 +1,6 @@
 #include "common.glh"
-#include "ocean-common.glh"
+
+#include "scene-info.glh"
 #include "lighting.glh"
 
 varying vec3 position0;
