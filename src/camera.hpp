@@ -21,7 +21,10 @@ class Camera {
 		glm::mat4 getReflectionSkybox() const;
 
 		inline const glm::mat4& getProjection() const { return projection; }
+		
 		inline const glm::mat4& getView() const { return view; }
+		inline const glm::mat4& getInverseView() const { return iView; }
+
 		inline const glm::mat4& getViewProjection() const { return viewProjection; }
 		inline const glm::mat4& getInverseVP() const { return iViewProjection; }
 
@@ -37,7 +40,10 @@ class Camera {
 		inline float getZFar() const { return zFar; }
 	private:
 		glm::mat4 projection;
+		
 		glm::mat4 view;
+		glm::mat4 iView;
+
 		glm::mat4 viewProjection;
 		glm::mat4 iViewProjection;
 

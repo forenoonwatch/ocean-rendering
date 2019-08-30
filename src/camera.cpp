@@ -42,7 +42,9 @@ void Camera::update() {
 	view *= glm::rotate(glm::mat4(1.f), rotationX, glm::vec3(1.f, 0.f, 0.f));
 	view = glm::translate(glm::mat4(1.f), position) * view;
 
-	viewProjection = projection * glm::inverse(view);
+	iView = glm::inverse(view);
+
+	viewProjection = projection * iView;
 	iViewProjection = glm::inverse(viewProjection);
 }
 
@@ -52,7 +54,9 @@ void Camera::update(const Camera& target) {
 	rotationY = target.rotationY;
 
 	view = target.view;
-	viewProjection = projection * glm::inverse(view);
+	iView = glm::inverse(view);
+
+	viewProjection = projection * iView;
 	iViewProjection = glm::inverse(viewProjection);
 }
 

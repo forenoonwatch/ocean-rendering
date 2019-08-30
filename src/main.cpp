@@ -75,7 +75,8 @@ int main() {
 	Ocean ocean(context, 0.f, 4.f, 256);
 	OceanProjector projector(ocean, userCamera);
 
-	UniformBuffer sceneDataBuffer(context, sizeof(glm::vec3) + sizeof(glm::vec2),
+	UniformBuffer sceneDataBuffer(context, sizeof(glm::vec3) + sizeof(glm::vec2)
+			+ sizeof(glm::mat4),
 			GL_DYNAMIC_DRAW, 0);
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4)
 			+ 3 * sizeof(float), GL_DYNAMIC_DRAW, 1);
@@ -137,6 +138,9 @@ int main() {
 	//RenderTarget screen(context, display.getWidth(), display.getHeight());
 	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight());
 
+	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
+			sizeof(glm::vec3), sizeof(glm::vec2));
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -144,6 +148,10 @@ int main() {
 		if (lockCamera) {
 			projector.update();
 		}
+		
+		sceneDataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
+		sceneDataBuffer.update(glm::value_ptr(camera->getInverseVP()),
+				sizeof(glm::vec3) + sizeof(glm::vec2) + 3 * sizeof(float), sizeof(glm::mat4));
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
 		//		1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
@@ -169,7 +177,6 @@ int main() {
 		oceanFFT.update(1.f / 60.f);
 
 		oceanDataBuffer.update(projector.getCorners(), 4 * sizeof(glm::vec4));
-		sceneDataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
 
 		ocean.getGridArray().updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
