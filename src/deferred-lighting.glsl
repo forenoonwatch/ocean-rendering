@@ -18,17 +18,22 @@ void main() {
 #elif defined(FS_BUILD)
 
 uniform sampler2D colorBuffer;
-uniform sampler2D positionBuffer;
 uniform sampler2D normalBuffer;
+uniform sampler2D depthBuffer;
 
 layout (location = 0) out vec4 outColor;
-layout (location = 3) out vec4 brightColor;
+layout (location = 2) out vec4 brightColor;
 
 void main() {
+	const vec2 screenPosition = fma(texCoord0, vec2(2.0), vec2(-1.0));
+
 	const vec4 colorSpec = texture2D(colorBuffer, texCoord0);
 
-	const vec3 position = texture2D(positionBuffer, texCoord0).xyz;
 	const vec3 normal = texture2D(normalBuffer, texCoord0).xyz;
+	const float depth = fma(texture2D(depthBuffer, texCoord0).x, 2.0, -1.0);
+
+	const vec4 rawPosition = invVP * vec4(screenPosition, depth, 1.0);
+	const vec3 position = rawPosition.xyz / rawPosition.w;
 
 	vec3 pointToEye = cameraPosition - position;
 	const float cameraDist = length(pointToEye);

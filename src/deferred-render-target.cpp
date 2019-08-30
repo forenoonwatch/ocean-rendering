@@ -6,7 +6,6 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 			uint32 width, uint32 height)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
-		, positionBuffer(context, width, height, GL_RGBA32F)
 		, normalBuffer(context, width, height, GL_RGBA32F)
 		, brightBuffer(context, width, height, GL_RGBA32F)
 		, depthBuffer(context, width, height, GL_DEPTH_COMPONENT,
@@ -14,9 +13,8 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 		, target(context, colorBuffer, GL_COLOR_ATTACHMENT0)
 		, screen(context, width, height)
 		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT) {
-	target.addTextureTarget(positionBuffer, GL_COLOR_ATTACHMENT0, 1);
-	target.addTextureTarget(normalBuffer, GL_COLOR_ATTACHMENT0, 2);
-	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 3); // TODO: return to 3
+	target.addTextureTarget(normalBuffer, GL_COLOR_ATTACHMENT0, 1);
+	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2); // TODO: return to 3
 
 	target.addTextureTarget(depthBuffer, GL_DEPTH_ATTACHMENT);
 
@@ -49,14 +47,14 @@ void DeferredRenderTarget::clear() {
 	screen.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	target.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	context->setDrawBuffers(4);
+	context->setDrawBuffers(3);
 }
 
 void DeferredRenderTarget::flush() {
 	// apply lighting
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
-	lightingShader->setSampler("positionBuffer", positionBuffer, sampler, 1);
-	lightingShader->setSampler("normalBuffer", normalBuffer, sampler, 2);
+	lightingShader->setSampler("normalBuffer", normalBuffer, sampler, 1);
+	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
 	context->drawQuad(target, *lightingShader);
 
 	// calculate bloom blur

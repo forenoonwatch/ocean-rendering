@@ -92,8 +92,7 @@ float foamData(vec2 pos) {
 }
 
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outPosition;
-layout (location = 2) out vec4 outNormal;
+layout (location = 1) out vec4 outNormal;
 
 void main() {
 	const vec4 p0Raw = getOceanPosition(xyPos0);
@@ -126,7 +125,6 @@ void main() {
 			fresnel * shininess);
 
 	outColor = vec4(waterColor, shininess);
-	outPosition = vec4(p0, 1.0);
 	outNormal = vec4(normal, 1.0);
 }
 
