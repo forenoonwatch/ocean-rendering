@@ -139,7 +139,7 @@ int main() {
 	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight());
 
 	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
-			sizeof(glm::vec3), sizeof(glm::vec2));
+			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
 
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);

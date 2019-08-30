@@ -6,14 +6,14 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 			uint32 width, uint32 height)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
-		, normalBuffer(context, width, height, GL_RGBA32F)
+		, normLightBuffer(context, width, height, GL_RGBA32F)
 		, brightBuffer(context, width, height, GL_RGBA32F)
 		, depthBuffer(context, width, height, GL_DEPTH_COMPONENT,
 				false, nullptr, GL_DEPTH_COMPONENT, GL_FLOAT)
 		, target(context, colorBuffer, GL_COLOR_ATTACHMENT0)
 		, screen(context, width, height)
 		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT) {
-	target.addTextureTarget(normalBuffer, GL_COLOR_ATTACHMENT0, 1);
+	target.addTextureTarget(normLightBuffer, GL_COLOR_ATTACHMENT0, 1);
 	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2); // TODO: return to 3
 
 	target.addTextureTarget(depthBuffer, GL_DEPTH_ATTACHMENT);
@@ -53,7 +53,7 @@ void DeferredRenderTarget::clear() {
 void DeferredRenderTarget::flush() {
 	// apply lighting
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
-	lightingShader->setSampler("normalBuffer", normalBuffer, sampler, 1);
+	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
 	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
 	context->drawQuad(target, *lightingShader);
 

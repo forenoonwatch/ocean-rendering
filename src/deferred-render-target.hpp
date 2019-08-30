@@ -15,13 +15,13 @@ class DeferredRenderTarget {
 		inline RenderTarget& getTarget() { return target; }
 
 		~DeferredRenderTarget();
-	//private:
+	private:
 		NULL_COPY_AND_ASSIGN(DeferredRenderTarget);
 
 		RenderContext* context;
 
 		Texture colorBuffer;
-		Texture normalBuffer;
+		Texture normLightBuffer;
 		Texture brightBuffer;
 		Texture depthBuffer;
 

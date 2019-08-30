@@ -26,11 +26,11 @@ void main() {
 #elif defined(FS_BUILD)
 
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outNormal;
+layout (location = 1) out vec4 outNormLight;
 
 void main() {
 	outColor = vec4(1.0);
-	outNormal = vec4(normal0, 1.0);
+	outNormLight = vec4(normal0.xy, 1.0, 1.0);
 }
 
 #endif
