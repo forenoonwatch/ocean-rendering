@@ -177,17 +177,11 @@ RenderContext::~RenderContext() {
 
 inline static void initScreenQuad(IndexedModel& screenQuadModel) {
 	screenQuadModel.allocateElement(2); // position
-	screenQuadModel.allocateElement(2); // texCoord
 
 	screenQuadModel.addElement2f(0, -1.f, -1.f);
 	screenQuadModel.addElement2f(0, -1.f,  1.f);
 	screenQuadModel.addElement2f(0,  1.f, -1.f);
 	screenQuadModel.addElement2f(0,  1.f,  1.f);
-
-	screenQuadModel.addElement2f(1, 0.f, 0.f);
-	screenQuadModel.addElement2f(1, 0.f, 1.f);
-	screenQuadModel.addElement2f(1, 1.f, 0.f);
-	screenQuadModel.addElement2f(1, 1.f, 1.f);
 
 	screenQuadModel.addIndices3i(2, 1, 0);
 	screenQuadModel.addIndices3i(1, 2, 3);
