@@ -79,6 +79,10 @@ void RenderContext::setDrawBuffers(uint32 numBuffers) {
 	glDrawBuffers(numBuffers, attachments);
 }
 
+void RenderContext::setWriteDepth(bool writeDepth) {
+	glDepthMask(writeDepth);
+}
+
 uint32 RenderContext::getVersion() {
 	if (version != 0) {
 		return version;

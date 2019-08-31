@@ -24,6 +24,8 @@ class RenderContext {
 
 		void setDrawBuffers(uint32 numBuffers);
 
+		void setWriteDepth(bool writeDepth);
+
 		uint32 getVersion();
 		std::string getShaderVersion();
 

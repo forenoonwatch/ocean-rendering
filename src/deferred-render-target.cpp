@@ -51,6 +51,8 @@ void DeferredRenderTarget::clear() {
 }
 
 void DeferredRenderTarget::flush() {
+	context->setWriteDepth(false);
+
 	// apply lighting
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
 	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
@@ -74,6 +76,8 @@ void DeferredRenderTarget::flush() {
 	// draw to screen
 	screenRenderShader->setSampler("screen", colorBuffer, sampler, 0);
 	context->drawQuad(screen, *screenRenderShader);
+
+	context->setWriteDepth(true);
 }
 
 DeferredRenderTarget::~DeferredRenderTarget() {
