@@ -13,9 +13,11 @@ void main() {
 
 #elif defined(FS_BUILD)
 
-uniform sampler2D colorBuffer;
-uniform sampler2D normLightBuffer;
-uniform sampler2D depthBuffer;
+uniform sampler2D colorBuffer; // vec3 color, float lightPower
+uniform sampler2D normLightBuffer; // vec2 normXY, float shininess, float reflectivity
+uniform sampler2D depthBuffer; // float depth
+
+uniform samplerCube reflectionMap;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 2) out vec4 brightColor;
@@ -41,12 +43,17 @@ void main() {
 	const float diffuse = max(dot(sunlightDir, normal), 0.0);
 	const float specular = specularStrength
 			* pow(max(dot(pointToEye, reflect(-sunlightDir, normal)), 0.0),
-			specularBlend) * colorSpec.w;
+			specularBlend) * normLight.z;
 
 	const float light = ambientLight + (1.0 - ambientLight) * diffuse + specular;
 	const float fogVisibility = clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 
-	const vec3 inColor = mix(fogColor, colorSpec.xyz * light, fogVisibility);
+	vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
+
+	vec3 inColor = mix(mix(colorSpec.xyz, colorSpec.xyz * light, colorSpec.w),
+			flect, normLight.w);
+	inColor = mix(fogColor, inColor, fogVisibility);
+
 	const float brightness = dot(inColor, BRIGHT_THRESH);
 
 	outColor = vec4(inColor, 1.0);

@@ -73,8 +73,6 @@ void main() {
 const vec3 oceanColor0 = vec3(31, 71, 87) / 255.0;
 const vec3 oceanColor1 = vec3(18, 125, 120) / 255.0;
 
-uniform samplerCube reflectionMap;
-
 uniform sampler2D foldingMap;
 uniform sampler2D foam;
 
@@ -104,28 +102,20 @@ void main() {
 	const vec3 p2 = p2Raw.xyz / p2Raw.w;
 
 	const vec3 normal = normalize(cross(p2 - p0, p1 - p0));
-	const vec3 pointToEye = normalize(cameraPosition - p0);
 
 	float foamMask = foamData(xyPos0);
 	const float shininess = 1.0 - foamMask;
 
 	foamMask *= texture2D(foam, 0.3 * p0.xz).y;
-
-	const float diffuse = max(dot(sunlightDir, normal), 0.0);
-	const float specular = specularStrength
-			* pow(max(dot(pointToEye, reflect(-sunlightDir, normal)), 0.0), specularBlend);
-	const float light = ambientLight + (1.0 - ambientLight) * diffuse + specular * shininess;
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
 			* max(sunlightDir.y, 0.0);
-	const vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * light;
 
-	vec3 waterColor = mix(oceanColor0, oceanColor1 / light, sssFactor);
-	waterColor = mix(mix(waterColor, vec3(1.0), foamMask), flect,
-			fresnel * shininess);
+	vec3 waterColor = mix(oceanColor0, oceanColor1, 0.5 * sssFactor);
+	waterColor = mix(waterColor, vec3(1.0), foamMask);
 
-	outColor = vec4(waterColor, shininess);
-	outNormLight = vec4(normal.xy, 1.0, 1.0);
+	outColor = vec4(waterColor, clamp(1.0 - sssFactor, 0.3, 1.0));
+	outNormLight = vec4(normal.xy, shininess, fresnel * shininess);
 }
 
 #endif

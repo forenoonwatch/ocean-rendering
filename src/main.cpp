@@ -76,15 +76,14 @@ int main() {
 	OceanProjector projector(ocean, userCamera);
 
 	UniformBuffer sceneDataBuffer(context, sizeof(glm::vec3) + sizeof(glm::vec2)
-			+ sizeof(glm::mat4),
-			GL_DYNAMIC_DRAW, 0);
+			+ sizeof(glm::mat4), GL_DYNAMIC_DRAW, 0);
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4)
 			+ 3 * sizeof(float), GL_DYNAMIC_DRAW, 1);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
 			+ 3 * sizeof(float) + sizeof(glm::vec3) + 2 * sizeof(float), GL_DYNAMIC_DRAW, 2);
 
 	{
-		float lightData[] = {0.2f, 15.f, 128.f};
+		float lightData[] = {0.f, 15.f, 128.f};
 		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 1, 1))), sizeof(glm::vec3));
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
 
@@ -136,7 +135,8 @@ int main() {
 	glm::mat4 blockPos(1.f);
 
 	//RenderTarget screen(context, display.getWidth(), display.getHeight());
-	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight());
+	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
+			skybox);
 
 	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
 			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
@@ -155,18 +155,12 @@ int main() {
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
 		//		1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
-
-		//oceanFFT.setOceanParams(10.f, glm::vec2(1, 1), 40.f, 100.f * std::sin(0.1 * glfwGetTime()));
-		//context.awaitFinish();
 		
 		if (beaufort != lastBeaufort) {
 			setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
 		}
 
 		lastBeaufort = beaufort;
-
-		//setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1),
-		//		6.f + 6.f * std::sin(0.1 * glfwGetTime()));
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(0.2 * glfwGetTime()),
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
@@ -191,9 +185,9 @@ int main() {
 		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
-		shaders["ocean-deferred"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
-		shaders["ocean-deferred"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 2);
-		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 3);
+		//shaders["ocean-deferred"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
+		shaders["ocean-deferred"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
+		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 2);
 		context.draw(gBuffer.getTarget(), *shaders["ocean-deferred"], ocean.getGridArray(), primitive);
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
@@ -202,7 +196,6 @@ int main() {
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
 		//shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
-
 		//shaders["decal-shader"]->setSampler("depthBuffer", depthBuffer, sampler, 0);
 
 		//glDepthMask(false);

@@ -3,7 +3,7 @@
 #include "util.hpp"
 
 DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
-			uint32 width, uint32 height)
+			uint32 width, uint32 height, CubeMap& skybox)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
 		, normLightBuffer(context, width, height, GL_RGBA32F)
@@ -12,7 +12,9 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 				false, nullptr, GL_DEPTH_COMPONENT, GL_FLOAT)
 		, target(context, colorBuffer, GL_COLOR_ATTACHMENT0)
 		, screen(context, width, height)
-		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT) {
+		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT)
+		, skyboxSampler(context, GL_LINEAR, GL_LINEAR)
+		, skybox(&skybox) {
 	target.addTextureTarget(normLightBuffer, GL_COLOR_ATTACHMENT0, 1);
 	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2); // TODO: return to 3
 
@@ -57,8 +59,10 @@ void DeferredRenderTarget::flush() {
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
 	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
 	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
-	context->drawQuad(target, *lightingShader);
+	lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
 
+	context->drawQuad(target, *lightingShader);
+			
 	// calculate bloom blur
 	bloomBlur->update();
 

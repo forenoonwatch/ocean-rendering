@@ -2,16 +2,18 @@
 
 #include "render-target.hpp"
 #include "gaussian-blur.hpp"
+#include "vertex-array.hpp"
 
 class DeferredRenderTarget {
 	public:
 		DeferredRenderTarget(RenderContext& context,
-				uint32 width, uint32 height);
+				uint32 width, uint32 height, CubeMap& skybox);
 
 		void clear();
 		void flush();
 
-		inline RenderTarget& getScreen() { return screen; }
+		inline void setSkybox(CubeMap& skybox) { this->skybox = &skybox; }
+
 		inline RenderTarget& getTarget() { return target; }
 
 		~DeferredRenderTarget();
@@ -29,7 +31,8 @@ class DeferredRenderTarget {
 		RenderTarget screen;
 		
 		Sampler sampler;
-
+		Sampler skyboxSampler;
+		
 		Shader* screenRenderShader;
 		Shader* bloomShader;
 		Shader* blurShader;
@@ -37,4 +40,6 @@ class DeferredRenderTarget {
 		Shader* lightingShader;
 
 		GaussianBlur* bloomBlur;
+
+		CubeMap* skybox;
 };
