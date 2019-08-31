@@ -52,7 +52,7 @@ void DeferredRenderTarget::clear() {
 	context->setDrawBuffers(3);
 }
 
-void DeferredRenderTarget::flush() {
+void DeferredRenderTarget::applyLighting() {
 	context->setWriteDepth(false);
 
 	// apply lighting
@@ -62,7 +62,9 @@ void DeferredRenderTarget::flush() {
 	lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
 
 	context->drawQuad(target, *lightingShader);
-			
+}
+
+void DeferredRenderTarget::flush() {			
 	// calculate bloom blur
 	bloomBlur->update();
 

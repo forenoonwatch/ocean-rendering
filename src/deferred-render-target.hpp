@@ -10,6 +10,7 @@ class DeferredRenderTarget {
 				uint32 width, uint32 height, CubeMap& skybox);
 
 		void clear();
+		void applyLighting();
 		void flush();
 
 		inline void setSkybox(CubeMap& skybox) { this->skybox = &skybox; }

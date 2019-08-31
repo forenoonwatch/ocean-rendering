@@ -190,6 +190,8 @@ int main() {
 		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 2);
 		context.draw(gBuffer.getTarget(), *shaders["ocean-deferred"], ocean.getGridArray(), primitive);
 
+		gBuffer.applyLighting();
+
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));
 		shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
