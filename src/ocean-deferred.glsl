@@ -114,8 +114,8 @@ void main() {
 	vec3 waterColor = mix(oceanColor0, oceanColor1, 0.5 * sssFactor);
 	waterColor = mix(waterColor, vec3(1.0), foamMask);
 
-	outColor = vec4(waterColor, clamp(1.0 - sssFactor, 0.3, 1.0));
-	outNormLight = vec4(normal.xy, shininess, fresnel * shininess);
+	outColor = vec4(waterColor, 1.0);
+	outNormLight = vec4(normal.xy, 0.0, 0.0);
 }
 
 #endif

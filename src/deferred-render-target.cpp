@@ -59,7 +59,7 @@ void DeferredRenderTarget::applyLighting() {
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
 	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
 	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
-	lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
+	//lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
 
 	context->drawQuad(target, *lightingShader);
 }

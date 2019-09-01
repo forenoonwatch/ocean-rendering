@@ -23,7 +23,7 @@ void main() {
 	//vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
 	vec3 mapped = vec3(1.0) - exp(-hdrColor * EXPOSURE);
 
-	//mapped = pow(mapped, vec3(1.0 / gamma));
+	mapped = pow(mapped, vec3(1.0 / gamma));
 
 	outColor = vec4(mapped, 1.0);
 	//outColor = vec4(hdrColor, 1.0);
