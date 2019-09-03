@@ -84,7 +84,7 @@ int main() {
 
 	{
 		float lightData[] = {0.f, 15.f, 128.f};
-		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, 1, 1))), sizeof(glm::vec3));
+		lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(1, -1, 1))), sizeof(glm::vec3));
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
 
 		float fogData[] = {202.f / 255.f, 243.f / 255.f, 246.f / 255.f,
