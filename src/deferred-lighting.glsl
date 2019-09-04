@@ -47,15 +47,18 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 	float ct5 = ct * ct;
 	ct5 = ct5 * ct5 * ct;
 
-	//return F0 + (vec3(1.0) - F0) * ct5;
-	return F0 + (vec3(1.0) - F0) * pow(cosTheta, 5.0);
+	return F0 + (vec3(1.0) - F0) * ct5;
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 uniform sampler2D colorBuffer; // vec3 color, float lightPower
 uniform sampler2D normLightBuffer; // vec2 normXY, float metallicity, float roughness
 uniform sampler2D depthBuffer; // float depth
 
-//uniform samplerCube reflectionMap;
+uniform samplerCube reflectionMap;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 2) out vec4 brightColor;
@@ -103,13 +106,16 @@ void main() {
 			* max(dot(normal, L), 0.0);
 	const vec3 specular = (NDF * G * F) / max(specDenom, 0.001);
 	
-	vec3 kD = vec3(1.0) - F;
-	kD *= 1.0 - metallic;
+	//vec3 kD = vec3(1.0) - F;
+	vec3 kD = vec3(1.0) - fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
+	kD *= 1.0 - metallic; // TODO: see if this still belongs
 
 	Lo += (kD * albedo / M_PI + specular)
 			* radiance * max(dot(normal, L), 0.0);
 
-	const vec3 ambient = vec3(0.03) * albedo;
+	const vec3 ambient = kD * texture(reflectionMap, normal).rgb * albedo; // TODO: see if reflection samp
+	//const vec3 ambient = vec3(0.03) * albedo;
+	//const vec3 ambient = vec3(1.0) * albedo;
 
 	const float fogVisibility = 1.0;//clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 
