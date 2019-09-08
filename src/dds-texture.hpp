@@ -33,6 +33,8 @@ class DDSTexture {
 		uint32 getInternalPixelFormat() const;
 		bool isCompressed() const;
 
+		uint32 getDataSize() const;
+
 		inline uint32 getWidth() const { return width; }
 		inline uint32 getHeight() const { return height; }
 
@@ -50,6 +52,7 @@ class DDSTexture {
 		uint32 width;
 		uint32 height;
 
+		uint32 linearSize;
 		uint32 mipMapCount;
 		uint32 fourCC;
 
