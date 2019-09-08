@@ -64,7 +64,7 @@ bool DDSTexture::load(const std::string& fileName) {
 	uint32 numRead = fread(data, 1, dataSize, file);
 
 	fclose(file);
-	return numRead == dataSize;
+	return numRead != 0;
 }
 
 uint32 DDSTexture::getInternalPixelFormat() const {
@@ -99,23 +99,33 @@ bool DDSTexture::isCompressed() const {
 }
 
 uint32 DDSTexture::getDataSize() const {
+	uint32 size;
+
 	if (isCompressed()) {
-		return mipMapCount > 1 ? 2 * linearSize : linearSize;
+		size = linearSize;
+	}
+	else {
+		size = width * height;
+
+		switch (fourCC) {
+			case FOURCC_A16B16G16R16F:
+				size *= 8;
+				break;
+			case FOURCC_A32B32G32R32F:
+				size *= 16;
+				break;
+		}
 	}
 
-	uint32 size = width * height;
-
-	switch (fourCC) {
-		case FOURCC_A16B16G16R16F:
-			size *= 8;
-			break;
-		case FOURCC_A32B32G32R32F:
-			size *= 16;
-			break;
+	if (mipMapCount > 1) {
+		size = size * 3 / 2;
 	}
 
-	// TODO: account for cube maps
-	return mipMapCount > 1 ? 2 * size : size;
+	if (cubeMap) {
+		size *= 6;
+	}
+
+	return size;
 }
 
 DDSTexture::~DDSTexture() {

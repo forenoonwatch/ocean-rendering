@@ -141,6 +141,21 @@ int main() {
 	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
 			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
 
+	DDSTexture ddsTexture;
+	//ddsTexture.load("./res/wood-planks.dds");
+	
+	if (!ddsTexture.load("./res/wood-planks.dds")) {
+	//if (!ddsTexture.load("./res/sargasso-specular.dds")) {
+		DEBUG_LOG_TEMP2("Failed to load DDS texture");
+	}
+
+	Texture ddsTest(context, ddsTexture);
+
+	ddsTexture.load("./res/sargasso-specular.dds");
+	CubeMap ddsCube(context, ddsTexture);
+
+	Sampler mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
+
 	while (!display.isCloseRequested()) {
 		updateCameraMovement(display);
 		camera->update();
@@ -182,6 +197,7 @@ int main() {
 		// BEGIN DRAW
 		gBuffer.clear();
 
+		shaders["static-mesh-deferred"]->setSampler("diffuse", ddsTest, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
@@ -194,7 +210,8 @@ int main() {
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));
-		shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
+		//shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
+		shaders["skybox-deferred"]->setSampler("skybox", ddsCube, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
 		//shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
