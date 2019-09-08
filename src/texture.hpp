@@ -11,7 +11,8 @@ class Texture {
 				uint32 height, uint32 internalPixelFormat,
 				const void* data = nullptr,
 				uint32 pixelFormat = GL_RGBA,
-				uint32 dataType = GL_UNSIGNED_BYTE);
+				uint32 dataType = GL_UNSIGNED_BYTE,
+				bool compressed = false, bool mipMaps = false);
 		Texture(RenderContext& context, const Bitmap& bitmap,
 				uint32 internalPixelFormat);
 
@@ -21,6 +22,9 @@ class Texture {
 		inline uint32 getHeight() const { return height; }
 
 		inline uint32 getInternalFormat() const { return internalFormat; }
+
+		inline bool isCompressed() const { return compressed; }
+		inline bool hasMipMaps() const { return mipMaps; }
 
 		~Texture();
 	private:
@@ -34,4 +38,7 @@ class Texture {
 		uint32 height;
 
 		uint32 internalFormat;
+
+		bool compressed;
+		bool mipMaps;
 };
