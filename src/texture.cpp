@@ -1,9 +1,6 @@
 #include "texture.hpp"
 
 static uint32 calcInternalFormat(uint32 pixelFormat, bool compressed);
-static uint32 calcDDSInternalFormat(uint32 fourCC);
-
-static bool isDDSCompressed(uint32 fourCC);
 
 Texture::Texture(RenderContext& context, uint32 width,
 			uint32 height, uint32 internalPixelFormat,
@@ -46,8 +43,8 @@ Texture::Texture(RenderContext& context, const DDSTexture& ddsTexture)
 		, textureID(-1)
 		, width(ddsTexture.getWidth())
 		, height(ddsTexture.getHeight())
-		, internalFormat(calcDDSInternalFormat(ddsTexture.getFourCC()))
-		, compressed(isDDSCompressed(ddsTexture.getFourCC()))
+		, internalFormat(ddsTexture.getInternalPixelFormat())
+		, compressed(ddsTexture.isCompressed())
 		, mipMaps(ddsTexture.getMipMapCount() > 1) {
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -101,36 +98,5 @@ static uint32 calcInternalFormat(uint32 pixelFormat, bool compressed) {
 			DEBUG_LOG(LOG_ERROR, "Texture",
 					"%d is not a valid pixel format", pixelFormat);
 			return 0;
-	}
-}
-
-static uint32 calcDDSInternalFormat(uint32 fourCC) {
-	switch (fourCC) {
-		case FOURCC_DXT1:
-			return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-		case FOURCC_DXT3:
-			return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-		case FOURCC_DXT5:
-			return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-		case FOURCC_A16B16G16R16F:
-			return GL_RGBA16F;
-		case FOURCC_A32B32G32R32F:
-			return GL_RGBA32F;
-		default:
-			DEBUG_LOG(LOG_ERROR, "Texture",
-					"%s is not a valid DDS texture compression format",
-					(const char*)(&fourCC));
-			return 0;
-	}
-}
-
-static bool isDDSCompressed(uint32 fourCC) {
-	switch (fourCC) {
-		case FOURCC_DXT1:
-		case FOURCC_DXT3:
-		case FOURCC_DXT5:
-			return true;
-		default:
-			return false;
 	}
 }

@@ -30,6 +30,9 @@ class DDSTexture {
 
 		bool load(const std::string& fileName);
 
+		uint32 getInternalPixelFormat() const;
+		bool isCompressed() const;
+
 		inline uint32 getWidth() const { return width; }
 		inline uint32 getHeight() const { return height; }
 

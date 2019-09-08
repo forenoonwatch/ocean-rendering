@@ -1,5 +1,7 @@
 #include "dds-texture.hpp"
 
+#include <GL/glew.h>
+
 #include <cstdio>
 #include <cstring>
 
@@ -63,6 +65,37 @@ bool DDSTexture::load(const std::string& fileName) {
 
 	fclose(file);
 	return true;
+}
+
+uint32 DDSTexture::getInternalPixelFormat() const {
+	switch (fourCC) {
+		case FOURCC_DXT1:
+			return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		case FOURCC_DXT3:
+			return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		case FOURCC_DXT5:
+			return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		case FOURCC_A16B16G16R16F:
+			return GL_RGBA16F;
+		case FOURCC_A32B32G32R32F:
+			return GL_RGBA32F;
+		default:
+			DEBUG_LOG(LOG_ERROR, "Texture",
+					"%s is not a valid DDS texture compression format",
+					(const char*)(&fourCC));
+			return 0;
+	}
+}
+
+bool DDSTexture::isCompressed() const {
+	switch (fourCC) {
+		case FOURCC_DXT1:
+		case FOURCC_DXT3:
+		case FOURCC_DXT5:
+			return true;
+		default:
+			return false;
+	}
 }
 
 DDSTexture::~DDSTexture() {
