@@ -3,6 +3,21 @@
 #include <cstdio>
 #include <cstring>
 
+// caps1
+#define DDSCAPS_COMPLEX             0x00000008 
+#define DDSCAPS_TEXTURE             0x00001000 
+#define DDSCAPS_MIPMAP              0x00400000 
+
+// caps2
+#define DDSCAPS2_CUBEMAP            0x00000200 
+#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
+#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
+#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
+#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
+#define DDSCAPS2_VOLUME             0x00200000 
+
 bool DDSTexture::load(const std::string& fileName) {
 	FILE* file = fopen(fileName.c_str(), "rb");
 
@@ -28,13 +43,17 @@ bool DDSTexture::load(const std::string& fileName) {
 
 	height = *((uint32*)&header[8]);
 	width = *((uint32*)&header[12]);
-	
 	uint32 linearSize = *((uint32*)&header[16]);
 
 	mipMapCount = *((uint32*)&header[24]);
+
+	uint32 flags = *((uint32*)&header[76]);
 	fourCC = *((uint32*)&header[80]);
 
-	cubeMap = false; // TODO: implement cubemap support
+	//uint32 caps1 = *((uint32*)&header[104]);
+	uint32 caps2 = *((uint32*)&header[108]);
+
+	cubeMap = caps2 & DDSCAPS2_CUBEMAP;
 
 	uint32 dataSize = mipMapCount > 1 ? linearSize * 2 : linearSize;
 
