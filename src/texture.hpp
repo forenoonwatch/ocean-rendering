@@ -15,6 +15,7 @@ class Texture {
 				bool compressed = false, bool mipMaps = false);
 		Texture(RenderContext& context, const Bitmap& bitmap,
 				uint32 internalPixelFormat);
+		Texture(RenderContext& context, const DDSTexture& ddsTexture);
 
 		inline uint32 getID() { return textureID; }
 

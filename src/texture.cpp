@@ -1,6 +1,7 @@
 #include "texture.hpp"
 
 static uint32 calcInternalFormat(uint32 pixelFormat, bool compressed);
+static uint32 calcDDSInternalFormat(uint32 fourCC);
 
 Texture::Texture(RenderContext& context, uint32 width,
 			uint32 height, uint32 internalPixelFormat,
@@ -38,6 +39,38 @@ Texture::Texture(RenderContext& context, const Bitmap& bitmap,
 		: Texture(context, bitmap.getWidth(), bitmap.getHeight(),
 			   internalPixelFormat, bitmap.getPixels())	{}
 
+Texture::Texture(RenderContext& context, const DDSTexture& ddsTexture)
+		: context(&context)
+		, textureID(-1)
+		, width(ddsTexture.getWidth())
+		, height(ddsTexture.getHeight())
+		, internalFormat(calcDDSInternalFormat(ddsTexture.getFourCC()))
+		, compressed(true)
+		, mipMaps(ddsTexture.getMipMapCount() > 1) {
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	const uint32 blockSize = (internalFormat == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+	uint32 offset = 0;
+
+	for (uint32 level = 0; level < ddsTexture.getMipMapCount()
+			&& (width || height); ++level) {
+		uint32 size = ((width + 3) / 4) * ((height + 3) / 4) * blockSize;
+
+		glCompressedTexImage2D(GL_TEXTURE_2D, level, internalFormat,
+				width, height, 0, size, ddsTexture.getData() + offset);
+
+		offset += size;
+		width /= 2;
+		height /= 2;
+	}
+}
+
 Texture::~Texture() {
 	glDeleteTextures(1, &textureID);
 }
@@ -59,6 +92,22 @@ static uint32 calcInternalFormat(uint32 pixelFormat, bool compressed) {
 		default:
 			DEBUG_LOG(LOG_ERROR, "Texture",
 					"%d is not a valid pixel format", pixelFormat);
+			return 0;
+	}
+}
+
+static uint32 calcDDSInternalFormat(uint32 fourCC) {
+	switch (fourCC) {
+		case FOURCC_DXT1:
+			return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		case FOURCC_DXT3:
+			return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		case FOURCC_DXT5:
+			return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		default:
+			DEBUG_LOG(LOG_ERROR, "Texture",
+					"%d is not a valid DDS texture compression format",
+					fourCC);
 			return 0;
 	}
 }
