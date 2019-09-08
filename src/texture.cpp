@@ -3,6 +3,8 @@
 static uint32 calcInternalFormat(uint32 pixelFormat, bool compressed);
 static uint32 calcDDSInternalFormat(uint32 fourCC);
 
+static bool isDDSCompressed(uint32 fourCC);
+
 Texture::Texture(RenderContext& context, uint32 width,
 			uint32 height, uint32 internalPixelFormat,
 			const void* data, uint32 pixelFormat, uint32 dataType,
@@ -45,7 +47,7 @@ Texture::Texture(RenderContext& context, const DDSTexture& ddsTexture)
 		, width(ddsTexture.getWidth())
 		, height(ddsTexture.getHeight())
 		, internalFormat(calcDDSInternalFormat(ddsTexture.getFourCC()))
-		, compressed(true)
+		, compressed(isDDSCompressed(ddsTexture.getFourCC()))
 		, mipMaps(ddsTexture.getMipMapCount() > 1) {
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -62,8 +64,14 @@ Texture::Texture(RenderContext& context, const DDSTexture& ddsTexture)
 			&& (width || height); ++level) {
 		uint32 size = ((width + 3) / 4) * ((height + 3) / 4) * blockSize;
 
-		glCompressedTexImage2D(GL_TEXTURE_2D, level, internalFormat,
-				width, height, 0, size, ddsTexture.getData() + offset);
+		if (compressed) {
+			glCompressedTexImage2D(GL_TEXTURE_2D, level, internalFormat,
+					width, height, 0, size, ddsTexture.getData() + offset);
+		}
+		else {
+			glTexImage2D(GL_TEXTURE_2D, level, internalFormat,
+					width, height, 0, GL_RGBA32F, GL_FLOAT, ddsTexture.getData() + offset);
+		}
 
 		offset += size;
 		width /= 2;
@@ -104,10 +112,25 @@ static uint32 calcDDSInternalFormat(uint32 fourCC) {
 			return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 		case FOURCC_DXT5:
 			return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		case FOURCC_A16B16G16R16F:
+			return GL_RGBA16F;
+		case FOURCC_A32B32G32R32F:
+			return GL_RGBA32F;
 		default:
 			DEBUG_LOG(LOG_ERROR, "Texture",
-					"%d is not a valid DDS texture compression format",
-					fourCC);
+					"%s is not a valid DDS texture compression format",
+					(const char*)(&fourCC));
 			return 0;
+	}
+}
+
+static bool isDDSCompressed(uint32 fourCC) {
+	switch (fourCC) {
+		case FOURCC_DXT1:
+		case FOURCC_DXT3:
+		case FOURCC_DXT5:
+			return true;
+		default:
+			return false;
 	}
 }
