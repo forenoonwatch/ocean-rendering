@@ -9,7 +9,7 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 		, normLightBuffer(context, width, height, GL_RGBA32F)
 		, brightBuffer(context, width, height, GL_RGBA32F)
 		, depthBuffer(context, width, height, GL_DEPTH_COMPONENT,
-				false, nullptr, GL_DEPTH_COMPONENT, GL_FLOAT)
+				nullptr, GL_DEPTH_COMPONENT, GL_FLOAT)
 		, target(context, colorBuffer, GL_COLOR_ATTACHMENT0)
 		, screen(context, width, height)
 		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT)
