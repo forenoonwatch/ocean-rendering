@@ -134,13 +134,6 @@ int main() {
 
 	glm::mat4 blockPos(1.f);
 
-	//RenderTarget screen(context, display.getWidth(), display.getHeight());
-	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
-			skybox);
-
-	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
-			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
-
 	DDSTexture ddsTexture;
 	//ddsTexture.load("./res/wood-planks.dds");
 	
@@ -151,8 +144,18 @@ int main() {
 
 	Texture ddsTest(context, ddsTexture);
 
+	ddsTexture.load("./res/sargasso-diffuse.dds");
+	CubeMap diffuseIBL(context, ddsTexture);
+
 	ddsTexture.load("./res/sargasso-specular.dds");
-	CubeMap ddsCube(context, ddsTexture);
+	CubeMap specularIBL(context, ddsTexture);
+
+	//RenderTarget screen(context, display.getWidth(), display.getHeight());
+	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
+			skybox, diffuseIBL, specularIBL);
+
+	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
+			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
 
 	Sampler mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
 
@@ -210,8 +213,7 @@ int main() {
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));
-		//shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
-		shaders["skybox-deferred"]->setSampler("skybox", ddsCube, mipmapSampler, 0);
+		shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
 		//shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));

@@ -7,7 +7,8 @@
 class DeferredRenderTarget {
 	public:
 		DeferredRenderTarget(RenderContext& context,
-				uint32 width, uint32 height, CubeMap& skybox);
+				uint32 width, uint32 height, CubeMap& skybox,
+				CubeMap& diffuseIBL, CubeMap& specularIBL);
 
 		void clear();
 		void applyLighting();
@@ -33,6 +34,7 @@ class DeferredRenderTarget {
 		
 		Sampler sampler;
 		Sampler skyboxSampler;
+		Sampler mipmapSampler;
 		
 		Shader* screenRenderShader;
 		Shader* bloomShader;
@@ -43,4 +45,6 @@ class DeferredRenderTarget {
 		GaussianBlur* bloomBlur;
 
 		CubeMap* skybox;
+		CubeMap* diffuseIBL;
+		CubeMap* specularIBL;
 };

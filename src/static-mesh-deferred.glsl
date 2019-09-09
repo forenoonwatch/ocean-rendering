@@ -25,11 +25,13 @@ void main() {
 
 #elif defined(FS_BUILD)
 
+uniform sampler2D diffuse;
+
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outNormLight;
 
 void main() {
-	outColor = vec4(1.0);
+	outColor = vec4(texture(diffuse, texCoord0).rgb, 0.1);
 	//outNormLight = vec4(fma(normal0.xy, vec2(0.5), vec2(0.5)), 1.0, 1.0);
 	outNormLight = vec4(normal0, 0.2);
 }

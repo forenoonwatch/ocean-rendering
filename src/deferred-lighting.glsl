@@ -58,7 +58,9 @@ uniform sampler2D colorBuffer; // vec3 color, float lightPower
 uniform sampler2D normLightBuffer; // vec2 normXY, float metallicity, float roughness
 uniform sampler2D depthBuffer; // float depth
 
-uniform samplerCube reflectionMap;
+uniform samplerCube irradianceMap;
+
+//uniform samplerCube reflectionMap;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 2) out vec4 brightColor;
@@ -92,6 +94,7 @@ void main() {
 
 	vec3 Lo = vec3(0.0);
 
+	// BEGIN SUNLIGHT VALUE CALCULATIONS
 	const vec3 L = -sunlightDir;
 	const vec3 H = normalize(pointToEye + L);
 	const vec3 radiance = vec3(1.0);
@@ -104,20 +107,27 @@ void main() {
 	//		* max(dot(normal, L), 0.0), 0.001);
 	const float specDenom = 4.0 * max(dot(normal, pointToEye), 0.0)
 			* max(dot(normal, L), 0.0);
-	const vec3 specular = (NDF * G * F) / max(specDenom, 0.001);
+	vec3 specular = (NDF * G * F) / max(specDenom, 0.001);
 	
-	//vec3 kD = vec3(1.0) - F;
-	vec3 kD = vec3(1.0) - fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
-	kD *= 1.0 - metallic; // TODO: see if this still belongs
+	vec3 kD = vec3(1.0) - F;
+	kD *= 1.0 - metallic;
 
 	Lo += (kD * albedo / M_PI + specular)
 			* radiance * max(dot(normal, L), 0.0);
+	// END SUNLIGHT VALUE CALCULATIONS
 
-	const vec3 ambient = kD * texture(reflectionMap, normal).rgb * albedo; // TODO: see if reflection samp
+	// BEGIN AMBIENT IBL CALCULATIONS
+	kD = vec3(1.0) - fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
+	kD *= 1.0 - metallic;
+
+	const vec3 ambient = kD * texture(irradianceMap, normal).rgb * albedo;
 	//const vec3 ambient = vec3(0.03) * albedo;
 	//const vec3 ambient = vec3(1.0) * albedo;
+	// END AMBIENT IBL CALCULATIONS
 
-	const float fogVisibility = 1.0;//clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
+	// BEGIN SPECULAR IBL CALCULATIONS
+	
+	// END SPECULAR IBL CALCULATIONS
 
 	//vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * Lo;
 
@@ -125,6 +135,8 @@ void main() {
 
 	//vec3 inColor = mix(mix(colorSpec.xyz, ambient + Lo, colorSpec.w),
 	//		flect, 1.0 - roughness);
+	
+	const float fogVisibility = clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 	inColor = mix(fogColor, inColor, fogVisibility);
 
 	const float brightness = dot(inColor, BRIGHT_THRESH);

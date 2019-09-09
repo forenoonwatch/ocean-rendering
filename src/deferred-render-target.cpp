@@ -3,7 +3,8 @@
 #include "util.hpp"
 
 DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
-			uint32 width, uint32 height, CubeMap& skybox)
+			uint32 width, uint32 height, CubeMap& skybox,
+			CubeMap& diffuseIBL, CubeMap& specularIBL)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
 		, normLightBuffer(context, width, height, GL_RGBA32F)
@@ -14,9 +15,13 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 		, screen(context, width, height)
 		, sampler(context, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT)
 		, skyboxSampler(context, GL_LINEAR, GL_LINEAR)
-		, skybox(&skybox) {
+		, mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR,
+				GL_LINEAR_MIPMAP_LINEAR)
+		, skybox(&skybox)
+		, diffuseIBL(&diffuseIBL)
+		, specularIBL(&specularIBL) {
 	target.addTextureTarget(normLightBuffer, GL_COLOR_ATTACHMENT0, 1);
-	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2); // TODO: return to 3
+	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2);
 
 	target.addTextureTarget(depthBuffer, GL_DEPTH_ATTACHMENT);
 
@@ -59,7 +64,9 @@ void DeferredRenderTarget::applyLighting() {
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
 	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
 	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
-	lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
+	//lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
+	
+	lightingShader->setSampler("irradianceMap", *diffuseIBL, mipmapSampler, 3);
 
 	context->drawQuad(target, *lightingShader);
 }
