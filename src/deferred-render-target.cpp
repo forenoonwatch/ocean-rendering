@@ -3,9 +3,8 @@
 #include "util.hpp"
 
 DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
-			uint32 width, uint32 height, CubeMap& skybox,
-			CubeMap& diffuseIBL, CubeMap& specularIBL,
-			Texture& brdfLUT)
+			uint32 width, uint32 height, CubeMap& diffuseIBL,
+			CubeMap& specularIBL, Texture& brdfLUT)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
 		, normLightBuffer(context, width, height, GL_RGBA32F)
@@ -18,7 +17,6 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 		, skyboxSampler(context, GL_LINEAR, GL_LINEAR)
 		, mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR,
 				GL_LINEAR_MIPMAP_LINEAR)
-		, skybox(&skybox)
 		, diffuseIBL(&diffuseIBL)
 		, specularIBL(&specularIBL)
 		, brdfLUT(&brdfLUT) {
@@ -66,7 +64,6 @@ void DeferredRenderTarget::applyLighting() {
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
 	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
 	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
-	//lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
 	
 	lightingShader->setSampler("irradianceMap", *diffuseIBL, mipmapSampler, 3);
 	lightingShader->setSampler("prefilterMap", *specularIBL, skyboxSampler, 4);

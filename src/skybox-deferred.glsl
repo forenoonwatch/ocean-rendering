@@ -26,7 +26,7 @@ layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outNormLight;
 
 void main() {
-	const vec3 skyColor = texture(skybox, texCoord0).rgb;
+	const vec3 skyColor = textureLod(skybox, texCoord0, 0).rgb;
 
 	const float fact = clamp((texCoord0.y - LOWER_LIMIT)
 			/ (UPPER_LIMIT - LOWER_LIMIT), 0.0, 1.0);

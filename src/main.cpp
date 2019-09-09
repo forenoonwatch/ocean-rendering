@@ -118,13 +118,6 @@ int main() {
 
 	VertexArray cube(context, cubeModel, GL_STATIC_DRAW);
 
-	std::string cubeTextures[] = {"./res/sargasso_sea/right.tga",
-		"./res/sargasso_sea/left.tga", "./res/sargasso_sea/top.tga",
-		"./res/sargasso_sea/bottom.tga", "./res/sargasso_sea/front.tga",
-		"./res/sargasso_sea/back.tga"};
-
-	CubeMap skybox(context, cubeTextures);
-
 	//setBeaufortLevel(oceanFFT, oceanDataBuffer, glm::vec2(1, 1), beaufort);
 
 	std::vector<IndexedModel> loadedModels;
@@ -135,13 +128,8 @@ int main() {
 	glm::mat4 blockPos(1.f);
 
 	DDSTexture ddsTexture;
-	//ddsTexture.load("./res/wood-planks.dds");
 	
-	if (!ddsTexture.load("./res/wood-planks.dds")) {
-	//if (!ddsTexture.load("./res/sargasso-specular.dds")) {
-		DEBUG_LOG_TEMP2("Failed to load DDS texture");
-	}
-
+	ddsTexture.load("./res/wood-planks.dds");
 	Texture ddsTest(context, ddsTexture);
 
 	ddsTexture.load("./res/sargasso-diffuse.dds");
@@ -153,9 +141,8 @@ int main() {
 	bmp.load("./res/sargasso-brdf.png");
 	Texture brdfLUT(context, bmp, GL_RGBA);
 
-	//RenderTarget screen(context, display.getWidth(), display.getHeight());
 	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
-			skybox, diffuseIBL, specularIBL, brdfLUT);
+			diffuseIBL, specularIBL, brdfLUT);
 
 	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
 			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
@@ -207,7 +194,6 @@ int main() {
 		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
-		//shaders["ocean-deferred"]->setSampler("reflectionMap", skybox, skyboxSampler, 1);
 		shaders["ocean-deferred"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 2);
 		context.draw(gBuffer.getTarget(), *shaders["ocean-deferred"], ocean.getGridArray(), primitive);
@@ -216,7 +202,7 @@ int main() {
 
 		cube.updateBuffer(1, glm::value_ptr(glm::translate(camera->getViewProjection(),
 			camera->getPosition())), sizeof(glm::mat4));
-		shaders["skybox-deferred"]->setSampler("skybox", skybox, skyboxSampler, 0);
+		shaders["skybox-deferred"]->setSampler("skybox", specularIBL, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
 		//shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));

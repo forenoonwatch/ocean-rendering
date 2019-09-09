@@ -7,15 +7,12 @@
 class DeferredRenderTarget {
 	public:
 		DeferredRenderTarget(RenderContext& context,
-				uint32 width, uint32 height, CubeMap& skybox,
-				CubeMap& diffuseIBL, CubeMap& specularIBL,
-				Texture& brdfLUT);
+				uint32 width, uint32 height,CubeMap& diffuseIBL,
+				CubeMap& specularIBL, Texture& brdfLUT);
 
 		void clear();
 		void applyLighting();
 		void flush();
-
-		inline void setSkybox(CubeMap& skybox) { this->skybox = &skybox; }
 
 		inline RenderTarget& getTarget() { return target; }
 
@@ -45,7 +42,6 @@ class DeferredRenderTarget {
 
 		GaussianBlur* bloomBlur;
 
-		CubeMap* skybox;
 		CubeMap* diffuseIBL;
 		CubeMap* specularIBL;
 
