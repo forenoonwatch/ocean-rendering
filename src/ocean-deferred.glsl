@@ -111,12 +111,15 @@ void main() {
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
 			* max(sunlightDir.y, 0.0);
 
-	vec3 waterColor = mix(oceanColor0, oceanColor1, 0.5 * sssFactor);
+	vec3 waterColor = mix(oceanColor0, oceanColor1, sssFactor);
 	waterColor = mix(waterColor, vec3(1.0), foamMask);
 
-	outColor = vec4(waterColor, 0.1);
+	float metallic = 0.3 + 0.7 * sssFactor;
+	metallic -= metallic * foamMask;
+
+	outColor = vec4(waterColor, metallic);
 	//outNormLight = vec4(fma(normal.xy, vec2(0.5), vec2(0.5)), 0.0, 1.0);
-	outNormLight = vec4(normal, 0.2);
+	outNormLight = vec4(normal, 0.2 + 0.8 * foamMask);
 }
 
 #endif
