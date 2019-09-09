@@ -4,7 +4,8 @@
 
 DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 			uint32 width, uint32 height, CubeMap& skybox,
-			CubeMap& diffuseIBL, CubeMap& specularIBL)
+			CubeMap& diffuseIBL, CubeMap& specularIBL,
+			Texture& brdfLUT)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
 		, normLightBuffer(context, width, height, GL_RGBA32F)
@@ -19,7 +20,8 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 				GL_LINEAR_MIPMAP_LINEAR)
 		, skybox(&skybox)
 		, diffuseIBL(&diffuseIBL)
-		, specularIBL(&specularIBL) {
+		, specularIBL(&specularIBL)
+		, brdfLUT(&brdfLUT) {
 	target.addTextureTarget(normLightBuffer, GL_COLOR_ATTACHMENT0, 1);
 	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2);
 
@@ -67,6 +69,8 @@ void DeferredRenderTarget::applyLighting() {
 	//lightingShader->setSampler("reflectionMap", *skybox, skyboxSampler, 3);
 	
 	lightingShader->setSampler("irradianceMap", *diffuseIBL, mipmapSampler, 3);
+	lightingShader->setSampler("prefilterMap", *specularIBL, skyboxSampler, 4);
+	lightingShader->setSampler("brdfLUT", *brdfLUT, sampler, 5);
 
 	context->drawQuad(target, *lightingShader);
 }

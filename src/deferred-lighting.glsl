@@ -13,6 +13,8 @@ void main() {
 
 #elif defined(FS_BUILD)
 
+#define MAX_REFLECTION_LOD 4.0
+
 float distributionGGX(vec3 N, vec3 H, float roughness) {
 	float a2 = roughness * roughness;
 	a2 *= a2;
@@ -59,6 +61,8 @@ uniform sampler2D normLightBuffer; // vec2 normXY, float metallicity, float roug
 uniform sampler2D depthBuffer; // float depth
 
 uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
 
 //uniform samplerCube reflectionMap;
 
@@ -116,17 +120,21 @@ void main() {
 			* radiance * max(dot(normal, L), 0.0);
 	// END SUNLIGHT VALUE CALCULATIONS
 
-	// BEGIN AMBIENT IBL CALCULATIONS
+	// BEGIN IBL IRRADIANCE CALCULATIONS
 	kD = vec3(1.0) - fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
 	kD *= 1.0 - metallic;
 
-	const vec3 ambient = kD * texture(irradianceMap, normal).rgb * albedo;
+	vec3 ambient = kD * texture(irradianceMap, normal).rgb * albedo;
 	//const vec3 ambient = vec3(0.03) * albedo;
 	//const vec3 ambient = vec3(1.0) * albedo;
-	// END AMBIENT IBL CALCULATIONS
+	// END IBL IRRADIANCE CALCULATIONS
 
 	// BEGIN SPECULAR IBL CALCULATIONS
+	const vec2 brdf = texture(brdfLUT, vec2(max(dot(normal, pointToEye), 0.0), roughness)).rg;
+	specular = textureLod(prefilterMap, reflect(-pointToEye, normal), roughness * MAX_REFLECTION_LOD).rgb
+			* fma(F, vec3(brdf.x), vec3(brdf.y));
 	
+	ambient += specular;
 	// END SPECULAR IBL CALCULATIONS
 
 	//vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * Lo;

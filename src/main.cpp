@@ -150,9 +150,12 @@ int main() {
 	ddsTexture.load("./res/sargasso-specular.dds");
 	CubeMap specularIBL(context, ddsTexture);
 
+	bmp.load("./res/sargasso-brdf.png");
+	Texture brdfLUT(context, bmp, GL_RGBA);
+
 	//RenderTarget screen(context, display.getWidth(), display.getHeight());
 	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
-			skybox, diffuseIBL, specularIBL);
+			skybox, diffuseIBL, specularIBL, brdfLUT);
 
 	sceneDataBuffer.update(glm::value_ptr(glm::vec2(display.getWidth(), display.getHeight())),
 			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));

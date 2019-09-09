@@ -8,7 +8,8 @@ class DeferredRenderTarget {
 	public:
 		DeferredRenderTarget(RenderContext& context,
 				uint32 width, uint32 height, CubeMap& skybox,
-				CubeMap& diffuseIBL, CubeMap& specularIBL);
+				CubeMap& diffuseIBL, CubeMap& specularIBL,
+				Texture& brdfLUT);
 
 		void clear();
 		void applyLighting();
@@ -47,4 +48,6 @@ class DeferredRenderTarget {
 		CubeMap* skybox;
 		CubeMap* diffuseIBL;
 		CubeMap* specularIBL;
+
+		Texture* brdfLUT;
 };
