@@ -7,11 +7,15 @@
 
 class CubeMap {
 	public:
-		CubeMap(RenderContext& context, Bitmap* bitmaps);
-		CubeMap(RenderContext& context, std::string* fileNames);
+		CubeMap(RenderContext& context, Bitmap* bitmaps,
+				uint32 internalFormat = GL_RGB);
+		CubeMap(RenderContext& context, std::string* fileNames,
+				uint32 internalFormat = GL_RGB);
 		CubeMap(RenderContext& context, const DDSTexture& ddsTexture);
 
 		inline uint32 getID() { return textureID; }
+
+		inline uint32 getInternalFormat() const { return internalFormat; }
 
 		inline bool isCompressed() const { return compressed; }
 		inline bool hasMipMaps() const { return mipMaps; }
@@ -24,8 +28,10 @@ class CubeMap {
 
 		uint32 textureID;
 
+		uint32 internalFormat;
+
 		bool compressed;
 		bool mipMaps;
 
-		CubeMap(RenderContext&, bool, bool);
+		CubeMap(RenderContext&, uint32, bool, bool);
 };
