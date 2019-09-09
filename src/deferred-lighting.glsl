@@ -105,7 +105,7 @@ void main() {
 
 	const float NDF = distributionGGX(normal, H, roughness);
 	const float G = geometrySmith(normal, pointToEye, L, roughness);
-	const vec3 F = fresnelSchlick(clamp(dot(H, pointToEye), 0.0, 1.0), F0);
+	vec3 F = fresnelSchlick(clamp(dot(H, pointToEye), 0.0, 1.0), F0);
 
 	//const vec3 specular = (NDF * G * F) / max(4.0 * max(dot(normal, pointToEye), 0.0)
 	//		* max(dot(normal, L), 0.0), 0.001);
@@ -121,12 +121,11 @@ void main() {
 	// END SUNLIGHT VALUE CALCULATIONS
 
 	// BEGIN IBL IRRADIANCE CALCULATIONS
-	kD = vec3(1.0) - fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
+	F = fresnelSchlickRoughness(max(dot(normal, pointToEye), 0.0), F0, roughness);
+	kD = vec3(1.0) - F;
 	kD *= 1.0 - metallic;
 
 	vec3 ambient = kD * texture(irradianceMap, normal).rgb * albedo;
-	//const vec3 ambient = vec3(0.03) * albedo;
-	//const vec3 ambient = vec3(1.0) * albedo;
 	// END IBL IRRADIANCE CALCULATIONS
 
 	// BEGIN SPECULAR IBL CALCULATIONS
@@ -137,12 +136,7 @@ void main() {
 	ambient += specular;
 	// END SPECULAR IBL CALCULATIONS
 
-	//vec3 flect = texture(reflectionMap, reflect(-pointToEye, normal)).rgb * Lo;
-
 	vec3 inColor = ambient + Lo;
-
-	//vec3 inColor = mix(mix(colorSpec.xyz, ambient + Lo, colorSpec.w),
-	//		flect, 1.0 - roughness);
 	
 	const float fogVisibility = clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 	inColor = mix(fogColor, inColor, fogVisibility);
