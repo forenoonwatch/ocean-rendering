@@ -1,12 +1,12 @@
 # Ocean Rendering
 
 Rendering ocean water in OpenGL utilizing J. Tessendorf's inverse Fourier transform rendered via a projected grid (C. Johanson).
+Featuring deferred lighting with Physically Based Rendering (PBR) and Image Based Lighting (IBL) technology.
 
 ## TODO List
 - Decal rendering support
 - Wakes/foam for moving objects
 - Underwater rendering
-- Add deferred lighting
 - Add improved post processing effects
 - Improve configurability
 - Optimize rendering/calculation
@@ -19,6 +19,7 @@ Rendering ocean water in OpenGL utilizing J. Tessendorf's inverse Fourier transf
 * Glew
 * GLM
 * Assimp
+* STB Image
 
 ## Articles for later reading
 * https://community.khronos.org/t/decal-as-texture-mapping/60030/8
