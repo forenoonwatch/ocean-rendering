@@ -129,8 +129,13 @@ int main() {
 
 	DDSTexture ddsTexture;
 	
-	ddsTexture.load("./res/wood-planks.dds");
-	Texture ddsTest(context, ddsTexture);
+	//ddsTexture.load("./res/wood-planks.dds");
+	ddsTexture.load("./res/bricks.dds");
+	Texture diffuseMap(context, ddsTexture);
+
+	//ddsTexture.load("./res/wood-planks-normal.dds");
+	ddsTexture.load("./res/bricks-normal.dds");
+	Texture normalMap(context, ddsTexture);
 
 	//ddsTexture.load("./res/sargasso-diffuse.dds");
 	ddsTexture.load("./res/skybox-diffuse.dds");
@@ -192,7 +197,8 @@ int main() {
 		// BEGIN DRAW
 		gBuffer.clear();
 
-		shaders["static-mesh-deferred"]->setSampler("diffuse", ddsTest, mipmapSampler, 0);
+		shaders["static-mesh-deferred"]->setSampler("diffuse", diffuseMap, mipmapSampler, 0);
+		shaders["static-mesh-deferred"]->setSampler("normalMap", normalMap, mipmapSampler, 1);
 		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
@@ -362,7 +368,7 @@ void setBeaufortLevel(OceanFFT& oceanFFT, UniformBuffer& oceanDataBuffer,
 
 	oceanFFT.setOceanParams(2.f * (beaufortLevel + 1.f), windDir,
 			10.f * (beaufortLevel + 1.f), 0.5f);
-	oceanFFT.setTimeScale(5.f);
+	oceanFFT.setTimeScale(6.f);
 	//oceanFFT.setTimeScale(0.f);
 	oceanFFT.setFoldingParams(0.5f + 0.5f * normBF,
 			0.2f + 0.05f * normBF, 0.0075f + 0.0025f * normBF);
