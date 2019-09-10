@@ -110,17 +110,17 @@ void main() {
 	foamMask *= texture2D(foam, 0.3 * p0.xz).y;
 	
 	const float sssFactor = clamp(SSS_POWER * (1.0 - normal.y), 0.0, 1.0)
-			* max(sunlightDir.y, 0.0);
+			* max(-sunlightDir.y, 0.0);
 
-	vec3 waterColor = mix(oceanColor0, oceanColor1, sssFactor);
+	vec3 waterColor = mix(oceanColor0, oceanColor1, 0.5 * sssFactor);
 	waterColor = mix(waterColor, vec3(1.0), foamMask);
 
-	float metallic = 0.7 * (1.0 - sssFactor);
+	float metallic = 0.3;// 0.7 * (1.0 - sssFactor);
 	metallic *= (1.0 - foamMask);
 
 	outColor = vec4(waterColor, metallic);
 	//outNormLight = vec4(normal, 0.2 + 0.8 * foamMask);
-	outNormLight = vec4(encodeNormal(normal), 1.0, 0.2 + 0.8 * foamMask);
+	outNormLight = vec4(encodeNormal(normal), 1.0 - sssFactor, 0.1 + 0.9 * foamMask);
 }
 
 #endif

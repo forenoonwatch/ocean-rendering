@@ -93,6 +93,7 @@ void main() {
 
 	const float metallic = colorSpec.w;
 	const float roughness = normLight.w;
+	const float lightWeight = normLight.z;
 
 	const vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
@@ -137,6 +138,8 @@ void main() {
 	// END SPECULAR IBL CALCULATIONS
 
 	vec3 inColor = ambient + Lo;
+
+	inColor = mix(albedo, inColor, lightWeight);
 	
 	const float fogVisibility = clamp(exp(-pow(cameraDist * fogDensity, fogGradient)), 0.0, 1.0);
 	inColor = mix(fogColor, inColor, fogVisibility);
