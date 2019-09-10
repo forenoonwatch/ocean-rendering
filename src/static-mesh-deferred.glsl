@@ -1,7 +1,6 @@
 #include "common.glh"
 
-#include "scene-info.glh"
-#include "lighting.glh"
+#include "normal-encoding.glh"
 
 varying vec2 texCoord0;
 varying vec3 normal0;
@@ -35,9 +34,8 @@ void main() {
 	const float roughness = 1.0;
 
 	outColor = vec4(texture(diffuse, texCoord0).rgb, metallic);
-	outNormLight = vec4(normal0, roughness);
-	
-	//outNormLight = vec4(fma(normal0.xy, vec2(0.5), vec2(0.5)), 1.0, 1.0);
+	//outNormLight = vec4(normal0, roughness);
+	outNormLight = vec4(encodeNormal(normal0), 1.0, roughness);
 }
 
 #endif

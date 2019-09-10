@@ -2,6 +2,7 @@
 
 #include "scene-info.glh"
 #include "lighting.glh"
+#include "normal-encoding.glh"
 
 #if defined(VS_BUILD)
 
@@ -80,9 +81,8 @@ void main() {
 	//const vec3 albedo = pow(colorSpec.xyz, vec3(2.2));
 	const vec3 albedo = colorSpec.xyz;
 
-	//const vec3 normal = normalize(fma(vec3(normLight.xy, 1.0 - sqrt(normLight.x * normLight.x
-	//		+ normLight.y * normLight.y)), vec3(2.0), vec3(-1.0)));
-	const vec3 normal = normLight.xyz;
+	//const vec3 normal = normLight.xyz;
+	const vec3 normal = decodeNormal(normLight);
 
 	const vec4 rawPosition = invVP * vec4(screenPosition, depth, 1.0);
 	const vec3 position = rawPosition.xyz / rawPosition.w;

@@ -4,6 +4,7 @@
 #include "scene-info.glh"
 #include "ocean-common.glh"
 #include "lighting.glh"
+#include "normal-encoding.glh"
 
 #define F0 0.1 //0.017 // F0 = (n1 - n2) / (n1 + n2); n1 = 1, n2 = 1.3
 #define SSS_POWER 2.0
@@ -114,12 +115,12 @@ void main() {
 	vec3 waterColor = mix(oceanColor0, oceanColor1, sssFactor);
 	waterColor = mix(waterColor, vec3(1.0), foamMask);
 
-	float metallic = 0.3 + 0.7 * sssFactor;
-	metallic -= metallic * foamMask;
+	float metallic = 0.7 * (1.0 - sssFactor);
+	metallic *= (1.0 - foamMask);
 
 	outColor = vec4(waterColor, metallic);
-	//outNormLight = vec4(fma(normal.xy, vec2(0.5), vec2(0.5)), 0.0, 1.0);
-	outNormLight = vec4(normal, 0.2 + 0.8 * foamMask);
+	//outNormLight = vec4(normal, 0.2 + 0.8 * foamMask);
+	outNormLight = vec4(encodeNormal(normal), 1.0, 0.2 + 0.8 * foamMask);
 }
 
 #endif
