@@ -132,13 +132,15 @@ int main() {
 	ddsTexture.load("./res/wood-planks.dds");
 	Texture ddsTest(context, ddsTexture);
 
-	ddsTexture.load("./res/sargasso-diffuse.dds");
+	//ddsTexture.load("./res/sargasso-diffuse.dds");
+	ddsTexture.load("./res/skybox-diffuse.dds");
 	CubeMap diffuseIBL(context, ddsTexture);
 
-	ddsTexture.load("./res/sargasso-specular.dds");
+	//ddsTexture.load("./res/sargasso-specular.dds");
+	ddsTexture.load("./res/skybox-specular.dds");
 	CubeMap specularIBL(context, ddsTexture);
 
-	bmp.load("./res/sargasso-brdf.png");
+	bmp.load("./res/schlick-brdf.png");
 	Texture brdfLUT(context, bmp, GL_RGBA);
 
 	DeferredRenderTarget gBuffer(context, display.getWidth(), display.getHeight(),
