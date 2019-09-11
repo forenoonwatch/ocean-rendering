@@ -23,7 +23,8 @@ class DeferredRenderTarget {
 		RenderContext* context;
 
 		Texture colorBuffer;
-		Texture normLightBuffer;
+		Texture normalBuffer;
+		Texture lightingBuffer;
 		Texture brightBuffer;
 		Texture depthBuffer;
 

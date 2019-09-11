@@ -7,7 +7,8 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 			CubeMap& specularIBL, Texture& brdfLUT)
 		: context(&context)
 		, colorBuffer(context, width, height, GL_RGBA32F)
-		, normLightBuffer(context, width, height, GL_RGBA32F)
+		, normalBuffer(context, width, height, GL_RGBA32F)
+		, lightingBuffer(context, width, height, GL_RGBA32F)
 		, brightBuffer(context, width, height, GL_RGBA32F)
 		, depthBuffer(context, width, height, GL_DEPTH_COMPONENT,
 				nullptr, GL_DEPTH_COMPONENT, GL_FLOAT)
@@ -20,8 +21,10 @@ DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 		, diffuseIBL(&diffuseIBL)
 		, specularIBL(&specularIBL)
 		, brdfLUT(&brdfLUT) {
-	target.addTextureTarget(normLightBuffer, GL_COLOR_ATTACHMENT0, 1);
-	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 2);
+	target.addTextureTarget(normalBuffer, GL_COLOR_ATTACHMENT0, 1);
+	target.addTextureTarget(lightingBuffer, GL_COLOR_ATTACHMENT0, 2);
+
+	target.addTextureTarget(brightBuffer, GL_COLOR_ATTACHMENT0, 3);
 
 	target.addTextureTarget(depthBuffer, GL_DEPTH_ATTACHMENT);
 
@@ -54,7 +57,7 @@ void DeferredRenderTarget::clear() {
 	screen.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	target.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	context->setDrawBuffers(3);
+	context->setDrawBuffers(4);
 }
 
 void DeferredRenderTarget::applyLighting() {
@@ -62,12 +65,14 @@ void DeferredRenderTarget::applyLighting() {
 
 	// apply lighting
 	lightingShader->setSampler("colorBuffer", colorBuffer, sampler, 0);
-	lightingShader->setSampler("normLightBuffer", normLightBuffer, sampler, 1);
-	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 2);
+	lightingShader->setSampler("normalBuffer", normalBuffer, sampler, 1);
+	lightingShader->setSampler("lightingBuffer", lightingBuffer, sampler, 2);
 	
-	lightingShader->setSampler("irradianceMap", *diffuseIBL, mipmapSampler, 3);
-	lightingShader->setSampler("prefilterMap", *specularIBL, skyboxSampler, 4);
-	lightingShader->setSampler("brdfLUT", *brdfLUT, sampler, 5);
+	lightingShader->setSampler("depthBuffer", depthBuffer, sampler, 3);
+	
+	lightingShader->setSampler("irradianceMap", *diffuseIBL, mipmapSampler, 4);
+	lightingShader->setSampler("prefilterMap", *specularIBL, skyboxSampler, 5);
+	lightingShader->setSampler("brdfLUT", *brdfLUT, sampler, 6);
 
 	context->drawQuad(target, *lightingShader);
 }

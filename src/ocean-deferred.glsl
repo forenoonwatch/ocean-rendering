@@ -91,7 +91,8 @@ float foamData(vec2 pos) {
 }
 
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outNormLight;
+layout (location = 1) out vec4 outNormal;
+layout (location = 2) out vec4 outLighting;
 
 void main() {
 	const vec4 p0Raw = getOceanPosition(xyPos0);
@@ -118,9 +119,9 @@ void main() {
 	float metallic = 0.3;// 0.7 * (1.0 - sssFactor);
 	metallic *= (1.0 - foamMask);
 
-	outColor = vec4(waterColor, metallic);
-	//outNormLight = vec4(normal, 0.2 + 0.8 * foamMask);
-	outNormLight = vec4(encodeNormal(normal), 1.0 - sssFactor, 0.1 + 0.9 * foamMask);
+	outColor = vec4(waterColor, 1.0);
+	outNormal = vec4(normal, 1.0);
+	outLighting = vec4(metallic, 0.1 + 0.9 * foamMask, 1.0, 1.0 - sssFactor);
 }
 
 #endif

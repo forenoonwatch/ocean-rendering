@@ -57,32 +57,33 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-uniform sampler2D colorBuffer; // vec3 color, float lightPower
-uniform sampler2D normLightBuffer; // vec2 normXY, float metallicity, float roughness
+uniform sampler2D colorBuffer; // vec3 color
+uniform sampler2D normalBuffer; // vec3 normal
+uniform sampler2D lightingBuffer; // float metallicity, float roughness, float ao, float lightPower
+
 uniform sampler2D depthBuffer; // float depth
 
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
-//uniform samplerCube reflectionMap;
-
 layout (location = 0) out vec4 outColor;
-layout (location = 2) out vec4 brightColor;
+layout (location = 3) out vec4 brightColor;
 
 void main() {
 	const vec2 screenPosition = fma(gl_FragCoord.xy / displaySize, vec2(2.0), vec2(-1.0));
 	const ivec2 texel = ivec2(gl_FragCoord.xy);
 
 	const vec4 colorSpec = texelFetch(colorBuffer, texel, 0);
-	const vec4 normLight = texelFetch(normLightBuffer, texel, 0);
+	const vec4 normal_ = texelFetch(normalBuffer, texel, 0);
+	const vec4 lighting = texelFetch(lightingBuffer, texel, 0);
 	const float depth = fma(texelFetch(depthBuffer, texel, 0).x, 2.0, -1.0);
 
 	//const vec3 albedo = pow(colorSpec.xyz, vec3(2.2));
 	const vec3 albedo = colorSpec.xyz;
 
-	//const vec3 normal = normLight.xyz;
-	const vec3 normal = decodeNormal(normLight);
+	const vec3 normal = normal_.xyz;
+	//const vec3 normal = decodeNormal(normal_);
 
 	const vec4 rawPosition = invVP * vec4(screenPosition, depth, 1.0);
 	const vec3 position = rawPosition.xyz / rawPosition.w;
@@ -91,9 +92,10 @@ void main() {
 	const float cameraDist = length(pointToEye);
 	pointToEye /= cameraDist;
 
-	const float metallic = colorSpec.w;
-	const float roughness = normLight.w;
-	const float lightWeight = normLight.z;
+	const float metallic = lighting.x;
+	const float roughness = lighting.y;
+	const float ao = lighting.z;
+	const float lightWeight = lighting.w;
 
 	const vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
@@ -108,8 +110,6 @@ void main() {
 	const float G = geometrySmith(normal, pointToEye, L, roughness);
 	vec3 F = fresnelSchlick(clamp(dot(H, pointToEye), 0.0, 1.0), F0);
 
-	//const vec3 specular = (NDF * G * F) / max(4.0 * max(dot(normal, pointToEye), 0.0)
-	//		* max(dot(normal, L), 0.0), 0.001);
 	const float specDenom = 4.0 * max(dot(normal, pointToEye), 0.0)
 			* max(dot(normal, L), 0.0);
 	vec3 specular = (NDF * G * F) / max(specDenom, 0.001);
@@ -137,7 +137,7 @@ void main() {
 	ambient += specular;
 	// END SPECULAR IBL CALCULATIONS
 
-	vec3 inColor = ambient + Lo;
+	vec3 inColor = ambient * ao + Lo;
 
 	inColor = mix(albedo, inColor, lightWeight);
 	
