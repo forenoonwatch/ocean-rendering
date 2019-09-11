@@ -30,7 +30,9 @@ void main() {
 
 uniform sampler2D diffuse;
 uniform sampler2D normalMap;
+
 uniform sampler2D roughnessMap;
+uniform sampler2D aoMap;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outNormal;
@@ -39,13 +41,14 @@ layout (location = 2) out vec4 outLighting;
 void main() {
 	const float metallic = 0.0;
 	const float roughness = texture(roughnessMap, texCoord0).r;
+	const float ao = texture(aoMap, texCoord0).r;
 
 	vec3 normal = fma(texture(normalMap, texCoord0).rgb, vec3(2.0), vec3(-1.0));
 	normal = TBN * normalize(normal);
 
 	outColor = vec4(texture(diffuse, texCoord0).rgb, 1.0);
 	outNormal = vec4(normal, 1.0);
-	outLighting = vec4(metallic, roughness, 0.0, 1.0);
+	outLighting = vec4(metallic, roughness, ao, 1.0);
 }
 
 #endif

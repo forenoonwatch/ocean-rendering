@@ -129,13 +129,19 @@ int main() {
 
 	DDSTexture ddsTexture;
 	
-	//ddsTexture.load("./res/wood-planks.dds");
-	ddsTexture.load("./res/bricks.dds");
+	ddsTexture.load("./res/wood-planks.dds");
+	//ddsTexture.load("./res/bricks.dds");
 	Texture diffuseMap(context, ddsTexture);
 
-	//ddsTexture.load("./res/wood-planks-normal.dds");
-	ddsTexture.load("./res/bricks-normal.dds");
+	ddsTexture.load("./res/wood-planks-normal2.dds");
+	//ddsTexture.load("./res/bricks-normal.dds");
 	Texture normalMap(context, ddsTexture);
+
+	ddsTexture.load("./res/wood-planks-roughness.dds");
+	Texture roughnessMap(context, ddsTexture);
+
+	ddsTexture.load("./res/wood-planks-ao.dds");
+	Texture aoMap(context, ddsTexture);
 
 	//ddsTexture.load("./res/sargasso-diffuse.dds");
 	ddsTexture.load("./res/skybox-diffuse.dds");
@@ -144,6 +150,7 @@ int main() {
 	//ddsTexture.load("./res/sargasso-specular.dds");
 	ddsTexture.load("./res/skybox-specular.dds");
 	CubeMap specularIBL(context, ddsTexture);
+
 
 	bmp.load("./res/schlick-brdf.png");
 	Texture brdfLUT(context, bmp, GL_RGBA);
@@ -199,6 +206,8 @@ int main() {
 
 		shaders["static-mesh-deferred"]->setSampler("diffuse", diffuseMap, mipmapSampler, 0);
 		shaders["static-mesh-deferred"]->setSampler("normalMap", normalMap, mipmapSampler, 1);
+		shaders["static-mesh-deferred"]->setSampler("roughnessMap", roughnessMap, mipmapSampler, 2);
+		shaders["static-mesh-deferred"]->setSampler("aoMap", aoMap, mipmapSampler, 3);
 		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
