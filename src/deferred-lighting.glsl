@@ -15,6 +15,8 @@ void main() {
 #elif defined(FS_BUILD)
 
 #define MAX_REFLECTION_LOD 4.0
+#define MIN_SUNLIGHT_COS 0.2
+#define SUN_RADIANCE 2.0
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
 	float a2 = roughness * roughness;
@@ -104,7 +106,7 @@ void main() {
 	// BEGIN SUNLIGHT VALUE CALCULATIONS
 	const vec3 L = -sunlightDir;
 	const vec3 H = normalize(pointToEye + L);
-	const vec3 radiance = vec3(1.0);
+	const vec3 radiance = vec3(SUN_RADIANCE);
 
 	const float NDF = distributionGGX(normal, H, roughness);
 	const float G = geometrySmith(normal, pointToEye, L, roughness);
@@ -118,7 +120,7 @@ void main() {
 	kD *= 1.0 - metallic;
 
 	Lo += (kD * albedo / M_PI + specular)
-			* radiance * max(dot(normal, L), 0.0);
+			* radiance * max(dot(normal, L), MIN_SUNLIGHT_COS);
 	// END SUNLIGHT VALUE CALCULATIONS
 
 	// BEGIN IBL IRRADIANCE CALCULATIONS

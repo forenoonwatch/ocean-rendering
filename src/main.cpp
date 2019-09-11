@@ -372,7 +372,7 @@ void setBeaufortLevel(OceanFFT& oceanFFT, UniformBuffer& oceanDataBuffer,
 		const glm::vec2& windDir, float beaufortLevel) {
 	float normBF = beaufortLevel / 12.f;
 
-	float f[] = {1.f + normBF, 0.01f, 0.5f + 0.5f * normBF};
+	float f[] = {1.f + normBF, 0.01f, 1.f + 0.5f * normBF};
 	oceanDataBuffer.update(f, 4 * sizeof(glm::vec4), sizeof(f));
 
 	oceanFFT.setOceanParams(2.f * (beaufortLevel + 1.f), windDir,
