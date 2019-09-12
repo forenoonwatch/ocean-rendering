@@ -16,6 +16,9 @@ class DeferredRenderTarget {
 
 		inline RenderTarget& getTarget() { return target; }
 
+		inline Texture& getNormalBuffer() { return normalBuffer; }
+		inline Texture& getDepthBuffer() { return depthBuffer; }
+
 		~DeferredRenderTarget();
 	private:
 		NULL_COPY_AND_ASSIGN(DeferredRenderTarget);

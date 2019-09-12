@@ -129,18 +129,20 @@ int main() {
 
 	DDSTexture ddsTexture;
 	
-	ddsTexture.load("./res/wood-planks.dds");
-	//ddsTexture.load("./res/bricks.dds");
+	//ddsTexture.load("./res/wood-planks.dds");
+	ddsTexture.load("./res/bricks.dds");
 	Texture diffuseMap(context, ddsTexture);
 
-	ddsTexture.load("./res/wood-planks-normal2.dds");
-	//ddsTexture.load("./res/bricks-normal.dds");
+	//ddsTexture.load("./res/wood-planks-normal2.dds");
+	ddsTexture.load("./res/bricks-normal.dds");
 	Texture normalMap(context, ddsTexture);
 
-	ddsTexture.load("./res/wood-planks-roughness.dds");
+	//ddsTexture.load("./res/wood-planks-roughness.dds");
+	ddsTexture.load("./res/bricks-roughness.dds");
 	Texture roughnessMap(context, ddsTexture);
 
-	ddsTexture.load("./res/wood-planks-ao.dds");
+	//ddsTexture.load("./res/wood-planks-ao.dds");
+	ddsTexture.load("./res/bricks-ao.dds");
 	Texture aoMap(context, ddsTexture);
 
 	//ddsTexture.load("./res/sargasso-diffuse.dds");
@@ -208,12 +210,25 @@ int main() {
 		shaders["static-mesh-deferred"]->setSampler("normalMap", normalMap, mipmapSampler, 1);
 		shaders["static-mesh-deferred"]->setSampler("roughnessMap", roughnessMap, mipmapSampler, 2);
 		shaders["static-mesh-deferred"]->setSampler("aoMap", aoMap, mipmapSampler, 3);
-		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
+		//context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
 		shaders["ocean-deferred"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 2);
 		context.draw(gBuffer.getTarget(), *shaders["ocean-deferred"], ocean.getGridArray(), primitive);
+
+		context.setWriteDepth(false);
+
+		shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
+
+		shaders["decal-shader"]->setSampler("depthBuffer", gBuffer.getDepthBuffer(), sampler, 0);
+		shaders["decal-shader"]->setSampler("normalBuffer", gBuffer.getNormalBuffer(), sampler, 1);
+
+		shaders["decal-shader"]->setSampler("diffuse", diffuseMap, mipmapSampler, 2);
+		shaders["decal-shader"]->setSampler("normalMap", normalMap, mipmapSampler, 3);
+		shaders["decal-shader"]->setSampler("roughnessMap", roughnessMap, mipmapSampler, 4);
+		shaders["decal-shader"]->setSampler("aoMap", aoMap, mipmapSampler, 5);
+		context.draw(gBuffer.getTarget(), *shaders["decal-shader"], loadedModel, GL_TRIANGLES);
 
 		gBuffer.applyLighting();
 
@@ -222,12 +237,8 @@ int main() {
 		shaders["skybox-deferred"]->setSampler("skybox", specularIBL, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
-		//shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
-		//shaders["decal-shader"]->setSampler("depthBuffer", depthBuffer, sampler, 0);
-
-		//glDepthMask(false);
-		//context.draw(hdrTarget, *shaders["decal-shader"], loadedModel, GL_TRIANGLES);
-		//glDepthMask(true);
+		//context.setWriteDepth(false);
+		//context.setWriteDepth(true);
 
 		gBuffer.flush();
 
