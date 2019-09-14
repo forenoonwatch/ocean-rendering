@@ -1,5 +1,7 @@
 #include "vertex-array.hpp"
 
+#include <cstring>
+
 VertexArray::VertexArray(RenderContext& context,
 			const IndexedModel& model, uint32 usage)
 		: context(&context)
@@ -7,17 +9,18 @@ VertexArray::VertexArray(RenderContext& context,
 		, numBuffers(model.getNumVertexComponents() + model.getNumInstanceComponents() + 1)
 		, numIndices(model.getNumIndices())
 		, instancedComponentStartIndex(model.getInstancedElementStartIndex())
+		, numOwnedBuffers(numBuffers)
 		, buffers(new GLuint[numBuffers])
 		, bufferSizes(new uintptr[numBuffers])
 		, usage(usage) {
 	glGenVertexArrays(1, &arrayID);
-	glBindVertexArray(arrayID);
+	context.setVertexArray(arrayID);
 
 	glGenBuffers(numBuffers, buffers);
 
 	std::vector<const float*> vertexData = model.getVertexData();
 	initVertexBuffers(model.getNumVertexComponents(), &vertexData[0],
-			model.getNumVertices(), model.getElementSizes());
+			model.getNumVertices(), model.getElementSizes(), true);
 
 	uintptr indicesSize = numIndices * sizeof(uint32);
 	
@@ -26,6 +29,33 @@ VertexArray::VertexArray(RenderContext& context,
 			model.getIndices(), usage);
 
 	bufferSizes[numBuffers - 1] = indicesSize;
+}
+
+VertexArray::VertexArray(RenderContext& context,
+			const IndexedModel& model, VertexArray& vertexArray)
+		: context(&context)
+		, arrayID(0)
+		, numBuffers(vertexArray.numBuffers)
+		, numIndices(vertexArray.numIndices)
+		, instancedComponentStartIndex(vertexArray.instancedComponentStartIndex)
+		, numOwnedBuffers(model.getNumInstanceComponents())
+		, buffers(new GLuint[numBuffers])
+		, bufferSizes(new uintptr[numBuffers])
+		, usage(vertexArray.usage) {
+	glGenVertexArrays(1, &arrayID);
+	context.setVertexArray(arrayID);
+
+	std::memcpy(buffers, vertexArray.buffers, numBuffers * sizeof(GLuint));
+
+	glGenBuffers(numOwnedBuffers, buffers + instancedComponentStartIndex);
+
+	std::vector<const float*> vertexData = model.getVertexData();
+	initVertexBuffers(model.getNumVertexComponents(), &vertexData[0],
+			model.getNumVertices(), model.getElementSizes(), false);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[numBuffers - 1]);
+	
+	bufferSizes[numBuffers - 1] = vertexArray.bufferSizes[numBuffers - 1];
 }
 
 void VertexArray::updateBuffer(uint32 bufferIndex,
@@ -44,14 +74,21 @@ void VertexArray::updateBuffer(uint32 bufferIndex,
 
 VertexArray::~VertexArray() {
 	glDeleteVertexArrays(1, &arrayID);
-	glDeleteBuffers(numBuffers, buffers);
+
+	if (numBuffers == numOwnedBuffers) {
+		glDeleteBuffers(numBuffers, buffers);
+	}
+	else {
+		glDeleteBuffers(numOwnedBuffers, buffers + instancedComponentStartIndex);
+	}
 
 	delete[] buffers;
 	delete[] bufferSizes;
 }
 
-inline void VertexArray::initVertexBuffers(uint32 numVertexComponents,
-		const float** vertexData, uint32 numVertices, const uint32* vertexElementSizes) {
+void VertexArray::initVertexBuffers(uint32 numVertexComponents,
+		const float** vertexData, uint32 numVertices, const uint32* vertexElementSizes,
+		bool writeData) {
 	for (uint32 i = 0, attribute = 0; i < numBuffers - 1; ++i) {
 		uint32 attribUsage = usage;
 		bool instancedMode = false;
@@ -67,7 +104,11 @@ inline void VertexArray::initVertexBuffers(uint32 numVertexComponents,
 			: elementSize * sizeof(float) * numVertices;
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[i]);
-		glBufferData(GL_ARRAY_BUFFER, dataSize, bufferData, attribUsage);
+
+		if (writeData || instancedMode) {
+			glBufferData(GL_ARRAY_BUFFER, dataSize, bufferData, attribUsage);
+		}
+		
 
 		bufferSizes[i] = dataSize;
 
