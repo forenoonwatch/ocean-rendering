@@ -9,6 +9,9 @@ class VertexArray {
 		VertexArray(RenderContext& context, const IndexedModel& model,
 				VertexArray& vertexArray);
 
+		VertexArray(RenderContext& context, uint32 numBuffers,
+				const uint32* elementSizes, uint32 numElements, uint32 usage);
+
 		void updateBuffer(uint32 bufferIndex, const void* data, uintptr dataSize);
 
 		inline const uint32 getBuffer(uint32 bufferIndex);
@@ -17,7 +20,9 @@ class VertexArray {
 		inline uint32 getID() { return arrayID; }
 
 		inline uint32 getNumBuffers() const { return numBuffers; }
-		inline uint32 getNumIndices() const { return numIndices; }
+		inline uint32 getNumElements() const { return numElements; }
+
+		inline bool isIndexed() const { return indexed; }
 
 		~VertexArray();
 	private:
@@ -28,7 +33,7 @@ class VertexArray {
 		uint32 arrayID;
 
 		uint32 numBuffers;
-		uint32 numIndices;
+		uint32 numElements;
 		uint32 instancedComponentStartIndex;
 
 		uint32 numOwnedBuffers;
@@ -38,8 +43,11 @@ class VertexArray {
 
 		uint32 usage;
 
+		bool indexed;
+
 		void initVertexBuffers(uint32, const float**, uint32,
 				const uint32*, bool);
+		void initEmptyArrayBuffers(uint32, uint32, const uint32*);
 };
 
 inline const uint32 VertexArray::getBuffer(uint32 bufferIndex) {
