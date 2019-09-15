@@ -7,6 +7,8 @@
 
 class Shader;
 class VertexArray;
+class TransformFeedback;
+
 class RenderTarget;
 
 class RenderContext {
@@ -17,20 +19,30 @@ class RenderContext {
 
 		void draw(RenderTarget& target, Shader& shader, VertexArray& vertexArray,
 				uint32 primitive, uint32 numInstances = 1);
+
+		void drawArray(RenderTarget& target, Shader& shader, VertexArray& vertexArray,
+				uint32 bufferIndex, uint32 primitive, uint32 numInstances = 1,
+				uint32 numElements = 0);
+		void drawArray(Shader& shader, VertexArray& vertexArray,
+				uint32 bufferIndex, uint32 primitive, uint32 numInstances = 1,
+				uint32 numElements = 0);
+		
+		void drawQuad(RenderTarget& target, Shader& shader);
+
 		void compute(Shader& shader, uint32 numGroupsX,
 				uint32 numGroupsY = 1, uint32 numGroupsZ = 1);
-
-		void drawQuad(RenderTarget& target, Shader& shader);
 
 		void setDrawBuffers(uint32 numBuffers);
 
 		void setWriteDepth(bool writeDepth);
+		void setRasterizerDiscard(bool discard);
 
 		uint32 getVersion();
 		std::string getShaderVersion();
 
 		void setShader(uint32);
 		void setVertexArray(uint32);
+		void setTransformFeedback(uint32);
 
 		void setRenderTarget(uint32 fbo, uint32 bufferType = GL_FRAMEBUFFER);
 
@@ -45,6 +57,7 @@ class RenderContext {
 
 		uint32 currentShader;
 		uint32 currentVertexArray;
+		uint32 currentTFB;
 
 		uint32 currentRenderSource;
 		uint32 currentRenderTarget;

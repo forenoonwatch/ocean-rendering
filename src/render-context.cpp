@@ -2,6 +2,8 @@
 
 #include "shader.hpp"
 #include "vertex-array.hpp"
+#include "transform-feedback.hpp"
+
 #include "render-target.hpp"
 
 #include "indexed-model.hpp"
@@ -17,8 +19,9 @@ uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
 RenderContext::RenderContext()
 		: version(0)
 		, shaderVersion("")
-		, currentShader(-1)
-		, currentVertexArray(-1)
+		, currentShader(0)
+		, currentVertexArray(0)
+		, currentTFB(0)
 		, currentRenderSource(0)
 		, currentRenderTarget(0) {
 	glEnable(GL_CULL_FACE);
@@ -52,18 +55,59 @@ void RenderContext::draw(RenderTarget& target, Shader& shader,
 		case 0:
 			return;
 		case 1:
-			glDrawElements(primitive, (GLsizei)vertexArray.getNumIndices(), GL_UNSIGNED_INT, 0);
+			glDrawElements(primitive, (GLsizei)vertexArray.getNumElements(), GL_UNSIGNED_INT, 0);
 			return;
 		default:
-			glDrawElementsInstanced(primitive, (GLsizei)vertexArray.getNumIndices(),
+			glDrawElementsInstanced(primitive, (GLsizei)vertexArray.getNumElements(),
 					GL_UNSIGNED_INT, 0, numInstances);
 	}
 }
 
-void RenderContext::compute(Shader& shader, uint32 numGroupsX,
-		uint32 numGroupsY, uint32 numGroupsZ) {
+void RenderContext::drawArray(RenderTarget& target, Shader& shader,
+		VertexArray& vertexArray, uint32 bufferIndex, uint32 primitive,
+		uint32 numInstances, uint32 numElements) {
+	setRenderTarget(target.getID());
 	setShader(shader.getID());
-	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+	setVertexArray(vertexArray.getID());
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexArray.getBuffer(bufferIndex));
+
+	if (numElements == 0) {
+		numElements = vertexArray.getNumElements();
+	}
+
+	switch (numInstances) {
+		case 0:
+			return;
+		case 1:
+			glDrawArrays(primitive, 0, numElements);
+			return;
+		default:
+			glDrawArraysInstanced(primitive, 0, numElements, numInstances);
+	}
+}
+
+void RenderContext::drawArray(Shader& shader, VertexArray& vertexArray,
+		uint32 bufferIndex, uint32 primitive, uint32 numInstances,
+		uint32 numElements) {
+	setShader(shader.getID());
+	setVertexArray(vertexArray.getID());
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexArray.getBuffer(bufferIndex));
+
+	if (numElements == 0) {
+		numElements = vertexArray.getNumElements();
+	}
+
+	switch (numInstances) {
+		case 0:
+			return;
+		case 1:
+			glDrawArrays(primitive, 0, numElements);
+			return;
+		default:
+			glDrawArraysInstanced(primitive, 0, numElements, numInstances);
+	}
 }
 
 void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
@@ -71,8 +115,36 @@ void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
 	setShader(shader.getID());
 	setVertexArray(screenQuad->getID());
 
-	glDrawElements(GL_TRIANGLES, (GLsizei)screenQuad->getNumIndices(),
+	glDrawElements(GL_TRIANGLES, (GLsizei)screenQuad->getNumElements(),
 			GL_UNSIGNED_INT, 0);
+}
+
+/*void RenderContext::feedback(Shader& shader, TransformFeedback& transformFeedback,
+		uint32 primitive, bool drawArrays) {
+	setShader(shader.getID());
+	setVertexArray(transformFeedback.getVertexArray().getID());
+
+	glBindBuffer(GL_ARRAY_BUFFER, transformFeedback.getReadBuffer());
+	setTransformFeedback(transformFeedback.getWriteFeedback());
+
+	glBeginTransformFeedback(primitive);
+
+	if (drawArrays) {
+		glDrawArrays(primitive, 0, 1);
+	}
+	else {
+		glDrawTransformFeedback(primitive, transformFeedback.getReadFeedback());
+	}
+
+	glEndTransformFeedback();
+
+	transformFeedback.flip();
+}*/
+
+void RenderContext::compute(Shader& shader, uint32 numGroupsX,
+		uint32 numGroupsY, uint32 numGroupsZ) {
+	setShader(shader.getID());
+	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
 void RenderContext::setDrawBuffers(uint32 numBuffers) {
@@ -81,6 +153,15 @@ void RenderContext::setDrawBuffers(uint32 numBuffers) {
 
 void RenderContext::setWriteDepth(bool writeDepth) {
 	glDepthMask(writeDepth);
+}
+
+void RenderContext::setRasterizerDiscard(bool discard) {
+	if (discard) {
+		glEnable(GL_RASTERIZER_DISCARD);
+	}
+	else {
+		glDisable(GL_RASTERIZER_DISCARD);
+	}
 }
 
 uint32 RenderContext::getVersion() {
@@ -138,6 +219,13 @@ void RenderContext::setVertexArray(uint32 vao) {
 	if (currentVertexArray != vao) {
 		currentVertexArray = vao;
 		glBindVertexArray(vao);
+	}
+}
+
+void RenderContext::setTransformFeedback(uint32 tfb) {
+	if (currentTFB != tfb) {
+		currentTFB = tfb;
+		glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfb);
 	}
 }
 
