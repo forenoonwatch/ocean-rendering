@@ -52,4 +52,5 @@ void RenderTarget::addRenderBuffer(RenderBuffer& buffer,
 
 RenderTarget::~RenderTarget() {
 	glDeleteFramebuffers(1, &bufferID);
+	context->setRenderTarget(0);
 }
