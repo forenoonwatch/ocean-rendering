@@ -20,6 +20,8 @@ uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
 RenderContext::RenderContext()
 		: version(0)
 		, shaderVersion("")
+		, currentSourceBlend(BLEND_FUNC_NONE)
+		, currentDestBlend(BLEND_FUNC_NONE)
 		, currentShader(0)
 		, currentVertexArray(0)
 		, currentTFB(0)
@@ -180,6 +182,28 @@ void RenderContext::setRasterizerDiscard(bool discard) {
 	else {
 		glDisable(GL_RASTERIZER_DISCARD);
 	}
+}
+
+void RenderContext::setBlending(enum BlendFunc srcBlend,
+		enum BlendFunc destBlend) {
+	if (srcBlend == currentSourceBlend && destBlend == currentDestBlend) {
+		return;
+	}
+
+	if (srcBlend == BLEND_FUNC_NONE || destBlend == BLEND_FUNC_NONE) {
+		glDisable(GL_BLEND);
+	}
+	else if (currentSourceBlend == BLEND_FUNC_NONE 
+			|| currentDestBlend == BLEND_FUNC_NONE) {
+		glEnable(GL_BLEND);
+		glBlendFunc(srcBlend, destBlend);
+	}
+	else {
+		glBlendFunc(srcBlend, destBlend);
+	}
+
+	currentSourceBlend = srcBlend;
+	currentDestBlend = destBlend;
 }
 
 uint32 RenderContext::getVersion() {

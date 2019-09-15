@@ -14,6 +14,16 @@ class RenderTarget;
 
 class RenderContext {
 	public:
+		enum BlendFunc {
+			BLEND_FUNC_NONE,
+			BLEND_FUNC_ZERO = GL_ZERO,
+			BLEND_FUNC_ONE = GL_ONE,
+			BLEND_FUNC_SRC_ALPHA = GL_SRC_ALPHA,
+			BLEND_FUNC_ONE_MINUS_SRC_ALPHA = GL_ONE_MINUS_SRC_ALPHA,
+			BLEND_FUNC_ONE_MINUS_DST_ALPHA = GL_ONE_MINUS_DST_ALPHA,
+			BLEND_FUNC_DST_ALPHA = GL_DST_ALPHA
+		};
+
 		RenderContext();
 
 		void awaitFinish();
@@ -48,6 +58,7 @@ class RenderContext {
 
 		void setWriteDepth(bool writeDepth);
 		void setRasterizerDiscard(bool discard);
+		void setBlending(enum BlendFunc srcBlend, enum BlendFunc destBlend);
 
 		uint32 getVersion();
 		std::string getShaderVersion();
@@ -66,6 +77,9 @@ class RenderContext {
 
 		uint32 version;
 		std::string shaderVersion;
+
+		enum BlendFunc currentSourceBlend;
+		enum BlendFunc currentDestBlend;
 
 		uint32 currentShader;
 		uint32 currentVertexArray;
