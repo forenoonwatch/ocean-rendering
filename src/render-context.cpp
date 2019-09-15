@@ -3,6 +3,7 @@
 #include "shader.hpp"
 #include "vertex-array.hpp"
 #include "transform-feedback.hpp"
+#include "input-stream-buffer.hpp"
 
 #include "render-target.hpp"
 
@@ -108,6 +109,16 @@ void RenderContext::drawArray(Shader& shader, VertexArray& vertexArray,
 		default:
 			glDrawArraysInstanced(primitive, 0, numElements, numInstances);
 	}
+}
+
+void RenderContext::drawArray(Shader& shader, InputStreamBuffer& isb,
+		uint32 numElements, uint32 primitive) {
+	setShader(shader.getID());
+	setVertexArray(isb.getReadArray());
+
+	glBindBuffer(GL_ARRAY_BUFFER, isb.getReadBuffer());
+
+	glDrawArrays(primitive, 0, numElements);
 }
 
 void RenderContext::drawTransformFeedback(RenderTarget& target, Shader& shader,

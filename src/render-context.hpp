@@ -8,6 +8,7 @@
 class Shader;
 class VertexArray;
 class TransformFeedback;
+class InputStreamBuffer;
 
 class RenderTarget;
 
@@ -26,6 +27,8 @@ class RenderContext {
 		void drawArray(Shader& shader, VertexArray& vertexArray,
 				uint32 bufferIndex, uint32 primitive, uint32 numInstances = 1,
 				uint32 numElements = 0);
+		void drawArray(Shader& shader, InputStreamBuffer& isb, uint32 numElements,
+				uint32 primitive);
 
 		void drawTransformFeedback(RenderTarget& target, Shader& shader,
 				TransformFeedback& transformFeedback, uint32 primitive);
