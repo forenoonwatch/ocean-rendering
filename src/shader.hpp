@@ -14,7 +14,9 @@
 
 class Shader {
 	public:
-		Shader(RenderContext& context, const std::string& text);
+		Shader(RenderContext& context, const std::string& text,
+				const char** feedbackVaryings = nullptr, uintptr numFeedbackVaryings = 0,
+				uint32 varyingCaptureMode = GL_INTERLEAVED_ATTRIBS);
 
 		void setUniformBuffer(const std::string& name, UniformBuffer& buffer);
 

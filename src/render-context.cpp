@@ -110,6 +110,23 @@ void RenderContext::drawArray(Shader& shader, VertexArray& vertexArray,
 	}
 }
 
+void RenderContext::drawTransformFeedback(RenderTarget& target, Shader& shader,
+		TransformFeedback& transformFeedback, uint32 primitive) {
+	setRenderTarget(target.getID());
+	setShader(shader.getID());
+	setVertexArray(transformFeedback.getReadArray());
+
+	glDrawTransformFeedback(primitive, transformFeedback.getReadFeedback());
+}
+
+void RenderContext::drawTransformFeedback(Shader& shader,
+		TransformFeedback& transformFeedback, uint32 primitive) {
+	setShader(shader.getID());
+	setVertexArray(transformFeedback.getReadArray());
+
+	glDrawTransformFeedback(primitive, transformFeedback.getReadFeedback());
+}
+
 void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
 	setRenderTarget(target.getID());
 	setShader(shader.getID());
@@ -119,32 +136,22 @@ void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
 			GL_UNSIGNED_INT, 0);
 }
 
-/*void RenderContext::feedback(Shader& shader, TransformFeedback& transformFeedback,
-		uint32 primitive, bool drawArrays) {
-	setShader(shader.getID());
-	setVertexArray(transformFeedback.getVertexArray().getID());
-
-	glBindBuffer(GL_ARRAY_BUFFER, transformFeedback.getReadBuffer());
-	setTransformFeedback(transformFeedback.getWriteFeedback());
-
-	glBeginTransformFeedback(primitive);
-
-	if (drawArrays) {
-		glDrawArrays(primitive, 0, 1);
-	}
-	else {
-		glDrawTransformFeedback(primitive, transformFeedback.getReadFeedback());
-	}
-
-	glEndTransformFeedback();
-
-	transformFeedback.flip();
-}*/
-
 void RenderContext::compute(Shader& shader, uint32 numGroupsX,
 		uint32 numGroupsY, uint32 numGroupsZ) {
 	setShader(shader.getID());
 	glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+}
+
+void RenderContext::beginTransformFeedback(Shader& shader, TransformFeedback& tfb,
+		uint32 primitive) {
+	setShader(shader.getID());
+	setTransformFeedback(tfb.getWriteFeedback());
+
+	glBeginTransformFeedback(primitive);
+}
+
+void RenderContext::endTransformFeedback() {
+	glEndTransformFeedback();
 }
 
 void RenderContext::setDrawBuffers(uint32 numBuffers) {

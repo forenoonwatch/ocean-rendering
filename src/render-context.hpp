@@ -26,11 +26,20 @@ class RenderContext {
 		void drawArray(Shader& shader, VertexArray& vertexArray,
 				uint32 bufferIndex, uint32 primitive, uint32 numInstances = 1,
 				uint32 numElements = 0);
+
+		void drawTransformFeedback(RenderTarget& target, Shader& shader,
+				TransformFeedback& transformFeedback, uint32 primitive);
+		void drawTransformFeedback(Shader& shader, TransformFeedback& transformFeedback,
+				uint32 primitive);
 		
 		void drawQuad(RenderTarget& target, Shader& shader);
 
 		void compute(Shader& shader, uint32 numGroupsX,
 				uint32 numGroupsY = 1, uint32 numGroupsZ = 1);
+
+		void beginTransformFeedback(Shader& shader, TransformFeedback& tfb,
+				uint32 primitive);
+		void endTransformFeedback();
 
 		void setDrawBuffers(uint32 numBuffers);
 

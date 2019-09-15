@@ -14,7 +14,9 @@ static void addShaderUniforms(GLuint program,
 		std::unordered_map<std::string, int32>& samplerMap,
 		std::unordered_map<std::string, int32>& uniformMap); 
 
-Shader::Shader(RenderContext& context, const std::string& text)
+Shader::Shader(RenderContext& context, const std::string& text,
+			const char** feedbackVaryings, uintptr numFeedbackVaryings,
+			uint32 varyingCaptureMode)
 		: context(&context)
 		, programID(glCreateProgram()) {
 	std::string version = "#version " + context.getShaderVersion()
@@ -50,6 +52,11 @@ Shader::Shader(RenderContext& context, const std::string& text)
 				throw std::runtime_error("Failed to load geometry shader");
 			}
 		}
+	}
+
+	if (feedbackVaryings != nullptr && numFeedbackVaryings > 0) {
+		glTransformFeedbackVaryings(programID, numFeedbackVaryings,
+				feedbackVaryings, varyingCaptureMode);
 	}
 
 	glLinkProgram(programID);
@@ -142,6 +149,7 @@ Shader::~Shader() {
 	}
 
 	glDeleteProgram(programID);
+	context->setShader(0);
 }
 
 static bool addShader(GLuint program, const std::string& text,
