@@ -2,6 +2,7 @@
 
 #include "render-context.hpp"
 #include "indexed-model.hpp"
+#include "transform-feedback.hpp"
 
 class VertexArray {
 	public:
@@ -11,6 +12,11 @@ class VertexArray {
 
 		VertexArray(RenderContext& context, uint32 numBuffers,
 				const uint32* elementSizes, uint32 numElements, uint32 usage);
+
+		VertexArray(RenderContext& context, const IndexedModel& model,
+				TransformFeedback& tfb, uint32 bufferNum, uint32 usage);
+		VertexArray(RenderContext& context, const IndexedModel& model,
+				VertexArray& vertexArray, TransformFeedback& tfb, uint32 bufferNum);
 
 		void updateBuffer(uint32 bufferIndex, const void* data, uintptr dataSize);
 
@@ -26,6 +32,13 @@ class VertexArray {
 
 		~VertexArray();
 	private:
+		enum BufferOwnership {
+			FULLY_OWNED,
+			FULLY_SHARED,
+			SHARED_VERTEX_BUFFERS,
+			SHARED_INSTANCE_BUFFERS
+		};
+
 		NULL_COPY_AND_ASSIGN(VertexArray);
 
 		RenderContext* context;
@@ -45,9 +58,13 @@ class VertexArray {
 
 		bool indexed;
 
+		enum BufferOwnership bufferOwnership;
+
 		void initVertexBuffers(uint32, const float**, uint32,
 				const uint32*, bool);
 		void initEmptyArrayBuffers(uint32, uint32, const uint32*);
+		void initSharedBuffers(uint32, const float**, uint32, const uint32*,
+				uint32, const uint32*, uint32, uint32, bool);
 };
 
 inline const uint32 VertexArray::getBuffer(uint32 bufferIndex) {

@@ -4,10 +4,10 @@
 
 class TransformFeedback {
 	public:
-		TransformFeedback(RenderContext& context, uint32 numAttribs,
-				const uint32* attribSizes, uint32 numElements);
+		TransformFeedback(RenderContext& context, uint32 numAttribsIn,
+				const uint32* attribSizesIn, uint32 numElements);
 
-		inline void flip();
+		inline void swapBuffers();
 
 		inline uint32 getFeedback(uint32 i) { return feedbacks[i]; }
 		inline uint32 getBuffer(uint32 i) { return buffers[i]; }
@@ -21,7 +21,11 @@ class TransformFeedback {
 		inline uint32 getReadBuffer() { return buffers[writeFeedback]; }
 		inline uint32 getWriteBuffer() { return buffers[readFeedback]; }
 
-		inline const uint32* getFeedbacks() { return feedbacks; }
+		inline uint32 getNumAttribs() const { return numAttribs; }
+		inline const uint32* getAttribSizes() const { return attribSizes; }
+		
+		inline uintptr getDataBlockSize() const { return dataBlockSize; }
+		inline uintptr getBufferSize() const { return bufferSize; }
 
 		~TransformFeedback();
 	private:
@@ -33,11 +37,17 @@ class TransformFeedback {
 		uint32 buffers[2];
 		uint32 feedbacks[2];
 
+		uint32 numAttribs;
+		uint32* attribSizes;
+
+		uintptr dataBlockSize;
+		uintptr bufferSize;
+
 		uint32 readFeedback;
 		uint32 writeFeedback;
 };
 
-inline void TransformFeedback::flip() {
+inline void TransformFeedback::swapBuffers() {
 	writeFeedback = readFeedback;
 	readFeedback = (readFeedback + 1) & 1;
 }
