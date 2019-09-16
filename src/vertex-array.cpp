@@ -141,6 +141,7 @@ VertexArray::VertexArray(RenderContext& context,
 			model.getNumVertexComponents() * sizeof(GLuint));
 
 	buffers[numBuffers - 2] = tfb.getBuffer(bufferNum);
+	buffers[numBuffers - 1] = vertexArray.buffers[vertexArray.numBuffers - 1];
 
 	std::vector<const float*> vertexData = model.getVertexData();
 	initSharedBuffers(model.getNumVertexComponents(), &vertexData[0],
@@ -352,6 +353,7 @@ void VertexArray::initSharedBuffers(uint32 numVertexComponents,
 			glEnableVertexAttribArray(attribute);
 			glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
 					instanceDataSize, (const void*)(offset));
+			glVertexAttribDivisor(attribute, 1);
 
 			offset += 4 * sizeof(float);
 			++attribute;
@@ -361,6 +363,7 @@ void VertexArray::initSharedBuffers(uint32 numVertexComponents,
 			glEnableVertexAttribArray(attribute);
 			glVertexAttribPointer(attribute, elementSizeRem, GL_FLOAT, GL_FALSE,
 					instanceDataSize, (const void*)(offset));
+			glVertexAttribDivisor(attribute, 1);
 
 			offset += elementSizeRem * sizeof(float);
 			++attribute;
