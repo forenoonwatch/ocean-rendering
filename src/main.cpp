@@ -16,9 +16,6 @@
 #include "shader.hpp"
 #include "util.hpp"
 
-#include "transform-feedback.hpp"
-#include "input-stream-buffer.hpp"
-
 #include "ocean.hpp"
 #include "ocean-fft.hpp"
 #include "ocean-projector.hpp"
@@ -26,6 +23,8 @@
 #include "asset-loader.hpp"
 
 #include "deferred-render-target.hpp"
+
+#include "particle-system.hpp"
 
 #define MOVE_SPEED	0.5f
 
@@ -47,49 +46,6 @@ bool renderWater;
 uint32 primitive;
 
 float beaufort;
-
-struct Particle {
-	float position[3];
-	float velocity[3];
-	float timeToLive;
-};
-
-void testTFB(RenderContext& context) {
-	// render
-	/*context.setRasterizerDiscard(true);
-	context.beginTransformFeedback(particleShader, tfb, GL_POINTS);
-
-	context.drawArray(particleShader, buffers, 0, GL_POINTS, 1, 3);
-	context.drawArray(particleShader, buffers, 0, GL_POINTS, 1, 3);
-
-	context.endTransformFeedback();
-	context.setRasterizerDiscard(false);
-
-	context.awaitFinish();
-
-	float result[6];
-
-	glBindBuffer(GL_ARRAY_BUFFER, tfb.getBuffer(0));
-	glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(result), result);
-	DEBUG_LOG_TEMP("%.1f, %.1f, %.1f, %.1f, %.1f, %.1f", result[0], result[1], result[2],
-			result[3], result[4], result[5]);
-
-	for (uint32 i = 0; i < 3; ++i) {
-		tfb.flip();
-
-		context.setRasterizerDiscard(true);
-		context.beginTransformFeedback(particleShader, tfb, GL_POINTS);
-
-		//context.drawTransformFeedback(particleShader, tfb, GL_POINTS);
-		glUseProgram(particleShader.getID());
-		glDrawTransformFeedback(GL_POINTS, tfb.getReadFeedback());
-
-		context.endTransformFeedback();
-		context.setRasterizerDiscard(false);
-
-		context.awaitFinish();
-	}*/
-}
 
 int main() {
 	Display display("MoIsT - Ocean Rendering", 1200, 900);
@@ -115,8 +71,6 @@ int main() {
 
 	RenderContext context;
 	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
-
-	testTFB(context);
 
 	loadShaders(context, shaders);
 	
@@ -209,36 +163,12 @@ int main() {
 
 	Sampler mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
 
-	const char* varyings[] = {"position1", "velocity1", "ttl1"};
-	std::stringstream ss;
-	Util::resolveFileLinking(ss, "./src/particle-update-shader.glsl", "#include");
-	Shader particleShader(context, ss.str(), varyings,
-			ARRAY_SIZE_IN_ELEMENTS(varyings), GL_INTERLEAVED_ATTRIBS);
+	const Particle particle {glm::vec3(5.f, 0.f, 0.f), glm::vec3(0.f, 10.f, 0.f), 1.f};
+	ParticleSystem particleSystem(context, 100, 10);
 
-	const Particle data[1] = {{0.f, 0.f, 0.f, 0.f, 10.f, 0.f, 1.f}};
-	const uint32 elementSizes[] = {3, 3, 1};
+	//VertexArray tfbCube0(context, cubeModel, tfb, 0, GL_STATIC_DRAW);
+	//VertexArray tfbCube1(context, cubeModel, tfbCube0, tfb, 1);
 
-	TransformFeedback tfb(context, ARRAY_SIZE_IN_ELEMENTS(elementSizes),
-			elementSizes, 100);
-	InputStreamBuffer isb(context, ARRAY_SIZE_IN_ELEMENTS(elementSizes),
-			elementSizes, 10);
-
-	VertexArray tfbCube0(context, cubeModel, tfb, 0, GL_STATIC_DRAW);
-	VertexArray tfbCube1(context, cubeModel, tfbCube0, tfb, 1);
-
-	context.setRasterizerDiscard(true);
-	context.beginTransformFeedback(particleShader, tfb, GL_POINTS);
-
-	context.drawArray(particleShader, isb, 1, GL_POINTS);
-
-	context.endTransformFeedback();
-	context.setRasterizerDiscard(false);
-
-	context.awaitFinish();
-
-	tfb.swapBuffers();
-
-	uint32 numParticles = 0;
 	float particleCounter = 0.f;
 
 	while (!display.isCloseRequested()) {
@@ -285,26 +215,11 @@ int main() {
 		particleCounter += 1.f / 60.f;
 
 		if (particleCounter > 0.1f) {
-			numParticles = 1;
-			isb.update(data, sizeof(data));
+			particleSystem.drawParticle(particle);
 			particleCounter = 0.f;
 		}
 
-		context.setRasterizerDiscard(true);
-		context.beginTransformFeedback(particleShader, tfb, GL_POINTS);
-
-		if (numParticles > 0) {
-			context.drawArray(particleShader, isb, numParticles, GL_POINTS);
-			numParticles = 0;
-		}
-
-		context.drawTransformFeedback(particleShader, tfb, GL_POINTS);
-
-		context.endTransformFeedback();
-		context.setRasterizerDiscard(false);
-
-		context.awaitFinish();
-		tfb.swapBuffers();
+		particleSystem.update();
 		// END PARTICLE UPDATE
 
 		// BEGIN DRAW
@@ -351,11 +266,7 @@ int main() {
 		shaders["skybox-deferred"]->setSampler("skybox", specularIBL, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
 
-		context.setBlending(RenderContext::BLEND_FUNC_SRC_ALPHA,
-				RenderContext::BLEND_FUNC_DST_ALPHA);
-		shaders["billboard-shader"]->setSampler("billboard", smoke, skyboxSampler, 0);
-		context.drawTransformFeedback(gBuffer.getTarget(), *shaders["billboard-shader"], tfb, GL_POINTS);
-		context.setBlending(RenderContext::BLEND_FUNC_NONE, RenderContext::BLEND_FUNC_NONE);
+		particleSystem.draw(gBuffer.getTarget(), smoke, skyboxSampler);
 
 		gBuffer.flush();
 

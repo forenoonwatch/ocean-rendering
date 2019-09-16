@@ -36,7 +36,7 @@ void main() {
 	const float ttl = ttl0[0] - deltaTime;
 
 	if (ttl > 0.0) {
-		const vec3 velocity = velocity0[0];
+		const vec3 velocity = fma(vec3(10.0, 0.0, 10.0), vec3(deltaTime), velocity0[0]);
 
 		position1 = fma(velocity, vec3(deltaTime), position0[0]);
 		velocity1 = velocity;
