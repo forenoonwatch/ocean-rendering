@@ -6,11 +6,14 @@
 #include <GL/glew.h>
 
 class Shader;
+
 class VertexArray;
 class TransformFeedback;
 class InputStreamBuffer;
 
 class RenderTarget;
+
+class RenderQuery;
 
 class RenderContext {
 	public:
@@ -53,6 +56,9 @@ class RenderContext {
 		void beginTransformFeedback(Shader& shader, TransformFeedback& tfb,
 				uint32 primitive);
 		void endTransformFeedback();
+
+		void beginQuery(RenderQuery& query);
+		void endQuery(RenderQuery& query);
 
 		void setDrawBuffers(uint32 numBuffers);
 

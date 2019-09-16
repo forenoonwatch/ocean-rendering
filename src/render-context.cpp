@@ -1,11 +1,14 @@
 #include "render-context.hpp"
 
 #include "shader.hpp"
+
 #include "vertex-array.hpp"
 #include "transform-feedback.hpp"
 #include "input-stream-buffer.hpp"
 
 #include "render-target.hpp"
+
+#include "render-query.hpp"
 
 #include "indexed-model.hpp"
 
@@ -165,6 +168,14 @@ void RenderContext::beginTransformFeedback(Shader& shader, TransformFeedback& tf
 
 void RenderContext::endTransformFeedback() {
 	glEndTransformFeedback();
+}
+
+void RenderContext::beginQuery(RenderQuery& query) {
+	glBeginQuery(query.getType(), query.getID());
+}
+
+void RenderContext::endQuery(RenderQuery& query) {
+	glEndQuery(query.getType());
 }
 
 void RenderContext::setDrawBuffers(uint32 numBuffers) {
