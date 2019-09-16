@@ -359,9 +359,10 @@ void VertexArray::initSharedBuffers(uint32 numVertexComponents,
 
 		if (elementSizeRem != 0) {
 			glEnableVertexAttribArray(attribute);
-			glVertexAttribPointer(attribute, elementSize, GL_FLOAT, GL_FALSE,
+			glVertexAttribPointer(attribute, elementSizeRem, GL_FLOAT, GL_FALSE,
 					instanceDataSize, (const void*)(offset));
 
+			offset += elementSizeRem * sizeof(float);
 			++attribute;
 		}
 	}

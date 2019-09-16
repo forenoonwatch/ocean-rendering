@@ -19,7 +19,6 @@ TransformFeedback::TransformFeedback(RenderContext& context,
 
 	bufferSize = dataBlockSize * (uintptr)numElements;
 
-	// TODO: add support for attribs over 4 floats long	
 	for (uint32 i = 0; i < 2; ++i) {
 		context.setVertexArray(arrays[i]);
 		context.setTransformFeedback(feedbacks[i]);
@@ -27,12 +26,31 @@ TransformFeedback::TransformFeedback(RenderContext& context,
 
 		glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_STREAM_DRAW);
 
-		for (uint32 attrib = 0, offset = 0; attrib < numAttribs; ++attrib) {
-			glEnableVertexAttribArray(attrib);
-			glVertexAttribPointer(attrib, attribSizes[attrib], GL_FLOAT, GL_FALSE,
-					dataBlockSize, (const void*)(offset * sizeof(float)));
+		uint32 offset = 0;
+		uint32 attribute = 0;
 
-			offset += attribSizes[attrib];
+		for (uint32 j = 0; j < numAttribs; ++j) {
+			const uint32 elementSize = attribSizes[j];
+			const uint32 elementSizeDiv = elementSize / 4;
+			const uint32 elementSizeRem = elementSize % 4;
+
+			for (uint32 k = 0; k < elementSizeDiv; ++k) {
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
+						dataBlockSize, (const void*)(offset));
+
+				offset += 4 * sizeof(float);
+				++attribute;
+			}
+
+			if (elementSizeRem != 0) {
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, elementSizeRem, GL_FLOAT, GL_FALSE,
+						dataBlockSize, (const void*)(offset));
+
+				offset += elementSizeRem * sizeof(float);
+				++attribute;
+			}
 		}
 
 		glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buffers[i]);
