@@ -21,8 +21,6 @@ out vec3 normal1;
 out vec2 texCoord1;
 
 void main() {
-	const mat4 viewProjection = inverse(invVP); // TODO: provide vp
-
 	vec3 pos = gl_in[0].gl_Position.xyz;
 	vec3 toCamera = normalize(cameraPosition - pos);
 	vec3 right = normalize(cross(toCamera, vec3(0.0, 1.0, 0.0)));

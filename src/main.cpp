@@ -78,7 +78,7 @@ int main() {
 	OceanProjector projector(ocean, userCamera);
 
 	UniformBuffer sceneDataBuffer(context, sizeof(glm::vec3) + sizeof(glm::vec2)
-			+ sizeof(glm::mat4), GL_STREAM_DRAW, 0);
+			+ 2 * sizeof(glm::mat4), GL_STREAM_DRAW, 0);
 	UniformBuffer oceanDataBuffer(context, 4 * sizeof(glm::vec4)
 			+ 3 * sizeof(float), GL_STREAM_DRAW, 1);
 	UniformBuffer lightDataBuffer(context, 1 * sizeof(glm::vec3)
@@ -180,8 +180,11 @@ int main() {
 		}
 		
 		sceneDataBuffer.update(glm::value_ptr(camera->getPosition()), sizeof(glm::vec3));
-		sceneDataBuffer.update(glm::value_ptr(camera->getInverseVP()),
+		sceneDataBuffer.update(glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::vec3) + sizeof(glm::vec2) + 3 * sizeof(float), sizeof(glm::mat4));
+		sceneDataBuffer.update(glm::value_ptr(camera->getInverseVP()),
+				sizeof(glm::vec3) + sizeof(glm::vec2) + 3 * sizeof(float)
+				+ sizeof(glm::mat4), sizeof(glm::mat4));
 
 		//lightDataBuffer.update(glm::value_ptr(glm::normalize(glm::vec3(std::cos(glfwGetTime()),
 		//		1, std::sin(glfwGetTime())))), sizeof(glm::vec3));
