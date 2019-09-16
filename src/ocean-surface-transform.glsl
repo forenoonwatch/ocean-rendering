@@ -42,9 +42,10 @@ void main() {
 	vec3 up = cross(forward, right);
 
 	pos.y = 0.25 * (ptFwd.y + ptBack.y + ptLeft.y + ptRight.y);
+	//pos.y = height(pos.xz);
 
-	transforms[i] = mat4(vec4(right, 0.0), vec4(up, 0.0), vec4(forward, 0.0),
-			vec4(pos, 1.0));
+	transforms[i] = mat4(vec4(right, 0.0), vec4(up, 0.0),
+			vec4(forward, 0.0), vec4(pos, 1.0));
 }
 
 #endif

@@ -27,6 +27,9 @@ class TransformFeedback {
 		inline uintptr getDataBlockSize() const { return dataBlockSize; }
 		inline uintptr getBufferSize() const { return bufferSize; }
 
+		inline uint32 getReadIndex() const { return readFeedback; }
+		inline uint32 getWriteIndex() const { return writeFeedback; }
+
 		~TransformFeedback();
 	private:
 		NULL_COPY_AND_ASSIGN(TransformFeedback);

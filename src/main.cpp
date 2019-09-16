@@ -25,6 +25,7 @@
 #include "deferred-render-target.hpp"
 
 #include "particle-system.hpp"
+#include "wake-system.hpp"
 
 #define MOVE_SPEED	0.5f
 
@@ -163,8 +164,10 @@ int main() {
 
 	Sampler mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
 
-	const Particle particle {glm::vec3(5.f, 0.f, 0.f), glm::vec3(0.f, 10.f, 0.f), 1.f};
-	ParticleSystem particleSystem(context, 100, 10);
+	const Particle particle {glm::vec3(5.f, 0.f, 0.f), glm::vec3(0.f, 10.f, 0.f), 1.2f};
+	
+	ParticleSystem particleSystem(context, 10, 5);
+	WakeSystem wakeSystem(context, oceanFFT.getDisplacement(), oceanSampler, 100, 10);
 
 	//VertexArray tfbCube0(context, cubeModel, tfb, 0, GL_STATIC_DRAW);
 	//VertexArray tfbCube1(context, cubeModel, tfbCube0, tfb, 1);
@@ -211,18 +214,22 @@ int main() {
 		blockPos = glm::scale(oceanFFT.getFloatingTransforms()[0],
 				glm::vec3(2.f, 0.05f + 0.9f * (beaufort / 12.f), 2.f));
 		blockPos[3][1] -= 0.45f * (beaufort / 12.f);
+		blockPos *= glm::rotate(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.1f)),
+				0.01f, glm::vec3(0.f, 1.f, 0.f));
 		glm::mat4 mats[] = {camera->getViewProjection() * blockPos, blockPos};
 		loadedModel.updateBuffer(4, mats, sizeof(mats));
 
 		// BEGIN PARTICLE UPDATE
 		particleCounter += 1.f / 60.f;
 
-		if (particleCounter > 0.1f) {
+		if (particleCounter > 0.01f) {
 			particleSystem.drawParticle(particle);
+			wakeSystem.drawWake(blockPos);
 			particleCounter = 0.f;
 		}
 
 		particleSystem.update();
+		wakeSystem.update();
 		// END PARTICLE UPDATE
 
 		// BEGIN DRAW
@@ -252,7 +259,8 @@ int main() {
 		shaders["decal-shader"]->setSampler("aoMap", aoMap, mipmapSampler, 5);
 		context.draw(gBuffer.getTarget(), *shaders["decal-shader"], loadedModel, GL_TRIANGLES);*/
 
-		shaders["wake-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
+		/*shaders["wake-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
+		//shaders["wake-shader"]->setMatrix4f("invMVP", glm::inverse(blockPos) * camera->getInverseVP());
 
 		shaders["wake-shader"]->setSampler("depthBuffer", gBuffer.getDepthBuffer(), sampler, 0);
 		shaders["wake-shader"]->setSampler("colorBuffer", gBuffer.getColorBuffer(), sampler, 1);
@@ -260,7 +268,9 @@ int main() {
 		shaders["wake-shader"]->setSampler("lightingBuffer", gBuffer.getLightingBuffer(), sampler, 3);
 
 		shaders["wake-shader"]->setSampler("diffuse", wake, skyboxSampler, 4);
-		context.draw(gBuffer.getTarget(), *shaders["wake-shader"], loadedModel, GL_TRIANGLES);
+		context.draw(gBuffer.getTarget(), *shaders["wake-shader"], loadedModel, GL_TRIANGLES);*/
+
+		wakeSystem.draw(gBuffer, wake, skyboxSampler);
 
 		gBuffer.applyLighting();
 
@@ -268,7 +278,7 @@ int main() {
 			camera->getPosition())), sizeof(glm::mat4));
 		shaders["skybox-deferred"]->setSampler("skybox", specularIBL, mipmapSampler, 0);
 		context.draw(gBuffer.getTarget(), *shaders["skybox-deferred"], cube, GL_TRIANGLES);
-
+		
 		particleSystem.draw(gBuffer.getTarget(), smoke, skyboxSampler);
 
 		gBuffer.flush();

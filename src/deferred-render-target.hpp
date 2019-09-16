@@ -16,8 +16,12 @@ class DeferredRenderTarget {
 
 		inline RenderTarget& getTarget() { return target; }
 
+		inline Texture& getColorBuffer() { return colorBuffer; }
 		inline Texture& getNormalBuffer() { return normalBuffer; }
+		inline Texture& getLightingBuffer() { return lightingBuffer; }
 		inline Texture& getDepthBuffer() { return depthBuffer; }
+
+		inline Sampler& getSampler() { return sampler; }
 
 		~DeferredRenderTarget();
 	private:
