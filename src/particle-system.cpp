@@ -5,8 +5,8 @@
 ParticleSystem::ParticleSystem(RenderContext& context,
 			uintptr particleBufferSize, uintptr inputBufferSize)
 		: context(&context) {
-	const uint32 elementSizes[] = {3, 3, 1};
-	const char* varyings[] = {"position1", "velocity1", "ttl1"};
+	const uint32 elementSizes[] = {3, 3, 4, 2};
+	const char* varyings[] = {"position1", "velocity1", "transScale1", "ttl1"};
 
 	feedback = new TransformFeedback(context, ARRAY_SIZE_IN_ELEMENTS(elementSizes),
 			elementSizes, particleBufferSize);
@@ -36,8 +36,8 @@ void ParticleSystem::drawParticle(const Particle& particle) {
 }
 
 void ParticleSystem::drawParticle(const glm::vec3& position,
-		const glm::vec3& velocity, float timeToLive) {
-	particleBuffer.emplace_back(position, velocity, timeToLive);
+		const glm::vec3& velocity, const glm::vec4&  transScale, float timeToLive) {
+	particleBuffer.emplace_back(position, velocity, transScale, timeToLive);
 }
 
 void ParticleSystem::update() {

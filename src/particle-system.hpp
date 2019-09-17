@@ -12,14 +12,17 @@
 
 struct Particle {
 	inline Particle(const glm::vec3& position,
-				const glm::vec3& velocity, float timeToLive)
+				const glm::vec3& velocity, const glm::vec4& transScale,
+				float timeToLive)
 			: position(position)
 			, velocity(velocity)
-			, timeToLive(timeToLive) {}
+			, transScale(transScale)
+			, timeData(timeToLive, timeToLive) {}
 
 	glm::vec3 position;
 	glm::vec3 velocity;
-	float timeToLive;
+	glm::vec4 transScale;
+	glm::vec2 timeData;
 };
 
 class ParticleSystem {
@@ -29,7 +32,7 @@ class ParticleSystem {
 
 		void drawParticle(const Particle& particle);
 		void drawParticle(const glm::vec3& position, const glm::vec3& velocity,
-				float timeToLive);
+				const glm::vec4& transScale, float timeToLive);
 
 		void update();
 		void draw(RenderTarget& target, Texture& texture, Sampler& sampler);

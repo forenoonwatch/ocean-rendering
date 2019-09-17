@@ -5,10 +5,17 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 velocity;
-layout (location = 2) in float timeToLive;
+layout (location = 2) in vec4 transScale;
+layout (location = 3) in vec2 timeToLive;
+
+out vec2 transScale0;
 
 void main() {
+	const float timeScale = 1.0 - timeToLive.x / timeToLive.y;
+
 	gl_Position = vec4(position, 1.0);
+	transScale0 = mix(transScale.xz, transScale.yw, timeScale);
+	transScale0.x = clamp(transScale0.x, 0.0, 1.0);
 }
 
 #elif defined(GS_BUILD)
@@ -17,17 +24,21 @@ layout (points) in;
 layout (triangle_strip) out;
 layout (max_vertices = 4) out;
 
+in vec2 transScale0[];
+
 out vec3 normal1;
 out vec2 texCoord1;
+out float transparency1;
 
 void main() {
 	vec3 pos = gl_in[0].gl_Position.xyz;
 	vec3 toCamera = normalize(cameraPosition - pos);
 	vec3 right = normalize(cross(toCamera, vec3(0.0, 1.0, 0.0)));
-	vec3 up = cross(right, toCamera);// * transScale0[0].y;
-	//right *= transScale0[0].y;
+	vec3 up = cross(right, toCamera) * transScale0[0].y;
+	right *= transScale0[0].y;
 
 	normal1 = toCamera;
+	transparency1 = transScale0[0].x;
 
 	pos -= right;
 	pos -= up;
@@ -58,6 +69,7 @@ void main() {
 
 in vec3 normal1;
 in vec2 texCoord1;
+in float transparency1;
 
 uniform sampler2D billboard;
 
@@ -68,8 +80,8 @@ layout (location = 2) out vec4 outLighting;
 void main() {
 	const vec4 diffuse = texture2D(billboard, texCoord1);
 
-	outColor = vec4(diffuse.xyz * 0.7, diffuse.w);
-	outNormal = vec4(normal1, diffuse.w);
+	outColor = vec4(diffuse.xyz, diffuse.w * transparency1);
+	outNormal = vec4(normal1, diffuse.w * transparency1);
 	outLighting = vec4(0.0, 1.0, 0.0, 1.0);
 }
 

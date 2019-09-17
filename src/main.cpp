@@ -165,8 +165,6 @@ int main() {
 			sizeof(glm::vec3) + sizeof(float), sizeof(glm::vec2));
 
 	Sampler mipmapSampler(context, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-
-	const Particle particle {glm::vec3(5.f, 0.f, 0.f), glm::vec3(0.f, 10.f, 0.f), 1.2f};
 	
 	ParticleSystem particleSystem(context, 100, 10);
 	WakeSystem wakeSystem(context, oceanFFT.getDisplacement(), oceanSampler, 300, 10);
@@ -240,9 +238,9 @@ int main() {
 					+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
 
 			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.7f, 0.2f, -8.f, 1.f)),
-					velL, 0.5f);
+					velL, glm::vec4(1.f, 0.f, 0.5f, 1.f), 0.5f);
 			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.7f, 0.2f, -8.f, 1.f)),
-					velR, 0.5f);
+					velR, glm::vec4(1.f, 0.f, 0.5f, 1.f), 0.5f);
 
 			particleCounter = 0.f;
 		}
