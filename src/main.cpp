@@ -34,6 +34,7 @@ void onMouseClicked(GLFWwindow*, int, int, int);
 void onMouseMoved(GLFWwindow*, double, double);
 
 void updateCameraMovement(Display&);
+void cameraFollow(const glm::vec3&, float);
 
 void createCube(IndexedModel&);
 void loadShaders(RenderContext&,
@@ -61,7 +62,7 @@ int main() {
 	float fieldOfView = glm::radians(70.f);
 	float aspectRatio = (float)display.getWidth() / (float)display.getHeight();
 	float zNear = 0.1f;
-	float zFar = 100.f;
+	float zFar = 1000.f;
 
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
@@ -91,7 +92,7 @@ int main() {
 		lightDataBuffer.update(lightData, sizeof(glm::vec3), sizeof(lightData));
 
 		float fogData[] = {202.f / 255.f, 243.f / 255.f, 246.f / 255.f,
-			0.002f, 1.f};
+			0.001f, 2.f};
 
 		lightDataBuffer.update(fogData, sizeof(glm::vec3) + sizeof(lightData)
 				+ 2 * sizeof(float), sizeof(fogData));
@@ -114,7 +115,8 @@ int main() {
 	VertexArray cube(context, cubeModel, GL_STATIC_DRAW);
 
 	std::vector<IndexedModel> loadedModels;
-	AssetLoader::loadAssets("./res/cube.obj", loadedModels);
+	//AssetLoader::loadAssets("./res/cube.obj", loadedModels);
+	AssetLoader::loadAssets("./res/hull.fbx", loadedModels);
 
 	VertexArray loadedModel(context, loadedModels[0], GL_STATIC_DRAW);
 
@@ -122,20 +124,20 @@ int main() {
 
 	DDSTexture ddsTexture;
 	
-	//ddsTexture.load("./res/wood-planks.dds");
-	ddsTexture.load("./res/bricks.dds");
+	ddsTexture.load("./res/wood-planks.dds");
+	//ddsTexture.load("./res/bricks.dds");
 	Texture diffuseMap(context, ddsTexture);
 
-	//ddsTexture.load("./res/wood-planks-normal2.dds");
-	ddsTexture.load("./res/bricks-normal.dds");
+	ddsTexture.load("./res/wood-planks-normal2.dds");
+	//ddsTexture.load("./res/bricks-normal.dds");
 	Texture normalMap(context, ddsTexture);
 
-	//ddsTexture.load("./res/wood-planks-roughness.dds");
-	ddsTexture.load("./res/bricks-roughness.dds");
+	ddsTexture.load("./res/wood-planks-roughness.dds");
+	//ddsTexture.load("./res/bricks-roughness.dds");
 	Texture roughnessMap(context, ddsTexture);
 
-	//ddsTexture.load("./res/wood-planks-ao.dds");
-	ddsTexture.load("./res/bricks-ao.dds");
+	ddsTexture.load("./res/wood-planks-ao.dds");
+	//ddsTexture.load("./res/bricks-ao.dds");
 	Texture aoMap(context, ddsTexture);
 
 	//ddsTexture.load("./res/sargasso-diffuse.dds");
@@ -166,8 +168,8 @@ int main() {
 
 	const Particle particle {glm::vec3(5.f, 0.f, 0.f), glm::vec3(0.f, 10.f, 0.f), 1.2f};
 	
-	ParticleSystem particleSystem(context, 10, 5);
-	WakeSystem wakeSystem(context, oceanFFT.getDisplacement(), oceanSampler, 100, 10);
+	ParticleSystem particleSystem(context, 100, 10);
+	WakeSystem wakeSystem(context, oceanFFT.getDisplacement(), oceanSampler, 300, 10);
 
 	//VertexArray tfbCube0(context, cubeModel, tfb, 0, GL_STATIC_DRAW);
 	//VertexArray tfbCube1(context, cubeModel, tfbCube0, tfb, 1);
@@ -175,7 +177,10 @@ int main() {
 	float particleCounter = 0.f;
 
 	while (!display.isCloseRequested()) {
+		glm::vec3 shipPos = glm::vec3(blockPos[3]) / blockPos[3][3];
+
 		updateCameraMovement(display);
+		//cameraFollow(shipPos, 10.f);
 		camera->update();
 
 		if (lockCamera) {
@@ -202,7 +207,7 @@ int main() {
 		//		std::sin(0.2 * glfwGetTime()), 0.f))),
 		//		sizeof(glm::vec3));
 		
-		oceanFFT.addFloatingTransform(blockPos, glm::vec2(1.f, 1.f));
+		oceanFFT.addFloatingTransform(blockPos, glm::vec2(2.5f, 5.f));
 
 		oceanFFT.update(1.f / 60.f);
 
@@ -211,20 +216,34 @@ int main() {
 		ocean.getGridArray().updateBuffer(1, glm::value_ptr(camera->getViewProjection()),
 				sizeof(glm::mat4));
 
-		blockPos = glm::scale(oceanFFT.getFloatingTransforms()[0],
-				glm::vec3(2.f, 0.05f + 0.9f * (beaufort / 12.f), 2.f));
-		blockPos[3][1] -= 0.45f * (beaufort / 12.f);
-		blockPos *= glm::rotate(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.1f)),
-				0.01f, glm::vec3(0.f, 1.f, 0.f));
+		//blockPos = glm::scale(oceanFFT.getFloatingTransforms()[0],
+		//		glm::vec3(2.f, 0.05f + 0.9f * (beaufort / 12.f), 2.f));
+		//blockPos[3][1] -= 0.45f * (beaufort / 12.f);
+		blockPos = oceanFFT.getFloatingTransforms()[0];
+		blockPos *= glm::rotate(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -0.1f)),
+				0.001f, glm::vec3(0.f, 1.f, 0.f));
 		glm::mat4 mats[] = {camera->getViewProjection() * blockPos, blockPos};
 		loadedModel.updateBuffer(4, mats, sizeof(mats));
 
 		// BEGIN PARTICLE UPDATE
 		particleCounter += 1.f / 60.f;
 
-		if (particleCounter > 0.01f) {
-			particleSystem.drawParticle(particle);
-			wakeSystem.drawWake(blockPos);
+		if (particleCounter > 0.08f) {
+			//particleSystem.drawParticle(particle);
+			
+			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(-1.5f, 0.f, -6.5f)));
+			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(1.5f, 0.f, -6.5f)));
+
+			glm::vec3 velL = glm::normalize(-10.f * glm::vec3(blockPos[0])
+					+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+			glm::vec3 velR = glm::normalize(10.f * glm::vec3(blockPos[0])
+					+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.7f, 0.2f, -8.f, 1.f)),
+					velL, 0.5f);
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.7f, 0.2f, -8.f, 1.f)),
+					velR, 0.5f);
+
 			particleCounter = 0.f;
 		}
 
@@ -235,18 +254,18 @@ int main() {
 		// BEGIN DRAW
 		gBuffer.clear();
 
-		shaders["static-mesh-deferred"]->setSampler("diffuse", diffuseMap, mipmapSampler, 0);
-		shaders["static-mesh-deferred"]->setSampler("normalMap", normalMap, mipmapSampler, 1);
-		shaders["static-mesh-deferred"]->setSampler("roughnessMap", roughnessMap, mipmapSampler, 2);
-		shaders["static-mesh-deferred"]->setSampler("aoMap", aoMap, mipmapSampler, 3);
-		//context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
-
 		shaders["ocean-deferred"]->setSampler("displacementMap", oceanFFT.getDisplacement(), oceanSampler, 0);
 		shaders["ocean-deferred"]->setSampler("foldingMap", oceanFFT.getFoldingMap(), oceanSampler, 1);
 		shaders["ocean-deferred"]->setSampler("foam", foam, oceanSampler, 2);
 		context.draw(gBuffer.getTarget(), *shaders["ocean-deferred"], ocean.getGridArray(), primitive);
 
-		context.setWriteDepth(false);
+		wakeSystem.draw(gBuffer, wake, skyboxSampler);
+
+		shaders["static-mesh-deferred"]->setSampler("diffuse", diffuseMap, mipmapSampler, 0);
+		shaders["static-mesh-deferred"]->setSampler("normalMap", normalMap, mipmapSampler, 1);
+		shaders["static-mesh-deferred"]->setSampler("roughnessMap", roughnessMap, mipmapSampler, 2);
+		shaders["static-mesh-deferred"]->setSampler("aoMap", aoMap, mipmapSampler, 3);
+		context.draw(gBuffer.getTarget(), *shaders["static-mesh-deferred"], loadedModel, GL_TRIANGLES);
 
 		/*shaders["decal-shader"]->setMatrix4f("invMVP", glm::inverse(mats[0]));
 
@@ -269,8 +288,6 @@ int main() {
 
 		shaders["wake-shader"]->setSampler("diffuse", wake, skyboxSampler, 4);
 		context.draw(gBuffer.getTarget(), *shaders["wake-shader"], loadedModel, GL_TRIANGLES);*/
-
-		wakeSystem.draw(gBuffer, wake, skyboxSampler);
 
 		gBuffer.applyLighting();
 
@@ -362,6 +379,14 @@ void updateCameraMovement(Display& display) {
 	}
 
 	camera->move(dx, dy, dz);
+}
+
+void cameraFollow(const glm::vec3& target, float distance) {
+	//glm::vec3 diff = glm::normalize(target - camera->getPosition());
+	//diff *= distance;
+	glm::vec3 diff = target + glm::vec3(0, distance, -distance);
+
+	camera->setPosition(diff);
 }
 
 void createCube(IndexedModel& model) {

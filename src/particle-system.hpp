@@ -11,6 +11,12 @@
 #include <GLM/glm.hpp>
 
 struct Particle {
+	inline Particle(const glm::vec3& position,
+				const glm::vec3& velocity, float timeToLive)
+			: position(position)
+			, velocity(velocity)
+			, timeToLive(timeToLive) {}
+
 	glm::vec3 position;
 	glm::vec3 velocity;
 	float timeToLive;
@@ -22,6 +28,8 @@ class ParticleSystem {
 				uintptr particleBufferSize, uintptr inputBufferSize);
 
 		void drawParticle(const Particle& particle);
+		void drawParticle(const glm::vec3& position, const glm::vec3& velocity,
+				float timeToLive);
 
 		void update();
 		void draw(RenderTarget& target, Texture& texture, Sampler& sampler);

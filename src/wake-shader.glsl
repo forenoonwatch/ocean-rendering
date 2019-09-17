@@ -17,7 +17,7 @@ void main() {
 	clipPosition = vertPos;
 	invMVP = transforms[2];
 
-	transparency = timeToLive;
+	transparency = clamp((timeToLive) / 8.0, 0.0, 1.0);
 }
 
 #elif defined(FS_BUILD)
@@ -50,7 +50,7 @@ void main() {
 
 	viewCoords = abs(viewCoords);
 
-	if (viewCoords.x > 1.0 || viewCoords.y > 1.0 || viewCoords.z > 1.0) {
+	if (viewCoords.x >= 1.0 || viewCoords.y >= 1.0 || viewCoords.z >= 1.0) {
 		discard;
 	}
 	else {

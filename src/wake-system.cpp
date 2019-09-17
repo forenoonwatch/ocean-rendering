@@ -47,7 +47,7 @@ WakeSystem::WakeSystem(RenderContext& context, Texture& displacementMap,
 }
 
 void WakeSystem::drawWake(const glm::mat4& transform) {
-	wakeBuffer.emplace_back(1.f, transform);
+	wakeBuffer.emplace_back(5.f, transform);
 }
 
 void WakeSystem::update() {
@@ -86,11 +86,11 @@ void WakeSystem::draw(DeferredRenderTarget& target, Texture& texture, Sampler& s
 	wakeShader->setSampler("diffuse", texture, sampler, 4);
 
 	uint32 numDrawn = feedbackQuery.getResultInt();
-	//DEBUG_LOG_TEMP("%d primitives drawn", numDrawn);
 
-	//context->drawTransformFeedback(target.getTarget(), *wakeShader, *feedback, GL_POINTS);
+	context->setWriteDepth(false);
 	context->draw(target.getTarget(), *wakeShader, *(cubes[feedback->getReadIndex()]),
 			GL_TRIANGLES, numDrawn);
+	context->setWriteDepth(true);
 }
 
 WakeSystem::~WakeSystem() {

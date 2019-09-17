@@ -66,9 +66,11 @@ void main() {
 		vec3 up = cross(forward, right);
 
 		pos.y = 0.25 * (ptFwd.y + ptBack.y + ptLeft.y + ptRight.y);
+
+		const float scale = (5.0 - ttl) * 0.5 + 1.0;
 		
-		transform = mat4(vec4(right, 0.0), vec4(up, 0.0),
-			vec4(forward, 0.0), vec4(pos, 1.0));
+		transform = mat4(vec4(right * scale, 0.0), vec4(up, 0.0),
+			vec4(forward * scale, 0.0), vec4(pos, 1.0));
 
 		mat4 mvp = viewProjection * transform;
 		

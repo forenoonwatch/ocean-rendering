@@ -18,6 +18,8 @@ float height(vec2 pos) {
 			* amplitude;
 }
 
+#define MIX_FACTOR 0.2
+
 void main() {
 	const int i = int(gl_GlobalInvocationID.x);
 
@@ -37,11 +39,11 @@ void main() {
 	ptLeft.y = height(ptLeft.xz);
 	ptRight.y = height(ptRight.xz);
 
-	right = normalize(ptRight - ptLeft);
-	forward = normalize(ptFwd - ptBack);
+	right = mix(right, normalize(ptRight - ptLeft), MIX_FACTOR);
+	forward = mix(forward, normalize(ptFwd - ptBack), MIX_FACTOR);
 	vec3 up = cross(forward, right);
 
-	pos.y = 0.25 * (ptFwd.y + ptBack.y + ptLeft.y + ptRight.y);
+	pos.y = mix(pos.y, 0.25 * (ptFwd.y + ptBack.y + ptLeft.y + ptRight.y), MIX_FACTOR);
 	//pos.y = height(pos.xz);
 
 	transforms[i] = mat4(vec4(right, 0.0), vec4(up, 0.0),

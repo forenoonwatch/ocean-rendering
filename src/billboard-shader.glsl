@@ -68,7 +68,7 @@ layout (location = 2) out vec4 outLighting;
 void main() {
 	const vec4 diffuse = texture2D(billboard, texCoord1);
 
-	outColor = diffuse;
+	outColor = vec4(diffuse.xyz * 0.7, diffuse.w);
 	outNormal = vec4(normal1, diffuse.w);
 	outLighting = vec4(0.0, 1.0, 0.0, 1.0);
 }

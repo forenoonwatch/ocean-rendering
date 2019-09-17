@@ -35,6 +35,11 @@ void ParticleSystem::drawParticle(const Particle& particle) {
 	particleBuffer.push_back(particle);
 }
 
+void ParticleSystem::drawParticle(const glm::vec3& position,
+		const glm::vec3& velocity, float timeToLive) {
+	particleBuffer.emplace_back(position, velocity, timeToLive);
+}
+
 void ParticleSystem::update() {
 	const uintptr numParticles = particleBuffer.size();
 
