@@ -12,15 +12,17 @@
 
 struct Particle {
 	inline Particle(const glm::vec3& position,
-				const glm::vec3& velocity, const glm::vec4& transScale,
-				float timeToLive)
+				const glm::vec3& velocity, const glm::vec3& acceleration,
+				const glm::vec4& transScale, float timeToLive)
 			: position(position)
 			, velocity(velocity)
+			, acceleration(acceleration)
 			, transScale(transScale)
 			, timeData(timeToLive, timeToLive) {}
 
 	glm::vec3 position;
 	glm::vec3 velocity;
+	glm::vec3 acceleration;
 	glm::vec4 transScale;
 	glm::vec2 timeData;
 };
@@ -32,7 +34,8 @@ class ParticleSystem {
 
 		void drawParticle(const Particle& particle);
 		void drawParticle(const glm::vec3& position, const glm::vec3& velocity,
-				const glm::vec4& transScale, float timeToLive);
+				const glm::vec3& acceleration, const glm::vec4& transScale,
+				float timeToLive);
 
 		void update();
 		void draw(RenderTarget& target, Texture& texture, Sampler& sampler);
@@ -50,4 +53,5 @@ class ParticleSystem {
 		Shader* billboardShader;
 
 		std::vector<Particle> particleBuffer;
+		uint32 lastNumParticles;
 };

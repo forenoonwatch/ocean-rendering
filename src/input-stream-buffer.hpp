@@ -7,6 +7,8 @@ class InputStreamBuffer {
 		InputStreamBuffer(RenderContext& context, uint32 numAttribs,
 				const uint32* attribSizes, uint32 numElements);
 
+		inline void swapBuffers();
+
 		void update(const void* data, uintptr dataSize);
 
 		inline uint32 getReadArray() { return arrays[readBuffer]; }
@@ -32,3 +34,8 @@ class InputStreamBuffer {
 		uintptr dataBlockSize;
 		uintptr bufferSize;
 };
+
+inline void InputStreamBuffer::swapBuffers() {
+	writeBuffer = readBuffer;
+	readBuffer = (readBuffer + 1) & 1;
+}

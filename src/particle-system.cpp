@@ -4,9 +4,11 @@
 
 ParticleSystem::ParticleSystem(RenderContext& context,
 			uintptr particleBufferSize, uintptr inputBufferSize)
-		: context(&context) {
-	const uint32 elementSizes[] = {3, 3, 4, 2};
-	const char* varyings[] = {"position1", "velocity1", "transScale1", "ttl1"};
+		: context(&context)
+		, lastNumParticles(0) {
+	const uint32 elementSizes[] = {3, 3, 3, 4, 2};
+	const char* varyings[] = {"position1", "velocity1", "acceleration1",
+		"transScale1", "ttl1"};
 
 	feedback = new TransformFeedback(context, ARRAY_SIZE_IN_ELEMENTS(elementSizes),
 			elementSizes, particleBufferSize);
@@ -36,21 +38,29 @@ void ParticleSystem::drawParticle(const Particle& particle) {
 }
 
 void ParticleSystem::drawParticle(const glm::vec3& position,
-		const glm::vec3& velocity, const glm::vec4&  transScale, float timeToLive) {
-	particleBuffer.emplace_back(position, velocity, transScale, timeToLive);
+		const glm::vec3& velocity, const glm::vec3& acceleration,
+		const glm::vec4&  transScale, float timeToLive) {
+	particleBuffer.emplace_back(position, velocity, acceleration,
+			transScale, timeToLive);
 }
 
 void ParticleSystem::update() {
-	const uintptr numParticles = particleBuffer.size();
+	const uint32 numParticles = particleBuffer.size();
 
 	context->setRasterizerDiscard(true);
 	context->beginTransformFeedback(*transformShader, *feedback, GL_POINTS);
 
+	if (lastNumParticles > 0) {
+		inputBuffer->swapBuffers();
+		context->drawArray(*transformShader, *inputBuffer,
+				lastNumParticles, GL_POINTS);
+		lastNumParticles = 0;
+	}
+
 	if (numParticles > 0) {
 		inputBuffer->update(&particleBuffer[0], numParticles * sizeof(Particle));
-		context->drawArray(*transformShader, *inputBuffer,
-				numParticles, GL_POINTS);
 		particleBuffer.clear();
+		lastNumParticles = numParticles;
 	}
 
 	context->drawTransformFeedback(*transformShader, *feedback, GL_POINTS);

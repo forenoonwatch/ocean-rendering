@@ -172,7 +172,11 @@ int main() {
 	//VertexArray tfbCube0(context, cubeModel, tfb, 0, GL_STATIC_DRAW);
 	//VertexArray tfbCube1(context, cubeModel, tfbCube0, tfb, 1);
 
+	float wakeCounter = 0.f;
 	float particleCounter = 0.f;
+
+	const glm::vec4 bowOffset(0.f, 0.f, -8.f, 1.f);
+	glm::vec4 lastBowPos = bowOffset;
 
 	while (!display.isCloseRequested()) {
 		glm::vec3 shipPos = glm::vec3(blockPos[3]) / blockPos[3][3];
@@ -224,25 +228,38 @@ int main() {
 		loadedModel.updateBuffer(4, mats, sizeof(mats));
 
 		// BEGIN PARTICLE UPDATE
+		wakeCounter += 1.f / 60.f;
 		particleCounter += 1.f / 60.f;
 
-		if (particleCounter > 0.08f) {
+		if (wakeCounter > 0.08f) {
 			//particleSystem.drawParticle(particle);
 			
 			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(-1.5f, 0.f, -6.5f)));
 			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(1.5f, 0.f, -6.5f)));
 
-			glm::vec3 velL = glm::normalize(-10.f * glm::vec3(blockPos[0])
-					+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
-			glm::vec3 velR = glm::normalize(10.f * glm::vec3(blockPos[0])
-					+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+			wakeCounter = 0.f;
+		}
 
-			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.7f, 0.2f, -8.f, 1.f)),
-					velL, glm::vec4(1.f, 0.f, 0.5f, 1.f), 0.5f);
-			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.7f, 0.2f, -8.f, 1.f)),
-					velR, glm::vec4(1.f, 0.f, 0.5f, 1.f), 0.5f);
+		glm::vec4 bowPos = blockPos * bowOffset;
+		float bowImpulse = bowPos.y - lastBowPos.y;
+		lastBowPos = bowPos;
 
+		if (bowImpulse > 0.01f && particleCounter >= 0.04f) {
 			particleCounter = 0.f;
+
+			//glm::vec3 velL = glm::normalize(-10.f * glm::vec3(blockPos[0])
+			//		+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+			//glm::vec3 velR = glm::normalize(10.f * glm::vec3(blockPos[0])
+			//		+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+
+			glm::vec3 velL = -7.f * glm::vec3(blockPos[0]) + glm::vec3(0.f, 10.f, 0.f);
+			glm::vec3 velR = 7.f * glm::vec3(blockPos[0]) + glm::vec3(0.f, 10.f, 0.f);
+
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.3f, 0.f, -7.5f, 1.f)),
+					velL, glm::vec3(0.f, -50.f, 0.f), glm::vec4(1.f, 0.f, 0.5f, 1.2f), 0.5f);
+
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.3f, 0.f, -7.5f, 1.f)),
+					velR, glm::vec3(0.f, -50.f, 0.f), glm::vec4(1.f, 0.f, 0.5f, 1.2f), 0.5f);
 		}
 
 		particleSystem.update();

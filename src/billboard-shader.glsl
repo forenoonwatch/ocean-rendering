@@ -6,8 +6,9 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 velocity;
-layout (location = 2) in vec4 transScale;
-layout (location = 3) in vec2 timeToLive;
+layout (location = 2) in vec3 acceleration;
+layout (location = 3) in vec4 transScale;
+layout (location = 4) in vec2 timeToLive;
 
 out vec2 transScale0;
 
