@@ -1,5 +1,6 @@
 #include "common.glh"
 #include "scene-info.glh"
+#include "lighting.glh"
 
 #if defined(VS_BUILD)
 
@@ -78,10 +79,13 @@ layout (location = 1) out vec4 outNormal;
 layout (location = 2) out vec4 outLighting;
 
 void main() {
-	const vec4 diffuse = texture2D(billboard, texCoord1);
+	const vec4 albedo = texture2D(billboard, texCoord1);
+	const float diffuse = abs(dot(normal1, -sunlightDir));
 
-	outColor = vec4(diffuse.xyz, diffuse.w * transparency1);
-	outNormal = vec4(normal1, diffuse.w * transparency1);
+	const vec3 color = albedo.xyz * mix(diffuse, 1.0, ambientLight);
+
+	outColor = vec4(color, albedo.w * transparency1);
+	outNormal = vec4(normal1, albedo.w * transparency1);
 	outLighting = vec4(0.0, 1.0, 0.0, 1.0);
 }
 
