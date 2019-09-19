@@ -234,8 +234,14 @@ int main() {
 		if (wakeCounter > 0.08f) {
 			//particleSystem.drawParticle(particle);
 			
-			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(-1.5f, 0.f, -6.5f)));
-			wakeSystem.drawWake(glm::translate(blockPos, glm::vec3(1.5f, 0.f, -6.5f)));
+			const glm::vec4 transScale(1.f, 0.f, 1.f, 3.5f);
+			glm::vec2 shipRight(blockPos[0][0], blockPos[0][2]);
+			
+			wakeSystem.drawWake(-shipRight, transScale, glm::translate(blockPos,
+						glm::vec3(-1.5f, 0.f, -6.5f)), 5.f);
+
+			wakeSystem.drawWake(shipRight, transScale, glm::translate(blockPos,
+						glm::vec3(1.5f, 0.f, -6.5f)), 5.f);
 
 			wakeCounter = 0.f;
 		}

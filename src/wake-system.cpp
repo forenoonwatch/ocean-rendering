@@ -14,8 +14,9 @@ WakeSystem::WakeSystem(RenderContext& context, Texture& displacementMap,
 		, feedbackQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)
 		, displacementMap(&displacementMap)
 		, displacementSampler(&displacementSampler) {
-	const uint32 elementSizes[] = {1, 16, 16, 16};
-	const char* varyings[] = {"ttl1", "transform01", "transform11", "transform21"};
+	const uint32 elementSizes[] = {4, 4, 16, 16, 16};
+	const char* varyings[] = {"timeDriftData1", "transScale1",
+			"transform01", "transform11", "transform21"};
 
 	feedback = new TransformFeedback(context, ARRAY_SIZE_IN_ELEMENTS(elementSizes),
 			elementSizes, wakeBufferSize);
@@ -46,8 +47,9 @@ WakeSystem::WakeSystem(RenderContext& context, Texture& displacementMap,
 	context.setRasterizerDiscard(false);
 }
 
-void WakeSystem::drawWake(const glm::mat4& transform) {
-	wakeBuffer.emplace_back(5.f, transform);
+void WakeSystem::drawWake(const glm::vec2& driftVelocity,
+		const glm::vec4& transScale, const glm::mat4& transform, float timeToLive) {
+	wakeBuffer.emplace_back(timeToLive, driftVelocity, transScale, transform);
 }
 
 void WakeSystem::update() {
@@ -79,18 +81,23 @@ void WakeSystem::update() {
 
 void WakeSystem::draw(DeferredRenderTarget& target, Texture& texture, Sampler& sampler) {
 	wakeShader->setSampler("depthBuffer", target.getDepthBuffer(), target.getSampler(), 0);
-	wakeShader->setSampler("colorBuffer", target.getColorBuffer(), target.getSampler(), 1);
-	wakeShader->setSampler("normalBuffer", target.getNormalBuffer(), target.getSampler(), 2);
-	wakeShader->setSampler("lightingBuffer", target.getLightingBuffer(), target.getSampler(), 3);
+	//wakeShader->setSampler("colorBuffer", target.getColorBuffer(), target.getSampler(), 1);
+	wakeShader->setSampler("normalBuffer", target.getNormalBuffer(), target.getSampler(), 1);
+	wakeShader->setSampler("lightingBuffer", target.getLightingBuffer(), target.getSampler(), 2);
 	
-	wakeShader->setSampler("diffuse", texture, sampler, 4);
+	wakeShader->setSampler("diffuse", texture, sampler, 3);
 
 	uint32 numDrawn = feedbackQuery.getResultInt();
+
+	context->setBlending(RenderContext::BLEND_FUNC_SRC_ALPHA,
+			RenderContext::BLEND_FUNC_ONE_MINUS_SRC_ALPHA);
 
 	context->setWriteDepth(false);
 	context->draw(target.getTarget(), *wakeShader, *(cubes[feedback->getReadIndex()]),
 			GL_TRIANGLES, numDrawn);
 	context->setWriteDepth(true);
+
+	context->setBlending(RenderContext::BLEND_FUNC_NONE, RenderContext::BLEND_FUNC_NONE);
 }
 
 WakeSystem::~WakeSystem() {

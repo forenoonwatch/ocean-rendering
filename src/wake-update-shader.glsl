@@ -3,14 +3,17 @@
 
 #if defined(VS_BUILD)
 
-layout (location = 0) in float timeToLive;
-layout (location = 1) in mat4 transform;
+layout (location = 0) in vec4 timeDriftData;
+layout (location = 1) in vec4 transScale;
+layout (location = 2) in mat4 transform;
 
-out float ttl0;
+out vec4 timeDriftData0;
+out vec4 transScale0;
 out mat4 transform0;
 
 void main() {
-	ttl0 = timeToLive;
+	timeDriftData0 = timeDriftData;
+	transScale0 = transScale;
 	transform0 = transform;
 }
 
@@ -23,10 +26,12 @@ layout (max_vertices = 1) out;
 
 uniform sampler2D displacement;
 
-in float ttl0[];
+in vec4 timeDriftData0[];
+in vec4 transScale0[];
 in mat4 transform0[];
 
-out float ttl1;
+out vec4 timeDriftData1;
+out vec4 transScale1;
 
 out mat4 transform01;
 out mat4 transform11;
@@ -40,7 +45,7 @@ float height(vec2 pos) {
 }
 
 void main() {
-	const float ttl = ttl0[0] - deltaTime;
+	const float ttl = timeDriftData0[0].x - deltaTime;
 
 	if (ttl > 0.0) {
 		mat4 transform = transform0[0];
@@ -66,15 +71,18 @@ void main() {
 		vec3 up = cross(forward, right);
 
 		pos.y = 0.25 * (ptFwd.y + ptBack.y + ptLeft.y + ptRight.y);
+		pos.xz = fma(timeDriftData0[0].zw, vec2(deltaTime), pos.xz);
 
-		const float scale = (5.0 - ttl) * 0.5 + 1.0;
+		const float scale = mix(transScale0[0].z, transScale0[0].w,
+				1.0 - ttl / timeDriftData0[0].y);
 		
 		transform = mat4(vec4(right * scale, 0.0), vec4(up, 0.0),
 			vec4(forward * scale, 0.0), vec4(pos, 1.0));
 
 		mat4 mvp = viewProjection * transform;
 		
-		ttl1 = ttl;
+		timeDriftData1 = vec4(ttl, timeDriftData0[0].yzw);
+		transScale1 = transScale0[0];
 
 		transform01 = transform;
 		transform11 = mvp;

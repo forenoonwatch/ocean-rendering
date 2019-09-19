@@ -16,13 +16,18 @@ class DeferredRenderTarget;
 
 struct WakeInstance {
 	inline WakeInstance(float timeToLive,
+				const glm::vec2& driftVelocity,
+				const glm::vec4& transScale,
 				const glm::mat4& transform)
-			: timeToLive(timeToLive) {
+			: timeDriftData(timeToLive, timeToLive,
+					driftVelocity.x, driftVelocity.y)
+			, transScale(transScale) {
 		transforms[0] = transform;	
 	}
 
-	float timeToLive;
-	glm::mat4 transforms[3];
+	glm::vec4 timeDriftData; // (timeToLive, initialTTL, driftX, driftZ)
+	glm::vec4 transScale; // (trans0, trans1, scale0, scale1)
+	glm::mat4 transforms[3]; // (model, mvp, invMVP)
 };
 
 class WakeSystem {
@@ -31,7 +36,9 @@ class WakeSystem {
 				Sampler& displacementSampler, uintptr wakeBufferSize,
 				uintptr inputBufferSize);
 
-		void drawWake(const glm::mat4& transform);
+		void drawWake(const glm::vec2& driftVelocity,
+				const glm::vec4& transScale,
+				const glm::mat4& transform, float timeToLive);
 
 		void update();
 		void draw(DeferredRenderTarget& target, Texture& texture,
