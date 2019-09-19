@@ -9,7 +9,8 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
-#include "display.hpp"
+
+#include "window.hpp"
 #include "camera.hpp"
 
 #include "vertex-array.hpp"
@@ -27,13 +28,15 @@
 #include "particle-system.hpp"
 #include "wake-system.hpp"
 
+#include <GLFW/glfw3.h>
+
 #define MOVE_SPEED	0.5f
 
 void onKeyEvent(GLFWwindow*, int, int, int, int);
 void onMouseClicked(GLFWwindow*, int, int, int);
 void onMouseMoved(GLFWwindow*, double, double);
 
-void updateCameraMovement(Display&);
+void updateCameraMovement(Window&);
 void cameraFollow(const glm::vec3&, float);
 
 void createCube(IndexedModel&);
@@ -50,7 +53,8 @@ uint32 primitive;
 float beaufort;
 
 int main() {
-	Display display("MoIsT - Ocean Rendering", 1200, 900);
+	Application application;
+	Window display(application, "MoIsT - Ocean Rendering", 1200, 900);
 
 	lockCamera = true;
 	renderWater = true;
@@ -67,9 +71,9 @@ int main() {
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
 
-	glfwSetKeyCallback(display.getWindow(), onKeyEvent);
-	glfwSetMouseButtonCallback(display.getWindow(), onMouseClicked);
-	glfwSetCursorPosCallback(display.getWindow(), onMouseMoved);
+	glfwSetKeyCallback(display.getHandle(), onKeyEvent);
+	glfwSetMouseButtonCallback(display.getHandle(), onMouseClicked);
+	glfwSetCursorPosCallback(display.getHandle(), onMouseMoved);
 
 	RenderContext context;
 	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
@@ -253,19 +257,16 @@ int main() {
 		if (bowImpulse > 0.01f && particleCounter >= 0.04f) {
 			particleCounter = 0.f;
 
-			//glm::vec3 velL = glm::normalize(-10.f * glm::vec3(blockPos[0])
-			//		+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
-			//glm::vec3 velR = glm::normalize(10.f * glm::vec3(blockPos[0])
-			//		+ 2.f * glm::vec3(blockPos[1]) + glm::vec3(blockPos[2])) * 4.f;
+			const glm::vec4 transScale(1.f, 0.f, 0.5f, 1.2f);
 
 			glm::vec3 velL = -7.f * glm::vec3(blockPos[0]) + glm::vec3(0.f, 10.f, 0.f);
 			glm::vec3 velR = 7.f * glm::vec3(blockPos[0]) + glm::vec3(0.f, 10.f, 0.f);
 
-			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.3f, 0.f, -7.5f, 1.f)),
-					velL, glm::vec3(0.f, -50.f, 0.f), glm::vec4(1.f, 0.f, 0.5f, 1.2f), 0.5f);
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(-0.3f, -0.5f, -7.5f, 1.f)),
+					velL, glm::vec3(0.f, -50.f, 0.f), transScale, 0.5f);
 
-			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.3f, 0.f, -7.5f, 1.f)),
-					velR, glm::vec3(0.f, -50.f, 0.f), glm::vec4(1.f, 0.f, 0.5f, 1.2f), 0.5f);
+			particleSystem.drawParticle(glm::vec3(blockPos * glm::vec4(0.3f, -0.5f, -7.5f, 1.f)),
+					velR, glm::vec3(0.f, -50.f, 0.f), transScale, 0.5f);
 		}
 
 		particleSystem.update();
@@ -322,7 +323,7 @@ int main() {
 		gBuffer.flush();
 
 		display.render();
-		display.pollEvents();
+		application.pollEvents();
 	}
 
 	return 0;
@@ -366,34 +367,34 @@ void onMouseMoved(GLFWwindow* window, double xPos, double yPos) {
 	lastY = yPos;
 }
 
-void updateCameraMovement(Display& display) {
+void updateCameraMovement(Window& display) {
 	float dx = 0.f, dy = 0.f, dz = 0.f;
 
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_W) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_W) == GLFW_PRESS) {
 		dz -= MOVE_SPEED;
 	}
 	
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_S) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_S) == GLFW_PRESS) {
 		dz += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_A) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_A) == GLFW_PRESS) {
 		dx -= MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_D) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_D) == GLFW_PRESS) {
 		dx += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_Q) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_Q) == GLFW_PRESS) {
 		dy -= MOVE_SPEED;
 	}
 	
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_E) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_E) == GLFW_PRESS) {
 		dy += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+	if (glfwGetKey(display.getHandle(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 		dx *= 0.1f;
 		dy *= 0.1f;
 		dz *= 0.1f;
