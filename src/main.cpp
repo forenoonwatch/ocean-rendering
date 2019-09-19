@@ -52,9 +52,12 @@ uint32 primitive;
 
 float beaufort;
 
+Window* displayPtr;
+
 int main() {
 	Application application;
 	Window display(application, "MoIsT - Ocean Rendering", 1200, 900);
+	displayPtr = &display;
 
 	lockCamera = true;
 	renderWater = true;
@@ -346,6 +349,12 @@ void onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods)
 				break;
 			case GLFW_KEY_X:
 				beaufort = beaufort + 1.f <= 12.f ? beaufort + 1.f : 12.f;
+				break;
+			case GLFW_KEY_ESCAPE:
+				displayPtr->setFullscreen(false);
+				break;
+			case GLFW_KEY_M:
+				displayPtr->setFullscreen(true);
 				break;
 		}
 	}
