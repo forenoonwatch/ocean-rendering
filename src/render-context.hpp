@@ -69,6 +69,8 @@ class RenderContext {
 		uint32 getVersion();
 		std::string getShaderVersion();
 
+		void setViewport(uint32, uint32);
+
 		void setShader(uint32);
 		void setVertexArray(uint32);
 		void setTransformFeedback(uint32);
@@ -83,6 +85,9 @@ class RenderContext {
 
 		uint32 version;
 		std::string shaderVersion;
+
+		uint32 viewportWidth;
+		uint32 viewportHeight;
 
 		enum BlendFunc currentSourceBlend;
 		enum BlendFunc currentDestBlend;

@@ -23,6 +23,8 @@ uint32 RenderContext::attachments[] = {GL_COLOR_ATTACHMENT0,
 RenderContext::RenderContext()
 		: version(0)
 		, shaderVersion("")
+		, viewportWidth(0)
+		, viewportHeight(0)
 		, currentSourceBlend(BLEND_FUNC_NONE)
 		, currentDestBlend(BLEND_FUNC_NONE)
 		, currentShader(0)
@@ -54,6 +56,8 @@ void RenderContext::awaitFinish() {
 void RenderContext::draw(RenderTarget& target, Shader& shader,
 		VertexArray& vertexArray, uint32 primitive, uint32 numInstances) {
 	setRenderTarget(target.getID());
+	setViewport(target.getWidth(), target.getHeight());
+
 	setShader(shader.getID());
 	setVertexArray(vertexArray.getID());
 
@@ -73,6 +77,8 @@ void RenderContext::drawArray(RenderTarget& target, Shader& shader,
 		VertexArray& vertexArray, uint32 bufferIndex, uint32 primitive,
 		uint32 numInstances, uint32 numElements) {
 	setRenderTarget(target.getID());
+	setViewport(target.getWidth(), target.getHeight());
+
 	setShader(shader.getID());
 	setVertexArray(vertexArray.getID());
 
@@ -129,6 +135,8 @@ void RenderContext::drawArray(Shader& shader, InputStreamBuffer& isb,
 void RenderContext::drawTransformFeedback(RenderTarget& target, Shader& shader,
 		TransformFeedback& transformFeedback, uint32 primitive) {
 	setRenderTarget(target.getID());
+	setViewport(target.getWidth(), target.getHeight());
+
 	setShader(shader.getID());
 	setVertexArray(transformFeedback.getReadArray());
 
@@ -145,6 +153,8 @@ void RenderContext::drawTransformFeedback(Shader& shader,
 
 void RenderContext::drawQuad(RenderTarget& target, Shader& shader) {
 	setRenderTarget(target.getID());
+	setViewport(target.getWidth(), target.getHeight());
+
 	setShader(shader.getID());
 	setVertexArray(screenQuad->getID());
 
@@ -259,6 +269,15 @@ std::string RenderContext::getShaderVersion() {
 	}
 
 	return shaderVersion;
+}
+
+void RenderContext::setViewport(uint32 width, uint32 height) {
+	if (width != viewportWidth || height != viewportHeight) {
+		viewportWidth = width;
+		viewportHeight = height;
+
+		glViewport(0, 0, width, height);
+	}
 }
 
 void RenderContext::setShader(uint32 shader) {
