@@ -42,27 +42,27 @@ void Application::pollEvents() {
 	glfwPollEvents();
 }
 
-bool Application::isKeyDown(uint32 keyCode) {
+bool Application::isKeyDown(enum Input::KeyCode keyCode) {
 	return keys[keyCode];
 }
 
-bool Application::getKeyPressed(uint32 keyCode) {
+bool Application::getKeyPressed(enum Input::KeyCode keyCode) {
 	return keys[keyCode] && !lastKeys[keyCode];
 }
 
-bool Application::getKeyReleased(uint32 keyCode) {
+bool Application::getKeyReleased(enum Input::KeyCode keyCode) {
 	return !keys[keyCode] && lastKeys[keyCode];
 }
 
-bool Application::isMouseDown(uint32 mouseButton) {
+bool Application::isMouseDown(enum Input::MouseButton mouseButton) {
 	return mouseButtons[mouseButton];
 }
 
-bool Application::getMousePressed(uint32 mouseButton) {
+bool Application::getMousePressed(enum Input::MouseButton mouseButton) {
 	return mouseButtons[mouseButton] && !lastMouseButtons[mouseButton];
 }
 
-bool Application::getMouseReleased(uint32 mouseButton) {
+bool Application::getMouseReleased(enum Input::MouseButton mouseButton) {
 	return !mouseButtons[mouseButton] && lastMouseButtons[mouseButton];
 }
 

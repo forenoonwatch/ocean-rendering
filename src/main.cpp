@@ -9,7 +9,6 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
-#include "input.hpp"
 #include "application.hpp"
 
 #include "camera.hpp"
@@ -28,8 +27,6 @@
 
 #include "particle-system.hpp"
 #include "wake-system.hpp"
-
-#include <GLFW/glfw3.h>
 
 #define MOVE_SPEED	0.5f
 
@@ -335,31 +332,31 @@ void updateCameraMovement() {
 
 	float dx = 0.f, dy = 0.f, dz = 0.f;
 
-	if (Application::isKeyDown(Input::KEY_W) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_W)) {
 		dz -= MOVE_SPEED;
 	}
 	
-	if (Application::isKeyDown(Input::KEY_S) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_S)) {
 		dz += MOVE_SPEED;
 	}
 
-	if (Application::isKeyDown(Input::KEY_A) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_A)) {
 		dx -= MOVE_SPEED;
 	}
 
-	if (Application::isKeyDown(Input::KEY_D) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_D)) {
 		dx += MOVE_SPEED;
 	}
 
-	if (Application::isKeyDown(Input::KEY_Q) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_Q)) {
 		dy -= MOVE_SPEED;
 	}
 	
-	if (Application::isKeyDown(Input::KEY_E) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_E)) {
 		dy += MOVE_SPEED;
 	}
 
-	if (Application::isKeyDown(Input::KEY_LEFT_SHIFT) == Input::PRESS) {
+	if (Application::isKeyDown(Input::KEY_LEFT_SHIFT)) {
 		dx *= 0.1f;
 		dy *= 0.1f;
 		dz *= 0.1f;

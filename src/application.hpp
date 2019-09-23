@@ -9,13 +9,13 @@ class Application {
 
 		static void pollEvents();
 
-		static bool isKeyDown(uint32 keyCode);
-		static bool getKeyPressed(uint32 keyCode);
-		static bool getKeyReleased(uint32 keyCode);
+		static bool isKeyDown(enum Input::KeyCode keyCode);
+		static bool getKeyPressed(enum Input::KeyCode keyCode);
+		static bool getKeyReleased(enum Input::KeyCode keyCode);
 
-		static bool isMouseDown(uint32 mouseButton);
-		static bool getMousePressed(uint32 mouseButton);
-		static bool getMouseReleased(uint32 mouseButton);
+		static bool isMouseDown(enum Input::MouseButton mouseButton);
+		static bool getMousePressed(enum Input::MouseButton mouseButton);
+		static bool getMouseReleased(enum Input::MouseButton mouseButton);
 
 		inline static Monitor& getPrimaryMonitor() { return monitors[0]; }
 		inline static Monitor& getMonitor(uint32 i) { return monitors[i]; }
