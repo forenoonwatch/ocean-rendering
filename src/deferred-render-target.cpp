@@ -1,6 +1,6 @@
 #include "deferred-render-target.hpp"
 
-#include "util.hpp"
+#include <engine/core/util.hpp>
 
 DeferredRenderTarget::DeferredRenderTarget(RenderContext& context,
 			uint32 width, uint32 height, CubeMap& diffuseIBL,

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "shader.hpp"
-#include "transform-feedback.hpp"
-#include "input-stream-buffer.hpp"
+#include <engine/rendering/shader.hpp>
+#include <engine/rendering/transform-feedback.hpp>
+#include <engine/rendering/input-stream-buffer.hpp>
 
-#include "render-target.hpp"
+#include <engine/rendering/render-target.hpp>
 
 #include <vector>
 

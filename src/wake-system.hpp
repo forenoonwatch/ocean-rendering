@@ -1,12 +1,12 @@
 #pragma once
 
-#include "shader.hpp"
+#include <engine/rendering/shader.hpp>
 
-#include "vertex-array.hpp"
-#include "transform-feedback.hpp"
-#include "input-stream-buffer.hpp"
+#include <engine/rendering/vertex-array.hpp>
+#include <engine/rendering/transform-feedback.hpp>
+#include <engine/rendering/input-stream-buffer.hpp>
 
-#include "render-query.hpp"
+#include <engine/rendering/render-query.hpp>
 
 #include <vector>
 

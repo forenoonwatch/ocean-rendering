@@ -9,19 +9,18 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
-#include "application.hpp"
+#include <engine/core/application.hpp>
+#include <engine/core/asset-loader.hpp>
+#include <engine/core/util.hpp>
+
+#include <engine/rendering/vertex-array.hpp>
+#include <engine/rendering/shader.hpp>
 
 #include "camera.hpp"
-
-#include "vertex-array.hpp"
-#include "shader.hpp"
-#include "util.hpp"
 
 #include "ocean.hpp"
 #include "ocean-fft.hpp"
 #include "ocean-projector.hpp"
-
-#include "asset-loader.hpp"
 
 #include "deferred-render-target.hpp"
 

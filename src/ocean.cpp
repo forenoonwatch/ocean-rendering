@@ -1,6 +1,6 @@
 #include "ocean.hpp"
 
-#include "vertex-array.hpp"
+#include <engine/rendering/vertex-array.hpp>
 
 inline static void initGrid(IndexedModel&, uint32);
 

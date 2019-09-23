@@ -1,8 +1,9 @@
 #pragma once
 
-#include "render-target.hpp"
+#include <engine/rendering/render-target.hpp>
+#include <engine/rendering/vertex-array.hpp>
+
 #include "gaussian-blur.hpp"
-#include "vertex-array.hpp"
 
 class DeferredRenderTarget {
 	public:

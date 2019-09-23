@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.hpp"
+#include <engine/core/common.hpp>
 
 class RenderContext;
 class VertexArray;

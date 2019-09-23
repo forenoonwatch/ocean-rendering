@@ -2,8 +2,8 @@
 
 #include "deferred-render-target.hpp"
 
-#include "indexed-model.hpp"
-#include "util.hpp"
+#include <engine/rendering/indexed-model.hpp>
+#include <engine/core/util.hpp>
 
 static void initCube(IndexedModel&);
 

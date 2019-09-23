@@ -1,6 +1,6 @@
 #include "particle-system.hpp"
 
-#include "util.hpp"
+#include <engine/core/util.hpp>
 
 ParticleSystem::ParticleSystem(RenderContext& context,
 			uintptr particleBufferSize, uintptr inputBufferSize)

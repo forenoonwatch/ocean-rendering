@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
+#include <engine/rendering/shader.hpp>
 
 class GaussianBlur {
 	public:
