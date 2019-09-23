@@ -1,12 +1,12 @@
 #include "window.hpp"
 
+#include "application.hpp"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-Window::Window(Application& application,
-			const char* title, uint32 width, uint32 height)
-		: application(&application)
-		, handle(nullptr)
+Window::Window(const char* title, uint32 width, uint32 height)
+		: handle(nullptr)
 		, width(width)
 		, height(height)
 		, fullscreen(false)
@@ -22,6 +22,8 @@ Window::Window(Application& application,
 	glfwMakeContextCurrent(handle);
 
 	glewInit();
+
+	Application::bindInputCallbacks(handle);
 }
 
 bool Window::isCloseRequested() const {
@@ -40,7 +42,7 @@ void Window::setFullscreen(bool fullscreen) {
 	this->fullscreen = fullscreen;
 
 	if (fullscreen) {
-		currentMonitor = &application->getPrimaryMonitor();
+		currentMonitor = &Application::getPrimaryMonitor();
 
 		glfwSetWindowMonitor(handle, currentMonitor->getHandle(),
 				currentMonitor->getX(), currentMonitor->getY(),
@@ -49,7 +51,7 @@ void Window::setFullscreen(bool fullscreen) {
 	}
 	else {
 		currentMonitor = currentMonitor == nullptr ?
-				&application->getPrimaryMonitor() : currentMonitor;
+				&Application::getPrimaryMonitor() : currentMonitor;
 
 		glfwSetWindowMonitor(handle, nullptr,
 				currentMonitor->getX() + currentMonitor->getWidth() / 2 - width / 2,

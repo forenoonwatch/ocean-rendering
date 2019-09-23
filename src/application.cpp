@@ -1,16 +1,23 @@
 #include "application.hpp"
 
+#include <cstring>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-uint32 Application::numInstances = 0;
+Monitor* Application::monitors = nullptr;
 
-Application::Application() {
-	if (numInstances == 0) {
-		glfwInit();
-	}
+bool Application::keys[] = {0};
+bool Application::mouseButtons[] = {0};
 
-	++numInstances;
+bool Application::lastKeys[] = {0};
+bool Application::lastMouseButtons[] = {0};
+
+double Application::mouseX = 0.0;
+double Application::mouseY = 0.0;
+
+void Application::init() {
+	glfwInit();
 
 	int32 monitorCount;
 	GLFWmonitor** monitorHandles = glfwGetMonitors(&monitorCount);
@@ -29,15 +36,60 @@ Application::Application() {
 }
 
 void Application::pollEvents() {
+	std::memcpy(lastKeys, keys, sizeof(keys));
+	std::memcpy(lastMouseButtons, mouseButtons, sizeof(mouseButtons));
+	
 	glfwPollEvents();
 }
 
-Application::~Application() {
-	--numInstances;
+bool Application::isKeyDown(uint32 keyCode) {
+	return keys[keyCode];
+}
 
-	if (numInstances == 0) {
-		glfwTerminate();
-	}
+bool Application::getKeyPressed(uint32 keyCode) {
+	return keys[keyCode] && !lastKeys[keyCode];
+}
+
+bool Application::getKeyReleased(uint32 keyCode) {
+	return !keys[keyCode] && lastKeys[keyCode];
+}
+
+bool Application::isMouseDown(uint32 mouseButton) {
+	return mouseButtons[mouseButton];
+}
+
+bool Application::getMousePressed(uint32 mouseButton) {
+	return mouseButtons[mouseButton] && !lastMouseButtons[mouseButton];
+}
+
+bool Application::getMouseReleased(uint32 mouseButton) {
+	return !mouseButtons[mouseButton] && lastMouseButtons[mouseButton];
+}
+
+void Application::destroy() {
+	glfwTerminate();
 
 	delete[] monitors;
+}
+
+void Application::bindInputCallbacks(WindowHandle windowHandle) {
+	glfwSetKeyCallback(windowHandle, Application::onKeyEvent);
+	glfwSetMouseButtonCallback(windowHandle, Application::onMouseClickEvent);
+	glfwSetCursorPosCallback(windowHandle, Application::onMouseMoveEvent);
+}
+
+void Application::onKeyEvent(WindowHandle window, int key,
+		int scanCode, int action, int modifiers) {
+	keys[key] = action;
+}
+
+void Application::onMouseClickEvent(WindowHandle window,
+		int button, int action, int modifiers) {
+	mouseButtons[button] = action;
+}
+
+void Application::onMouseMoveEvent(WindowHandle window,
+		double xPos, double yPos) {
+	Application::mouseX = xPos;
+	Application::mouseY = yPos;
 }

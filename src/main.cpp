@@ -9,8 +9,9 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
+#include "input.hpp"
+#include "application.hpp"
 
-#include "window.hpp"
 #include "camera.hpp"
 
 #include "vertex-array.hpp"
@@ -32,11 +33,8 @@
 
 #define MOVE_SPEED	0.5f
 
-void onKeyEvent(GLFWwindow*, int, int, int, int);
-void onMouseClicked(GLFWwindow*, int, int, int);
-void onMouseMoved(GLFWwindow*, double, double);
-
-void updateCameraMovement(Window&);
+void updateCameraMovement();
+void updateInput();
 void cameraFollow(const glm::vec3&, float);
 
 void createCube(IndexedModel&);
@@ -55,8 +53,8 @@ float beaufort;
 Window* displayPtr;
 
 int main() {
-	Application application;
-	Window display(application, "MoIsT - Ocean Rendering", 1200, 900);
+	Application::init();
+	Window display("MoIsT - Ocean Rendering", 1200, 900);
 	displayPtr = &display;
 
 	lockCamera = true;
@@ -73,10 +71,6 @@ int main() {
 
 	Camera userCamera(fieldOfView, aspectRatio, zNear, 10.f * zFar);
 	camera = &userCamera;
-
-	glfwSetKeyCallback(display.getHandle(), onKeyEvent);
-	glfwSetMouseButtonCallback(display.getHandle(), onMouseClicked);
-	glfwSetCursorPosCallback(display.getHandle(), onMouseMoved);
 
 	RenderContext context;
 	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
@@ -188,7 +182,8 @@ int main() {
 	while (!display.isCloseRequested()) {
 		glm::vec3 shipPos = glm::vec3(blockPos[3]) / blockPos[3][3];
 
-		updateCameraMovement(display);
+		updateCameraMovement();
+		updateInput();
 		//cameraFollow(shipPos, 10.f);
 		camera->update();
 
@@ -326,90 +321,73 @@ int main() {
 		gBuffer.flush();
 
 		display.render();
-		application.pollEvents();
+		Application::pollEvents();
 	}
+
+	Application::destroy();
 
 	return 0;
 }
 
-void onKeyEvent(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-	if (action == GLFW_PRESS) {
-		switch (key) {
-			case GLFW_KEY_R:
-				lockCamera = !lockCamera;
-				break;
-			case GLFW_KEY_F:
-				renderWater = !renderWater;
-				break;
-			case GLFW_KEY_G:
-				primitive = primitive == GL_TRIANGLES ? GL_LINES : GL_TRIANGLES;
-				break;
-			case GLFW_KEY_Z:
-				beaufort = beaufort - 1.f >= 0.f ? beaufort - 1.f : 0.f;
-				break;
-			case GLFW_KEY_X:
-				beaufort = beaufort + 1.f <= 12.f ? beaufort + 1.f : 12.f;
-				break;
-			case GLFW_KEY_ESCAPE:
-				displayPtr->setFullscreen(false);
-				break;
-			case GLFW_KEY_M:
-				displayPtr->setFullscreen(true);
-				break;
-		}
-	}
-}
-
-void onMouseClicked(GLFWwindow* window, int button, int action, int mods) {
-	
-}
-
-void onMouseMoved(GLFWwindow* window, double xPos, double yPos) {
+void updateCameraMovement() {
 	static double lastX = 0.0;
 	static double lastY = 0.0;
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-		camera->rotate((float)( (lastY - yPos) * 0.01 ), (float)( (lastX - xPos) * 0.01 ));
-	}
-
-	lastX = xPos;
-	lastY = yPos;
-}
-
-void updateCameraMovement(Window& display) {
 	float dx = 0.f, dy = 0.f, dz = 0.f;
 
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_W) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_W) == Input::PRESS) {
 		dz -= MOVE_SPEED;
 	}
 	
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_S) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_S) == Input::PRESS) {
 		dz += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_A) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_A) == Input::PRESS) {
 		dx -= MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_D) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_D) == Input::PRESS) {
 		dx += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_Q) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_Q) == Input::PRESS) {
 		dy -= MOVE_SPEED;
 	}
 	
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_E) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_E) == Input::PRESS) {
 		dy += MOVE_SPEED;
 	}
 
-	if (glfwGetKey(display.getHandle(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+	if (Application::isKeyDown(Input::KEY_LEFT_SHIFT) == Input::PRESS) {
 		dx *= 0.1f;
 		dy *= 0.1f;
 		dz *= 0.1f;
 	}
 
 	camera->move(dx, dy, dz);
+
+	if (Application::isMouseDown(Input::MOUSE_BUTTON_RIGHT)) {
+		camera->rotate((float)( (lastY - Application::getMouseY()) * 0.01 ),
+				(float)( (lastX - Application::getMouseX()) * 0.01 ));
+	}
+
+	lastX = Application::getMouseX();
+	lastY = Application::getMouseY();
+}
+
+void updateInput() {
+	if (Application::getKeyPressed(Input::KEY_R)) {
+		lockCamera = !lockCamera;
+	}
+
+	if (Application::getKeyPressed(Input::KEY_Z)) {
+		beaufort = beaufort - 1.f >= 0.f ? beaufort - 1.f : 0.f;
+	}
+
+	if (Application::getKeyPressed(Input::KEY_X)) {
+		beaufort = beaufort + 1.f <= 12.f ? beaufort + 1.f : 12.f;
+	}
 }
 
 void cameraFollow(const glm::vec3& target, float distance) {

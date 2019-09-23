@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application.hpp"
+#include "monitor.hpp"
 
 class GLFWwindow;
 
@@ -8,8 +8,7 @@ typedef GLFWwindow* WindowHandle;
 
 class Window {
 	public:
-		Window(Application& application, const char* title,
-				uint32 width, uint32 height);
+		Window(const char* title, uint32 width, uint32 height);
 
 		bool isCloseRequested() const;
 		void render();
@@ -27,8 +26,6 @@ class Window {
 		~Window();
 	private:
 		NULL_COPY_AND_ASSIGN(Window);
-
-		Application* application;
 
 		WindowHandle handle;
 		uint32 width;
