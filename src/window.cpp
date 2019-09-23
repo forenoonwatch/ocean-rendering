@@ -83,6 +83,10 @@ void Window::setFullscreen(bool fullscreen, Monitor& monitor) {
 	}
 }
 
+void Window::setCursorMode(enum Input::CursorMode cursorMode) {
+	glfwSetInputMode(handle, GLFW_CURSOR, cursorMode);
+}
+
 Window::~Window() {
 	glfwDestroyWindow(handle);
 }

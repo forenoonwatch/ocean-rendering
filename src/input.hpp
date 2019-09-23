@@ -8,6 +8,12 @@ namespace Input {
 		PRESS					= 1,
 	};
 
+	enum CursorMode {
+		CURSOR_NORMAL          = 0x00034001,
+		CURSOR_HIDDEN          = 0x00034002,
+		CURSOR_DISABLED        = 0x00034003
+	};
+
 	enum KeyCode {
 	/* The unknown key */
 		KEY_UNKNOWN				= -1,

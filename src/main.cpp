@@ -385,6 +385,14 @@ void updateInput() {
 	if (Application::getKeyPressed(Input::KEY_X)) {
 		beaufort = beaufort + 1.f <= 12.f ? beaufort + 1.f : 12.f;
 	}
+
+	if (Application::getKeyPressed(Input::KEY_M)) {
+		displayPtr->setCursorMode(Input::CURSOR_DISABLED);
+	}
+
+	if (Application::getKeyPressed(Input::KEY_ESCAPE)) {
+		displayPtr->setCursorMode(Input::CURSOR_NORMAL);
+	}
 }
 
 void cameraFollow(const glm::vec3& target, float distance) {

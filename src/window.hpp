@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input.hpp"
 #include "monitor.hpp"
 
 class GLFWwindow;
@@ -15,6 +16,8 @@ class Window {
 
 		void setFullscreen(bool fullscreen);
 		void setFullscreen(bool fullscreen, Monitor& monitor);
+
+		void setCursorMode(enum Input::CursorMode cursorMode);
 
 		inline WindowHandle getHandle() { return handle; }
 		
