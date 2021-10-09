@@ -1,0 +1,3 @@
+[submodule "nx-engine"]
+	path = nx-engine
+	url = https://github.com/forenoonwatch/nx-engine
