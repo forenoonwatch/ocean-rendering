@@ -1,9 +1,30 @@
 # Ocean Rendering
 
+## Description
+
 Rendering ocean water in OpenGL utilizing J. Tessendorf's inverse Fourier transform rendered via a projected grid (C. Johanson).
 Featuring deferred lighting with Physically Based Rendering (PBR) and Image Based Lighting (IBL) technology.
 
-## TODO List
+## Images
+
+![GIF 1](images/ocean_rendering_1.gif)
+
+![IMAGE 1](images/ocean_rendering_1.png)
+
+![IMAGE 2](images/ocean_rendering_2.png)
+
+## Background
+
+After deciding to make a ship game, I began research on better ways to render ocean water, which led me to the listed papers. I implemented the content of the papers on top of my at-the-time current engine [nx-engine](https://github.com/forenoonwatch/nx-engine). This was utilized in my subsequent attempts at water-related rendering and always traveled in my game engine repositories such as [block-systems](https://github.com/forenoonwatch/block-systems).
+
+## Features
+
+- GPU accelerated IFFT ocean, using the Phillips spectrum as per Jerry Tessendorf's paper "Simulating Ocean Water"
+- Projected grid world model based on Claes Johanson's paper
+- OpenGL implementation of PBR and IBL
+
+## Future Work
+
 - Underwater rendering
 - Lighting volumes
 - Merge with main engine
@@ -14,36 +35,15 @@ Featuring deferred lighting with Physically Based Rendering (PBR) and Image Base
 - Further fill out readme
 - Add pictures to readme
 
+## Building / Usage
+
+Uses GCC and GNU Make. Good luck.
+
 ## Dependencies
-* GLFW
-* Glew
-* GLM
-* Assimp
-* STB Image
 
-## Articles for later reading
+- GLFW
+- Glew
+- GLM
+- Assimp
+- STB Image
 
-### Deferred Decals
-* https://community.khronos.org/t/decal-as-texture-mapping/60030/8
-* https://mtnphil.wordpress.com/2014/05/24/decals-deferred-rendering/
-* https://www.popekim.com/2012/10/siggraph-2012-screen-space-decals-in.html
-* http://www.digitalrune.com/Support/Blog/tabid/719/EntryId/178/Decal-Rendering-Preview.aspx
-* http://gpupro.blogspot.com/2009/10/volume-decals.html
-* http://twvideo01.ubm-us.net/o1/vault/gdc2012/slides/Programming%20Track/Kircher_Lighting_and_Simplifying_Saints_Row_The_Third.pdf
-* https://bartwronski.com/2015/03/12/fixing-screen-space-deferred-decals/
-* https://www.slideshare.net/blindrenderer/screen-space-decals-in-warhammer-40000-space-marine-14699854
-
-### Ship Bilge Pumps
-* https://www.nps.gov/safr/learn/historyculture/historicbilgepump.htm
-
-### Ordered Draw Calls
-* http://realtimecollisiondetection.net/blog/?p=86
-
-### Vector Text Rendering
-* https://medium.com/@evanwallace/easy-scalable-text-rendering-on-the-gpu-c3f4d782c5ac
-* https://www.freetype.org/freetype2/docs/reference/ft2-outline_processing.html
-
-### HashMaps
-* https://github.com/Cyan4973/xxHash
-* https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/
-* http://codecapsule.com/2013/11/17/robin-hood-hashing-backward-shift-deletion/
